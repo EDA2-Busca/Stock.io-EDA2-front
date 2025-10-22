@@ -56,20 +56,6 @@ npm run lint      # lint do projeto
 npm run test      # executa testes (se configurados)
 ```
 
-## 📁 Estrutura do Projeto (resumida)
-```
-src/
-├─ app/               # rotas (layout.tsx, page.tsx) - App Router
-│  ├─ feed-deslogado/
-│  └─ globals.css
-├─ components/        # componentes (Client & Server)
-│  └─ ToastProvider.tsx
-├─ types/             # tipos TypeScript
-└─ utils/             # utilitários (ex: api.ts - instância Axios)
-.env.local
-package.json
-```
-
 ## ✅ Boas práticas sugeridas
 - Mantenha DTOs/validações sincronizadas entre frontend (Yup) e backend.
 - Centralize instância Axios em src/utils/api.ts usando NEXT_PUBLIC_API_BASE_URL.
@@ -87,7 +73,7 @@ Equipe responsável pelo desenvolvimento e manutenção do frontend. Para contri
 
 | Foto | Nome | Função |
 |---:|---|---|
-| <img src="https://github.com/joaofmoreiraa.png" alt="João" width="80" style="border-radius:8px" /> | **[João Victor Felix Moreira](https://github.com/joaofmoreiraa)** | Coordenador de Projeto |
+| <img src="https://github.com/joaofmoreiraa.png" alt="João" width="80" style="border-radius:8px" /> | **[João Victor Felix Moreira](https://github.com/joaofmoreiraa)** | Orientador do Projeto |
 | <img src="https://github.com/uwatanabev.png" alt="Bernardo" width="80" style="border-radius:8px" /> | **[Bernardo Watanabe Venzi](https://github.com/uwatanabev)** | Desenvolvedor |
 | <img src="https://github.com/dev-americo.png" alt="Pedro" width="80" style="border-radius:8px" /> | **[Pedro Américo](https://github.com/dev-americo)** | Desenvolvedor |
 | <img src="https://github.com/Danielfelipe08.png" alt="Daniel" width="80" style="border-radius:8px" /> | **[Daniel Felipe](https://github.com/Danielfelipe08)** | Desenvolvedor |
