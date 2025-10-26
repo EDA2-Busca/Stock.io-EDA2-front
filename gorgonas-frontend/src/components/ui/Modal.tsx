@@ -1,21 +1,24 @@
-// src/components/ui/Modal.tsx
 'use client';
 import React from 'react';
 
-type ModalProps = {
+// Define os props que o Modal recebe, sem os children
+type ModalOwnProps = {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
   title: string;
-  children: React.ReactNode;
 };
 
+// Combina os props com o tipo 'PropsWithChildren' do React para tipagem correta
+type ModalProps = React.PropsWithChildren<ModalOwnProps>;
+
+// Componente reutilizável para o modal de sucesso
 export default function Modal({ isOpen, onClose, onConfirm, title, children }: ModalProps) {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Overlay (sem alteração) */}
+      {/* Overlay */}
       <div
         className="absolute inset-0 bg-black/40"
         onClick={onClose}
@@ -24,17 +27,15 @@ export default function Modal({ isOpen, onClose, onConfirm, title, children }: M
       {/* Conteúdo do Modal (Estilizado) */}
       <div className="relative z-10 w-[90%] max-w-sm bg-[#171918] rounded-xl p-6 shadow-lg border border-gray-700">
         
-        {/* Título (Cor alterada) */}
         <h3 className="text-lg font-semibold text-white">
           {title}
         </h3>
         
-        {/* Descrição (Cor alterada) */}
+        {/* Renderiza os children (ex: <p>Redirecionando...</p>) */}
         <div className="text-sm text-[#d1cfcf] mt-2">
           {children}
         </div>
         
-        {/* Botão (Estilo alterado para combinar com o tema) */}
         <div className="mt-4 flex justify-end">
           <button
             onClick={onConfirm}

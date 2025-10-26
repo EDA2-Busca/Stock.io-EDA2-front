@@ -1,9 +1,8 @@
-// src/components/ui/PasswordInput.tsx
 'use client';
 import React, { useState } from 'react';
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaEye, FaEyeSlash } from "react-icons/fa"; // Usa ícones
 
-// Removemos a prop 'error'
+// Componente reutilizável para input de senha com toggle de visibilidade
 type PasswordInputProps = React.InputHTMLAttributes<HTMLInputElement>;
 
 export default function PasswordInput({ ...props }: PasswordInputProps) {
@@ -26,7 +25,6 @@ export default function PasswordInput({ ...props }: PasswordInputProps) {
           {isVisible ? <FaEyeSlash /> : <FaEye />}
         </button>
       </div>
-      {/* O 'p' de erro foi removido daqui */}
     </div>
   );
 }

@@ -1,8 +1,7 @@
-// src/components/ui/Button.tsx
 'use client';
 import React from 'react';
 
-// Aceita todas as propriedades de um <button> normal
+// Componente reutilizável para o botão principal
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   children: React.ReactNode;
 };
