@@ -1,4 +1,3 @@
-// src/app/feed-deslogado/page.tsx
 export default function FeedDeslogadoPage() {
   return (
     <div className="text-center p-12 min-h-screen bg-gray-100">

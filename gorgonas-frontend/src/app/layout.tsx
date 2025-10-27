@@ -6,8 +6,8 @@ import React from "react";
 
 // Metadata padrão para o projeto
 export const metadata: Metadata = {
-  title: "Avaliação de Professores",
-  description: "Avaliação de professores da Universidade de Brasília",
+  title: "Stock.io",
+  description: "Do CAOS à organização em alguns cliques",
 };
 
 export default function RootLayout({
