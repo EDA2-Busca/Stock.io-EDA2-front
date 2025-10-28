@@ -176,7 +176,7 @@ export default function CadastroPage() {
             </div>
 
             {/* Ilustração */}
-            <div className="w-full h-[80vh] flex items-start justify-center">
+            <div className="w-full h-[70vh] flex items-start justify-center">
                <img
                 src="/StockLee.png" /* */
                 alt="Mascote Stock.io"
