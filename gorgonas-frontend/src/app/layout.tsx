@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import ToastProvider from "@/components/ToastProvider"; 
 import "@/app/globals.css"; 
 import React from "react";
+import { AuthProvider } from './contexts/AuthContext';
 
 // Metadata padrão para o projeto
 export const metadata: Metadata = {
@@ -18,11 +19,12 @@ export default function RootLayout({
   return (
     <html lang="pt-br">
       <body>
+        <AuthProvider>
         {/* Renderiza o conteúdo das páginas */}
         {children} 
-        
         {/* Adiciona o container de notificações */}
-        <ToastProvider /> 
+        <ToastProvider />
+        </AuthProvider>
       </body>
     </html>
   );

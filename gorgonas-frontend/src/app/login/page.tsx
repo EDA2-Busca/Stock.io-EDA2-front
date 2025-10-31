@@ -33,7 +33,6 @@ export default function LoginPage() {
   // --- Lógica de Redirecionamento se já estiver logado ---
   useEffect(() => {
     if (!isAuthLoading && user) {
-      toast.info('Você já está logado.');
       router.push('/');
     }
   }, [user, isAuthLoading, router]);
@@ -70,9 +69,8 @@ export default function LoginPage() {
         // atualiza o contexto de autenticação
         setLoggedInUser(userData);
         
-        // redireciona
+        // aviso de sucesso
         toast.success('Login realizado com sucesso!');
-        router.push('/'); 
 
       } catch (error) {
         // trata erros
