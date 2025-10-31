@@ -9,6 +9,9 @@ import TextInput from '@/components/ui/TextInput';
 import PasswordInput from '@/components/ui/PasswordInput';
 import Button from '@/components/ui/Button';
 
+import api from '../../utilis/api';
+import axios from 'axios';
+
 export default function LoginPage() {
   const router = useRouter();
 
@@ -22,29 +25,9 @@ export default function LoginPage() {
     return regexFormato.test(email.trim());
   };
 
-  // --- Lógica de Submissão (Simulada) ---
+  // --- Lógica de Submissão ---
   const handleLogin = async () => {
-    // TODO: Substituir por chamada real à API de login (axios.post)
-    console.log('Tentando fazer login com:', { email, senha });
 
-    try {
-      // Simulação de chamada à API 
-      // const response = await fakeApiLogin(email, senha); 
-
-      // Simulação de sucesso:
-      toast.success('Login efetuado com sucesso! Redirecionando...');
-      setTimeout(() => {
-        router.push('/'); // Redireciona para a página principal
-      }, 1500); 
-
-    } catch (error) {
-      // --- Tratamento de Erros do Backend (Exemplo) ---
-      // TODO: Implementar tratamento de erros reais da API
-      console.error("Erro na tentativa de login (simulado ou real):", error);
-     
-      // Simulação de erro genérico por agora:
-      toast.error('Email ou senha incorretos (simulação).', { toastId: 'err-login-simulado' });
-    }
   };
 
   // --- Função de Validação e Submissão ---
