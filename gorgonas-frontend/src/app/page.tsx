@@ -1,7 +1,10 @@
-// src/app/page.tsx
-import FeedDeslogadoPage from "./feed-deslogado/page";
+import { Navbar } from '../components/Navbar'; // Ajuste o caminho se necessário
 
-// A rota raiz (/) renderiza o Feed Deslogado
 export default function HomePage() {
-  return <FeedDeslogadoPage />;
+  return (
+    <div>
+      <Navbar />
+      {/* Restante da sua página */}
+    </div>
+  );
 }
