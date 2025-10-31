@@ -1,7 +1,7 @@
 'use client'; 
 
 import { useRouter } from 'next/navigation'; 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { toast } from 'react-toastify'; 
 
@@ -10,8 +10,15 @@ import PasswordInput from '@/components/ui/PasswordInput';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 
+import api from '../../utilis/api';
+
 export default function CadastroPage() {
   const router = useRouter();
+
+  // --- Integração ---
+
+  
+
 
   // --- Estados do Componente ---
   const [nome, setNome] = useState('');
