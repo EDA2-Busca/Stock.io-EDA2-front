@@ -1,6 +1,5 @@
 import { Navbar } from '../components/Navbar'; 
-import { League_Spartan } from 'next/font/google';
-const leagueSpartan = League_Spartan({ subsets: ['latin'] });
+import { ProductCard } from '../components/ProductCard';
 
 export default function HomePage() {
   return (
@@ -33,6 +32,39 @@ export default function HomePage() {
             />
           </div>
         </div>
+      </section>
+
+
+      <section className="pb-12">
+        <div className="max-w-7xl mx-auto px-8">
+          {/* A grade ainda está aqui, mas com um item só */}
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            <a href="/produto">
+            <ProductCard 
+              name="Brownie Meio A."
+              price="4,70"
+              isAvailable={true}
+              imageUrl="/brownie.png" // Use um caminho de imagem válido ou placeholder
+              badgeUrl="/logo-cjr.png"       // Use um caminho de imagem válido ou placeholder
+              // unit não foi passado, então não vai aparecer
+            />
+            </a>
+            <a href="/produto">
+            {/* Você pode adicionar um segundo card aqui para ver o espaçamento */}
+            <ProductCard 
+              name="Nozes (Indisponível)"
+              price="29,99"
+              unit="kg"
+              isAvailable={false} // Testando o indisponível
+              imageUrl="/nozes.png" // Use um caminho de imagem válido ou placeholder
+              badgeUrl="/logo-cjr.png"
+            />
+            </a>
+          </div>
+          
+        </div>
+        
       </section>
       
     </main>
