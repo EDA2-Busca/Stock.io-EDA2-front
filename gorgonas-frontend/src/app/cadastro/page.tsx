@@ -11,18 +11,14 @@ import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 
 import api from '../../utilis/api';
+import axios from 'axios';
 
 export default function CadastroPage() {
   const router = useRouter();
 
-  // --- Integração ---
-
-  
-
-
   // --- Estados do Componente ---
   const [nome, setNome] = useState('');
-  const [username, setUsername] = useState(''); 
+  const [userName, setUserName] = useState(''); 
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
@@ -52,10 +48,29 @@ export default function CadastroPage() {
 
   // --- Lógica de Submissão e Navegação ---
   const lendoRegister = async () => {
-    // TODO: Substituir por chamada real à API
-    console.log('Dados enviados (simulação):', { nome, username, email, senha });
-    setPopupAberto(true); // Abre o modal de sucesso
+      const data = {
+        nome: nome,
+        userName: userName,
+        email: email,
+        senha: senha,
+        confirmarSenha: confirmarSenha,
+        fotoPerfil: null
+      };
+
+      try {
+        await api.post('/auth/signup', data);
+        setPopupAberto(true);
+
+      } catch (error){
+        if (axios.isAxiosError(error) && error.response) {
+          toast.error(error.response.data.message || 'Ocorreu um erro no cadastro.');
+        } else {
+          toast.error('Erro de conexão. O servidor parece estar fora do ar.');
+        }
+        console.error('Erro na API', error);
+      }
   };
+  
 
   const handleModalConfirm = () => {
     setPopupAberto(false);
@@ -66,7 +81,7 @@ export default function CadastroPage() {
     e.preventDefault();
     
     // Validações em ordem, usando toasts para feedback de erro
-    if (!nome || !username || !email || !senha || !confirmarSenha) {
+    if (!nome || !userName || !email || !senha || !confirmarSenha) {
       toast.error('Por favor, preencha todos os campos.', { toastId: 'err-campos' });
       return;
     }
@@ -74,7 +89,7 @@ export default function CadastroPage() {
       toast.error('O nome deve conter apenas letras e espaços.', { toastId: 'err-nome' });
       return;
     }
-    if (!validarUsername(username)) {
+    if (!validarUsername(userName)) {
       toast.error('O username não pode conter espaços.', { toastId: 'err-username' });
       return;
     }
@@ -123,8 +138,8 @@ export default function CadastroPage() {
               />
               
               <TextInput
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
                 placeholder="Username"
                 type="text"
               />
