@@ -1,11 +1,11 @@
 export function Navbar() {
-  const isUserLoggedIn = true; 
+  const isUserLoggedIn = false;
 
   return (
     <nav className=" w-full h-23 bg-black flex items-center justify-between px-8">
 
       {/* --- Logo --- */}
-      <a href="/"> 
+      <a href="/">
         <div className="flex items-center">
           <img
             src="/LOGOStock.io.png"
@@ -15,63 +15,81 @@ export function Navbar() {
         </div>
       </a>
 
-      {/* --- GRUPO DA DIREITA (Ícones + Auth) --- */}
-      <div className="flex items-center space-x-20 px-8">
-        
-        {/* --- Ícones --- */}
-        <div className="flex space-x-6">
-          <a href="/carrinho">
-            <div
-              className="h-9 w-9 bg-contain bg-no-repeat bg-center 
+        {isUserLoggedIn ? (
+          /* CASO 1: LOGADO */
+          <>
+            <div className="flex items-center space-x-6">
+              <a href="/carrinho">
+                <div
+                  className="h-9 w-9 bg-contain bg-no-repeat bg-center 
                          bg-[url('/sacola.png')] 
                          hover:bg-[url('/sacola-hover.png')]
                          transition-all duration-200"
-              role="img"
-              aria-label="Sacola de compras"
-            />
-          </a>
-          <a href="/loja">
-            <div
-              className="h-9 w-9 bg-contain bg-no-repeat bg-center 
+                  role="img"
+                  aria-label="Sacola de compras"
+                />
+              </a>
+              <a href="/loja">
+                <div
+                  className="h-9 w-9 bg-contain bg-no-repeat bg-center 
                          bg-[url('/lojinha.png')] 
                          hover:bg-[url('/lojinha-hover.png')]
                          transition-all duration-200"
-              role="img"
-              aria-label="Loja"
-            />
-          </a>
-        
+                  role="img"
+                  aria-label="Loja"
+                />
+              </a>
+              <a href="/perfil">
+                <div
+                  className="h-9 w-9 bg-contain bg-no-repeat bg-center 
+                             bg-[url('/avatar-placeholder.png')] 
+                             hover:bg-[url('/avatar-hover.png')]
+                             transition-all duration-200"
+                  role="img"
+                  aria-label="Perfil"
+                />
+              </a>
+              <a href=""> {/* Sugestão: adicione um onClick={handleLogout} aqui */}
+                <div
+                  className="h-9 w-9 bg-contain bg-no-repeat bg-center 
+                             bg-[url('/logout.png')] 
+                             hover:bg-[url('/logout-hover.png')]
+                             transition-all duration-200"
 
-        {/* --- LÓGICA DE AUTENTICAÇÃO --- */}
-        {isUserLoggedIn ? (
-          <>
-          <a href="/perfil">
-            <div
-              className="h-9 w-9 bg-contain bg-no-repeat bg-center 
-                         bg-[url('/avatar-placeholder.png')] 
-                         hover:bg-[url('/avatar-hover.png')]
-                         transition-all duration-200"
-              role="img"
-              aria-label="Loja"
-            />
-          </a>
-          <a href="">
-            <div
-              className="h-9 w-9 bg-contain bg-no-repeat bg-center 
-                         bg-[url('/logout.png')] 
-                         hover:bg-[url('/logout-hover.png')]
-                         transition-all duration-200"
-              role="img"
-              aria-label="Loja"
-            />
-          </a>
+                  role="img"
+                  aria-label="Sair"
+                />
+              </a>
+            </div>
           </>
-          
 
         ) : (
 
-          /* CASO 2: USUÁRIO DESLOGADO (Mostra Login/Cadastro) */
+          /* CASO 2: DESLOGADO */
           <>
+          <div className="flex items-center space-x-20 px-8">            
+            <div className="flex items-center space-x-6">
+              <a href="/carrinho">
+                <div
+                  className="h-9 w-9 bg-contain bg-no-repeat bg-center 
+                         bg-[url('/sacola.png')] 
+                         hover:bg-[url('/sacola-hover.png')]
+                         transition-all duration-200"
+                  role="img"
+                  aria-label="Sacola de compras"
+                />
+              </a>
+              <a href="/loja">
+                <div
+                  className="h-9 w-9 bg-contain bg-no-repeat bg-center 
+                         bg-[url('/lojinha.png')] 
+                         hover:bg-[url('/lojinha-hover.png')]
+                         transition-all duration-200"
+                  role="img"
+                  aria-label="Loja"
+                />
+              </a>
+            </div>
             <a
               href="/login"
               className="text-white font-medium hover:text-[#6A38F3]"
@@ -84,11 +102,11 @@ export function Navbar() {
             >
               CADASTRE-SE
             </a>
+            </div>
           </>
+          
         )}
-        </div>
-        
-      </div>
+        {/* */}
     </nav>
   );
 }
