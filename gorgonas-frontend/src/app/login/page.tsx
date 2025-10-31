@@ -1,7 +1,7 @@
 'use client'; 
 
 import { useRouter } from 'next/navigation'; 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { toast } from 'react-toastify'; 
 
@@ -29,6 +29,14 @@ export default function LoginPage() {
     const regexFormato = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return regexFormato.test(email.trim());
   };
+
+  // --- Lógica de Redirecionamento se já estiver logado ---
+  useEffect(() => {
+    if (!isAuthLoading && user) {
+      toast.info('Você já está logado.');
+      router.push('/');
+    }
+  }, [user, isAuthLoading, router]);
 
   // --- Lógica de Submissão ---
   const handleLogin = async () => {
