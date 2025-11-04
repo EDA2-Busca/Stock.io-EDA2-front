@@ -4,7 +4,7 @@ export function Navbar() {
   return (
     <nav className=" w-full h-23 bg-black flex items-center justify-between px-8">
 
-      {/* --- Logo --- */}
+  {/* --- Logo --- */}
       <a href="/">
         <div className="flex items-center">
           <img
@@ -106,7 +106,6 @@ export function Navbar() {
           </>
           
         )}
-        {/* */}
     </nav>
   );
 }
