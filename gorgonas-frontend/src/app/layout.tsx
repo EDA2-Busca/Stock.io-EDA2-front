@@ -1,21 +1,26 @@
-import type { Metadata } from "next";
-// Importa o componente cliente
-import ToastProvider from "@/components/ToastProvider"; 
-import "@/app/globals.css"; 
+import ToastProvider from "@/components/ToastProvider";
 import React from "react";
 import { AuthProvider } from './contexts/AuthContext';
+import type { Metadata } from 'next';
+import { League_Spartan } from 'next/font/google';
+import './globals.css';
 
-// Metadata padrão para o projeto
+// 2. Configure a fonte (REMOVA O CAMPO 'variable')
+const leagueSpartan = League_Spartan({
+  subsets: ['latin'],
+  weight: ['400', '500', '700', '800'],
+});
+
 export const metadata: Metadata = {
-  title: "Stock.io",
-  description: "Do CAOS à organização em alguns cliques",
+  title: 'Stock.io',
+  description: '...',
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="pt-br">
       <body>
