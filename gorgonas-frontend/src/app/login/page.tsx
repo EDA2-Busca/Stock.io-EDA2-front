@@ -1,13 +1,18 @@
 'use client'; 
 
 import { useRouter } from 'next/navigation'; 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { toast } from 'react-toastify'; 
 
 import TextInput from '@/components/ui/TextInput';
 import PasswordInput from '@/components/ui/PasswordInput';
 import Button from '@/components/ui/Button';
+
+import api from '../../utilis/api';
+import axios from 'axios';
+import { useAuth } from '../contexts/AuthContext';
+import { jwtDecode } from 'jwt-decode';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,36 +21,69 @@ export default function LoginPage() {
   const [email, setEmail] = useState(''); 
   const [senha, setSenha] = useState(''); 
 
+  const [isLoading, setIsLoading] = useState(false);
+  const { user, setLoggedInUser, isLoading: isAuthLoading } = useAuth();
+
   // --- Função de Validação ---
   const validarEmail = (email: string) => {
     const regexFormato = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return regexFormato.test(email.trim());
   };
 
-  // --- Lógica de Submissão (Simulada) ---
-  const handleLogin = async () => {
-    // TODO: Substituir por chamada real à API de login (axios.post)
-    console.log('Tentando fazer login com:', { email, senha });
-
-    try {
-      // Simulação de chamada à API 
-      // const response = await fakeApiLogin(email, senha); 
-
-      // Simulação de sucesso:
-      toast.success('Login efetuado com sucesso! Redirecionando...');
-      setTimeout(() => {
-        router.push('/'); // Redireciona para a página principal
-      }, 1500); 
-
-    } catch (error) {
-      // --- Tratamento de Erros do Backend (Exemplo) ---
-      // TODO: Implementar tratamento de erros reais da API
-      console.error("Erro na tentativa de login (simulado ou real):", error);
-     
-      // Simulação de erro genérico por agora:
-      toast.error('Email ou senha incorretos (simulação).', { toastId: 'err-login-simulado' });
+  // --- Lógica de Redirecionamento se já estiver logado ---
+  useEffect(() => {
+    if (!isAuthLoading && user) {
+      router.push('/');
     }
-  };
+  }, [user, isAuthLoading, router]);
+
+  // --- Lógica de Submissão ---
+  const handleLogin = async () => {
+      setIsLoading(true);
+
+      try {
+        // chama a api de login
+        const response = await api.post('/auth/login', { email, senha });
+        
+        // pega o token da resposta
+        const token = response.data.access_token;
+        if (!token) {
+          throw new Error('Token de acesso não recebido.');
+        }
+
+        // salva o token no localStorage
+        localStorage.setItem('token', token);
+
+        // decodifica o token para pegar o ID do usuário
+        const decoded: { sub?: string } = jwtDecode(token);
+        const userId = decoded.sub; // 'sub' é o ID do usuário
+
+        if (!userId) {
+          throw new Error('Token inválido (não contém ID).');
+        }
+
+        // busca os dados completos do usuário na API
+        const userResponse = await api.get(`/usuario/${userId}`);
+        const userData = userResponse.data;
+
+        // atualiza o contexto de autenticação
+        setLoggedInUser(userData);
+        
+        // aviso de sucesso
+        toast.success('Login realizado com sucesso!');
+
+      } catch (error) {
+        // trata erros
+        console.error('Erro ao fazer login:', error);
+        if (axios.isAxiosError(error) && error.response) {
+          toast.error(error.response.data.message || 'Email ou senha inválidos.');
+        } else {
+          toast.error('Erro de conexão. O servidor parece estar fora do ar.');
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
   // --- Função de Validação e Submissão ---
   const handleSubmit = async (e: React.FormEvent) => {
