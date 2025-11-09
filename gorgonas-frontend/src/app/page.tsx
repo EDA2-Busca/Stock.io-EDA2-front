@@ -1,10 +1,83 @@
+'use client';
+
+import { useState, useEffect } from "react";
 import { Navbar } from '@/components/Navbar';
 import { ProductCard } from '@/components/ProductCard';
-
+import api from "@/utilis/api";
 import SearchBar from '@/components/ui/SearchBar';
 import CategoryList from '@/components/CategoryList';
 
+type ProdutoParaCard = {
+  id: number;
+  nome: string;
+  preco: number;
+  estoque: number;
+  loja: { logo: string | null } | null;
+  imagens: { urlImagem: string }[];
+};
+
+
 export default function HomePage() {
+
+  const [mercadoProdutos, setMercadoProdutos] = useState<ProdutoParaCard[]>([]);
+  const [farmaciaProdutos, setFarmaciaProdutos] = useState<ProdutoParaCard[]>([]);
+  const [belezaProdutos, setBelezaProdutos] = useState<ProdutoParaCard[]>([]);
+  const [modaProdutos, setModaProdutos] = useState<ProdutoParaCard[]>([]);
+  const [eletronicosProdutos, setEletronicosProdutos] = useState<ProdutoParaCard[]>([]);
+  const [jogosProdutos, setJogosProdutos] = useState<ProdutoParaCard[]>([]);
+  const [brinquedosProdutos, setBrinquedosProdutos] = useState<ProdutoParaCard[]>([]);
+  const [CasaProdutos, setCasaProdutos] = useState<ProdutoParaCard[]>([]);
+
+
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+
+      const buscarDadosDaPagina = async () => {
+        try {
+          setIsLoading(true);
+
+          const promiseMercado = api.get('/produtos/ver-mais/mercado');
+          const promiseFarmacia = api.get('/produtos/ver-mais/farmacia');
+          const promiseBeleza = api.get('/produtos/ver-mais/beleza');
+          const promiseModa = api.get('/produtos/ver-mais/moda');
+          const promiseEletronicos = api.get('/produtos/ver-mais/eletronicos');
+          const promiseJogos = api.get('/produtos/ver-mais/jogos');
+          const promiseBrinquedos = api.get('/produtos/ver-mais/brinquedos');
+          const promiseCasa = api.get('/produtos/ver-mais/casa');
+
+          const [responseMercado, responseFarmacia, responseBeleza, responseModa, responseEletronicos, responseJogos, responseBrinquedos, responseCasa] = await Promise.all([
+            promiseMercado,
+            promiseFarmacia,
+            promiseBeleza,
+            promiseModa,
+            promiseEletronicos,
+            promiseJogos,
+            promiseBrinquedos,
+            promiseCasa
+          ]);
+
+          setMercadoProdutos(responseMercado.data);
+          setFarmaciaProdutos(responseFarmacia.data);
+          setBelezaProdutos(responseBeleza.data);
+          setModaProdutos(responseModa.data);
+          setEletronicosProdutos(responseEletronicos.data);
+          setJogosProdutos(responseJogos.data);
+          setBrinquedosProdutos(responseBrinquedos.data);
+          setCasaProdutos(responseCasa.data);
+
+        } catch (err) {
+          console.error("Erro ao buscar produtos da home:", err);
+        } finally {
+          setIsLoading(false); // Termina de carregar (com sucesso ou erro)
+        }
+      };
+
+      buscarDadosDaPagina();
+      
+    }, []);
+
   return (
     <main className="bg-[#FDF9F2] min-h-screen">
       {/* --- Seção Hero e Navbar (Agrupadas) --- */}
@@ -46,33 +119,44 @@ export default function HomePage() {
         {/* --- Seção de Produtos (Existente) --- */}
         <section className="pb-12">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-[#171918]">Produtos</h2>
-            <a href="/produtos" className="text-sm text-[#6A38F3] hover:underline">
+            <h2 className="text-2xl font-bold text-[#171918]">Produtos em Mercado</h2>
+            <a href="/ver-mais/mercado" className="text-sm text-[#6A38F3] hover:underline">
               ver mais
             </a>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-            <a href="/produto" className="block">
-              <ProductCard
-                name="Brownie Meio A."
-                price="4,70"
-                isAvailable={true}
-                imageUrl="/brownie.png"
-                badgeUrl="/logo-cjr.png"
-              />
-            </a>
-            <a href="/produto" className="block">
-              <ProductCard
-                name="Nozes (Indisponível)"
-                price="29,99"
-                unit="kg"
-                isAvailable={false}
-                imageUrl="/nozes.png"
-                badgeUrl="/logo-cjr.png"
-              />
-            </a>
+
+            {mercadoProdutos.length > 0 ? (
+
+              mercadoProdutos.slice(0, 5).map(produto => {
+                
+                const temImagem = produto.imagens && produto.imagens.length > 0;
+                const imageUrl = temImagem 
+                  ? produto.imagens[0].urlImagem 
+                  : '/Stock.io.png';
+                
+                const badgeUrl = produto.loja?.logo || undefined;
+                
+                return (
+                  <ProductCard
+                    key={produto.id}
+                    name={produto.nome}
+                    price={produto.preco.toString()} 
+                    isAvailable={produto.estoque > 0}
+                    imageUrl={imageUrl} 
+                    badgeUrl={badgeUrl}
+                  />
+                );
+              })
+
+            ) : (
+              <p className="col-span-full text-center text-gray-500 text-lg">
+                Ops! Nenhum produto foi encontrado nesta categoria.
+              </p>
+            )}
           </div>
+
         </section>
       </div>
     </main>

@@ -20,8 +20,8 @@ export default function LoginPage() {
   // --- Estados do Componente ---
   const [email, setEmail] = useState(''); 
   const [senha, setSenha] = useState(''); 
-
   const [isLoading, setIsLoading] = useState(false);
+  
   const { user, setLoggedInUser, isLoading: isAuthLoading } = useAuth();
 
   // --- Função de Validação ---
@@ -32,10 +32,10 @@ export default function LoginPage() {
 
   // --- Lógica de Redirecionamento se já estiver logado ---
   useEffect(() => {
-    if (!isAuthLoading && user) {
+    if (user) {
       router.push('/');
     }
-  }, [user, isAuthLoading, router]);
+  }, [user, router]);
 
   // --- Lógica de Submissão ---
   const handleLogin = async () => {
