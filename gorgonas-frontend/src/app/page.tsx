@@ -125,39 +125,83 @@ export default function HomePage() {
             </a>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+          <div className="overflow-x-auto pb-4">
+              
+              {/* 2. O "TRILHO" (flexível, em linha única) */}
+              <div className="flex flex-nowrap gap-6">
 
-            {mercadoProdutos.length > 0 ? (
+                {/* 3. A "Guarda" (continua igual) */}
+                {mercadoProdutos.length > 0 ? (
 
-              mercadoProdutos.slice(0, 5).map(produto => {
-                
-                const temImagem = produto.imagens && produto.imagens.length > 0;
-                const imageUrl = temImagem 
-                  ? produto.imagens[0].urlImagem 
-                  : '/Stock.io.png';
-                
-                const badgeUrl = produto.loja?.logo || undefined;
-                
-                return (
-                  <ProductCard
-                    key={produto.id}
-                    name={produto.nome}
-                    price={produto.preco.toString()} 
-                    isAvailable={produto.estoque > 0}
-                    imageUrl={imageUrl} 
-                    badgeUrl={badgeUrl}
-                  />
-                );
-              })
+                  // 4. O "Motor" (SEM .slice() agora)
+                  mercadoProdutos.map(produto => (
+                    
+                    // 5. O "Item" (com largura fixa e sem encolher)
+                    <div key={produto.id} className="flex-shrink-0 w-64"> 
+                      {/* (w-64 = 256px. Ajuste este valor se o card ficar muito grande ou pequeno) */}
+                      
+                      <ProductCard
+                        name={produto.nome}
+                        price={produto.preco.toString()} 
+                        isAvailable={produto.estoque > 0}
+                        imageUrl={produto.imagens?.[0]?.urlImagem || '/Stock.io.png'}
+                        badgeUrl={produto.loja?.logo || undefined}
+                      />
+                    </div>
+                  ))
 
-            ) : (
-              <p className="col-span-full text-center text-gray-500 text-lg">
-                Ops! Nenhum produto foi encontrado nesta categoria.
-              </p>
-            )}
+                ) : (
+                  <p className="text-center text-gray-500 text-lg">
+                    Ops! Nenhum produto foi encontrado nesta categoria.
+                  </p>
+                )}
+              </div>
+            </div>
+        </section>
+
+        {/*Beleza*/}
+        <section className="pb-12">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold text-[#171918]">Produtos em Beleza</h2>
+            <a href="/ver-mais/beleza" className="text-sm text-[#6A38F3] hover:underline">
+              ver mais
+            </a>
           </div>
 
+          <div className="overflow-x-auto pb-4">
+              
+              {/* 2. O "TRILHO" (flexível, em linha única) */}
+              <div className="flex flex-nowrap gap-6">
+
+                {/* 3. A "Guarda" (continua igual) */}
+                {belezaProdutos.length > 0 ? (
+
+                  // 4. O "Motor" (SEM .slice() agora)
+                  belezaProdutos.map(produto => (
+                    
+                    // 5. O "Item" (com largura fixa e sem encolher)
+                    <div key={produto.id} className="flex-shrink-0 w-64"> 
+                      {/* (w-64 = 256px. Ajuste este valor se o card ficar muito grande ou pequeno) */}
+                      
+                      <ProductCard
+                        name={produto.nome}
+                        price={produto.preco.toString()} 
+                        isAvailable={produto.estoque > 0}
+                        imageUrl={produto.imagens?.[0]?.urlImagem || '/Stock.io.png'}
+                        badgeUrl={produto.loja?.logo || undefined}
+                      />
+                    </div>
+                  ))
+
+                ) : (
+                  <p className="text-center text-gray-500 text-lg">
+                    Ops! Nenhum produto foi encontrado nesta categoria.
+                  </p>
+                )}
+              </div>
+            </div>
         </section>
+
       </div>
     </main>
   );
