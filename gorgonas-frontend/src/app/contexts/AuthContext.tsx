@@ -74,8 +74,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null); // Limpa o usuário do estado
     localStorage.removeItem('token'); // Limpa o token do "bolso"
     delete api.defaults.headers.common['Authorization'];
-    // Redireciona para o login (força um recarregamento da página)
-  window.location.assign('/login');
   };
 
   // 7. Junta tudo que vamos fornecer para a aplicação
