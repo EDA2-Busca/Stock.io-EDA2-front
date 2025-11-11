@@ -23,7 +23,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-br">
-      <body>
+      <body className={leagueSpartan.className}> 
         <AuthProvider>
         {/* Renderiza o conteúdo das páginas */}
         {children} 
