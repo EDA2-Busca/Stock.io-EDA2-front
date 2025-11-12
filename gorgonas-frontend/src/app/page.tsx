@@ -144,6 +144,7 @@ export default function HomePage() {
                       {/* (w-64 = 256px. Ajuste este valor se o card ficar muito grande ou pequeno) */}
                       
                       <ProductCard
+                        id={produto.id}
                         name={produto.nome}
                         price={produto.preco.toString()} 
                         isAvailable={produto.estoque > 0}
@@ -178,15 +179,13 @@ export default function HomePage() {
 
                 {/* 3. A "Guarda" (continua igual) */}
                 {belezaProdutos.length > 0 ? (
-
-                  // 4. O "Motor" (SEM .slice() agora)
                   belezaProdutos.map(produto => (
                     
                     // 5. O "Item" (com largura fixa e sem encolher)
                     <div key={produto.id} className="shrink-0 w-64"> 
-                      {/* (w-64 = 256px. Ajuste este valor se o card ficar muito grande ou pequeno) */}
                       
                       <ProductCard
+                        id={produto.id}
                         name={produto.nome}
                         price={produto.preco.toString()} 
                         isAvailable={produto.estoque > 0}
