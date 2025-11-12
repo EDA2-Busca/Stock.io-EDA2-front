@@ -87,6 +87,7 @@ export default function VerMaisPage() {
               
               return (
                 <ProductCard
+                  id={produto.id}
                   key={produto.id}
                   name={produto.nome}
                   price={produto.preco.toString()} 
