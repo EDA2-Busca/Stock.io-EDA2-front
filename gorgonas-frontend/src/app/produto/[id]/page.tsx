@@ -4,9 +4,7 @@ import { useEffect, useState } from "react";
 import { Navbar } from '@/components/Navbar';
 import { ProductCard } from '@/components/ProductCard';
 import { useParams } from "next/navigation";
-
-// (Sua função getProductsById deve estar importada aqui)
-// import { getProductsById } from '@/utils/api'; 
+import api from '@/utilis/api'; // 1. Importe seu 'api.ts'
 
 // --- Componentes de Ícone ---
 function PencilIcon() {
@@ -27,19 +25,21 @@ function BackArrowIcon() {
 // --- Fim dos Ícones ---
 
 
-// Interface dos dados do produto
+// --- 2. Interface CORRIGIDA (nomes do Prisma) ---
 interface Products {
-    id: number,
-    store_id: number,
-    category_id: number,
-    name: string,
-    description?: string,
-    price: number,
-    stock: number,
-    store: { banner_url: string },
-    category: { name: string },
-    product_images: { order: number, image_url: string }[]
-    product_ratings: { rating: number }[]
+    id: number;
+    lojaId: number; // MUDADO (era store_id)
+    subcategoriaId: number; // MUDADO (era category_id)
+    nome: string; // MUDADO (era name)
+    descricao?: string; // MUDADO (era description)
+    preco: number; // MUDADO (era price)
+    estoque: number; // MUDADO (era stock)
+    
+    // Relações (nomes do Prisma)
+    loja: { id: number, nome: string, banner_url?: string };
+    subcategoria: { nome: string }; // MUDADO (era category)
+    imagens?: { ordem: number, urlImagem: string }[]; // MUDADO (era product_images) e opcional
+    avaliacoes?: { rating: number }[]; // MUDADO (era product_ratings) e opcional
 }
 
 
@@ -48,50 +48,39 @@ export default function ProductPage() {
     const { id } = useParams();
     const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
 
+    // --- 3. useEffect ATUALIZADO (com chamada de API real) ---
     useEffect(() => {
+        if (!id) return; 
+
         async function fetchProduct() {
             try {
-                // (Assumindo que getProductsById existe e funciona)
-                // const product = await getProductsById(Number(id));
-
-                // --- DADOS MOCK (SUBSTITUA PELA LINHA ACIMA) ---
-                const product: Products = {
-                    id: Number(id),
-                    name: "Brownie Meio Amargo (Dado Real)",
-                    description: "Descrição vinda do banco de dados... Recheado com um mini ganache...",
-                    price: 4.70,
-                    stock: 3,
-                    category: { name: "Mercado" },
-                    store: { banner_url: "/placeholder/logo-cjr.png" },
-                    product_images: [
-                        { order: 1, image_url: '/placeholder/brownie-pacote.png' },
-                        { order: 2, image_url: '/placeholder/brownie-fatia.png' },
-                        { order: 3, image_url: '/placeholder/brownie-fatia-2.png' },
-                        { order: 4, image_url: '/placeholder/brownie-tabela.png' },
-                    ],
-                    product_ratings: [{ rating: 4 }, { rating: 5 }], // Dados mock
-                    store_id: 2, 
-                    category_id:1
-                };
-                // --- FIM DOS DADOS MOCK ---
+                // --- REMOVIDOS DADOS MOCK ---
+                
+                // --- CHAMADA DE API REAL ---
+                const response = await api.get(`/produtos/${id}`);
+                const product: Products = response.data;
+                // --- FIM DA CHAMADA ---
 
                 setProducts(product);
 
-                if (product && product.product_images && product.product_images.length > 0) {
-                    const sortedImages = product.product_images.sort((a, b) => a.order - b.order);
-                    setSelectedImageUrl(sortedImages[0].image_url);
+                // Lógica corrigida para imagens opcionais
+                if (product && product.imagens && product.imagens.length > 0) {
+                    const sortedImages = product.imagens.sort((a, b) => a.ordem - b.ordem);
+                    setSelectedImageUrl(sortedImages[0].urlImagem);
+                } else {
+                    // Define um placeholder se não houver imagens
+                    setSelectedImageUrl('/placeholder/default-product.png'); 
                 }
 
-            } catch (err) { console.log(err) }
+            } catch (err) { 
+                console.error("Erro ao buscar produto:", err);
+            }
         }
 
-        if (id) {
-            fetchProduct();
-        }
+        fetchProduct();
+    }, [id]); // 'id' como dependência
 
-    }, [id]);
-
-    // Estado de Carregamento
+    // Estado de Carregamento (Correto)
     if (!products || !selectedImageUrl) {
         return (
             <main className="bg-[#FDF9F2] min-h-screen">
@@ -103,17 +92,24 @@ export default function ProductPage() {
         );
     }
 
-    // Formatação de Dados
-    const formattedPrice = products.price.toLocaleString('pt-BR', {
+    // --- 4. Formatação de Dados (Corrigida com nomes do Prisma) ---
+    // --- 4. Formatação de Dados (Corrigida com checagem de segurança) ---
+    
+    // Use 'products?.preco' e um valor padrão '0'
+    const formattedPrice = (products?.preco || 0).toLocaleString('pt-BR', {
         style: 'currency',
         currency: 'BRL',
     });
 
-    const avgRating = products.product_ratings.length > 0
-        ? (products.product_ratings.reduce((acc, r) => acc + r.rating, 0) / products.product_ratings.length).toFixed(1)
+    // Use '?.' (optional chaining) para acessar 'avaliacoes' com segurança
+    const avgRating = (products?.avaliacoes?.length || 0) > 0
+        ? (products.avaliacoes!.reduce((acc, r) => acc + r.rating, 0) / products.avaliacoes!.length).toFixed(1)
         : "N/A";
 
-    // --- Renderização do JSX ---
+    const totalReviews = products?.avaliacoes?.length || 0;
+
+
+    // --- 5. Renderização do JSX (com seu layout e nomes de dados CORRIGIDOS) ---
     return (
         <main className="bg-[#FDF9F2] min-h-screen">
             <Navbar />
@@ -132,23 +128,23 @@ export default function ProductPage() {
                         <div className="flex gap-4">
                             {/* Thumbnails (Dinâmicas) */}
                             <div className="flex flex-col gap-4">
-                                {products.product_images
-                                    .sort((a, b) => a.order - b.order) 
+                                {products.imagens // MUDADO (era product_images)
+                                    ?.sort((a, b) => a.ordem - b.ordem) 
                                     .map((img) => (
                                         <div
-                                            key={img.order}
-                                            onClick={() => setSelectedImageUrl(img.image_url)}
-                                            className={`w-16 h-16 md:w-30 md:h-30 bg-white rounded-lg border p-1 flex items-center justify-center cursor-pointer transition-all
-                                ${selectedImageUrl === img.image_url ? 'border-purple-600 border-2' : 'border-gray-200 hover:border-gray-400'}`}
+                                            key={img.ordem}
+                                            onClick={() => setSelectedImageUrl(img.urlImagem)}
+                                            className={`w-16 h-16 md:w-32 md:h-32 bg-white rounded-lg border p-1 flex items-center justify-center cursor-pointer transition-all
+                                ${selectedImageUrl === img.urlImagem ? 'border-purple-600 border-2' : 'border-gray-200 hover:border-gray-400'}`}
                                         >
-                                            <img src={img.image_url} alt={products.name} className="object-contain max-h-full rounded-md" />
+                                            <img src={img.urlImagem} alt={products.nome} className="object-contain max-h-full rounded-md" />
                                         </div>
                                     ))}
                             </div>
 
                             {/* Imagem Principal (Dinâmica) */}
-                            <div className="flex-1 bg-white rounded-2xl shadow-sm p-4 md:p-8 flex items-center justify-center min-h-[528px] min-w-[550px]">
-                                <img src={selectedImageUrl} alt={products.name} className="object-contain w-auto h-auto max-w-full max-h-[500px]" />
+                            <div className="flex-1 bg-white rounded-2xl shadow-sm p-4 md:p-8 flex items-center justify-center min-h-[528px] min-w-[500px]">
+                                <img src={selectedImageUrl} alt={products.nome} className="object-contain w-100 h-auto max-w-full max-h-[600px]" />
                             </div>
                         </div>
                     </div>
@@ -156,16 +152,16 @@ export default function ProductPage() {
                     {/* --- COLUNA DIREITA (Informações Dinâmicas) --- */}
                     <div className="flex flex-col gap-4 min-w-0"> 
                         <div className="flex justify-between items-start">
-                            <h1 className="text-3xl font-bold text-gray-900 break-words">{products.name}</h1>
+                            <h1 className="text-3xl font-bold text-gray-900 wrap-break-word">{products.nome}</h1> {/* MUDADO (era name) */}
                             <button className="text-purple-600 hover:text-purple-800 ml-2">
                                 <PencilIcon />
                             </button>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500">
-                            <span>⭐ {avgRating} | {products.product_ratings.length} reviews</span>
-                            <span className="text-purple-600 font-medium">{products.category.name}</span>
-                            <span className="text-blue-500 font-medium">{products.stock} disponíveis</span>
+                            <span>⭐ {avgRating} | {totalReviews} reviews</span>
+                            <span className="text-purple-600 font-medium">{products.subcategoria.nome}</span> {/* MUDADO (era category.name) */}
+                            <span className="text-blue-500 font-medium">{products.estoque} disponíveis</span> {/* MUDADO (era stock) */}
                         </div>
 
                         <div className="text-4xl font-bold text-gray-900">
@@ -175,76 +171,38 @@ export default function ProductPage() {
                         {/* Bloco Descrição */}
                         <div className="space-y-2">
                             <h3 className="font-semibold text-gray-800">Descrição</h3>
-                            <p className="text-sm text-gray-600 leading-relaxed break-words">
-                                {products.description || "Nenhuma descrição fornecida."}
+                            <p className="text-sm text-gray-600 leading-relaxed wrap-break-word">
+                                {products.descricao || "Nenhuma descrição fornecida."} {/* MUDADO (era description) */}
                             </p>
-                            {/* CORREÇÃO 1: </Ddiv> foi trocado por </p> */}
                         </div> 
-                        {/* CORREÇÃO 2: O <div> de Descrição fecha aqui */}
-
-                        {/* Bloco Ingredientes (Movido para fora do <div> de Descrição) */}
-                        <div className="space-y-2">
-                            <h3 className="font-semibold text-gray-800">Ingredientes</h3>
-                            <p className="text-sm text-gray-600 leading-relaxed break-words">
-                                (Campo 'ingredientes' não encontrado no seu model. Adicione ao banco de dados.)
-                            </p>
-                        </div>
-
-                        {/* Bloco Alergênicos (Movido para fora do <div> de Descrição) */}
-                        <div className="space-y-1 pt-2">
-                            <p className="text-xs font-semibold text-red-600">
-                                (Campo 'alergênicos' não encontrado no seu model. Adicione ao banco de dados.)
-                            </p>
-                        </div>
-                        
                     </div> {/* Fim da Coluna Direita */}
 
                 </div> 
                 {/* --- Fim da Seção Principal (Grid) --- */}
-                {/* CORREÇÃO 3: Este </div> estava faltando */}
 
 
-                {/* --- 2. SEÇÃO "DA MESMA LOJA" --- */}
+                {/* --- 2. SEÇÃO "DA MESMA LOJA" (Estática, como pedido) --- */}
                 <div className="mt-16 md:mt-24">
                     <h2 className="text-3xl font-bold text-gray-900 mb-6">Da mesma loja</h2>
                     
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
                         
                         {/* (Seus ProductCards estáticos) */}
+                        
                         <ProductCard
-                            name="Brownie Trad."
-                            price="3,80"
-                            isAvailable={false}
-                            imageUrl="/placeholder/brownie-trad.png"
-                            badgeUrl="/placeholder/logo-cjr.png"
-                        />
-                        <ProductCard
-                            name="Brownie Doce L."
+                            name="Nozes"
                             price="4,70"
                             isAvailable={true}
-                            imageUrl="/placeholder/brownie-doce.png"
-                            badgeUrl="/placeholder/logo-cjr.png"
+                            imageUrl="/nozes.png"
+                            badgeUrl="/logo-cjr.png"
                         />
+                        
                         <ProductCard
-                            name="Brownie Nozes"
+                            name="Brownie"
                             price="4,70"
                             isAvailable={true}
-                            imageUrl="/placeholder/brownie-nozes.png"
-                            badgeUrl="/placeholder/logo-cjr.png"
-                        />
-                        <ProductCard
-                            name="Brownie Cookies"
-                            price="4,70"
-                            isAvailable={true}
-                            imageUrl="/placeholder/brownie-cookies.png"
-                            badgeUrl="/placeholder/logo-cjr.png"
-                        />
-                        <ProductCard
-                            name="Brownie M8"
-                            price="4,70"
-                            isAvailable={true}
-                            imageUrl="/placeholder/brownie-m8.png"
-                            badgeUrl="/placeholder/logo-cjr.png"
+                            imageUrl="/brownie.png"
+                            badgeUrl="/logo-cjr.png"
                         />
                     </div>
                 </div>
