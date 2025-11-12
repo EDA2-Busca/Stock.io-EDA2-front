@@ -116,13 +116,12 @@
                         <span className="font-medium">Voltar</span>
                     </a>
 
-                    {/* --- 1. SEÇÃO PRINCIPAL (Duas Colunas) --- */}
+                    {/* --- 1. SEÇÃO PRINCIPAL */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-50">
 
                         {/* --- COLUNA ESQUERDA (Galeria Dinâmica) --- */}
                         <div className="flex flex-col">
                             <div className="flex gap-4">
-                                {/* Thumbnails (Dinâmicas) */}
                                 <div className="flex flex-col gap-4">
                                     {products.imagens
                                         ?.sort((a, b) => a.ordem - b.ordem)
@@ -166,7 +165,6 @@
                                 {formattedPrice}
                             </div>
 
-                            {/* Bloco Descrição */}
                             <div className="space-y-2">
                                 <h3 className="font-semibold text-gray-800">Descrição</h3>
                                 <p className="text-sm text-gray-600 leading-relaxed wrap-break-word">
@@ -176,14 +174,11 @@
                         </div>
 
                     </div>
-
-                    {/* --- 2. SEÇÃO "DA MESMA LOJA" ) --- */}
                     <div className="mt-16 md:mt-24">
                         <h2 className="text-3xl font-bold text-gray-900 mb-6">Da mesma loja</h2>
 
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
 
-                            {/* (Seus ProductCards estáticos) */}
 
                             {relatedProducts.map((related: Products) => {
                                 // Adaptação segura dos dados
@@ -206,7 +201,7 @@
                             })}
                         </div>
                     </div>
-                </div> {/* Fim do div max-w-7xl */}
+                </div> 
             </main>
         );
     }

@@ -1,4 +1,4 @@
-'use client'; // 1. OBRIGATÓRIO: Permite usar 'useState' e 'useEffect'
+'use client'; 
 
 import Link from 'next/link';
 import { useAuth } from '../app/contexts/AuthContext';
@@ -30,7 +30,7 @@ export function Navbar() {
         {(!isMounted || isAuthLoading) ? (
         
         // MOSTRA UM PLACEHOLDER VAZIO
-        <div className="h-9 w-40" /> // Ajuste o tamanho
+        <div className="h-9 w-40" /> 
 
       ) : user ? (
           /* CASO 1: LOGADO */
