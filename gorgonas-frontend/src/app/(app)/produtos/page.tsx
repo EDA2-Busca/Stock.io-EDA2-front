@@ -95,7 +95,7 @@ export default function HomePage() {
           <SearchBar className="max-w-md ml-auto" />
         </section>
 
-
+        {/*Mercado*/}
         <section className="pb-12">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold text-[#171918]">Produtos em Mercado</h2>
@@ -143,6 +143,43 @@ export default function HomePage() {
 
                 {belezaProdutos.length > 0 ? (
                   belezaProdutos.map(produto => (
+                    
+                    <div key={produto.id} className="shrink-0 w-64"> 
+                      
+                      <ProductCard
+                        id={produto.id}
+                        name={produto.nome}
+                        price={produto.preco.toString()} 
+                        isAvailable={produto.estoque > 0}
+                        imageUrl={produto.imagens?.[0]?.urlImagem || '/Stock.io.png'}
+                        badgeUrl={produto.loja?.logo || undefined}
+                      />
+                    </div>
+                  ))
+
+                ) : (
+                  <p className="text-center text-gray-500 text-lg">
+                    Ops! Nenhum produto foi encontrado nesta categoria.
+                  </p>
+                )}
+              </div>
+            </div>
+        </section>
+
+        {/*Moda*/}
+        <section className="pb-12">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold text-[#171918]">Produtos em Moda</h2>
+            <a href="/ver-mais/moda" className="text-sm text-[#6A38F3] hover:underline">
+              ver mais
+            </a>
+          </div>
+
+          <div className="overflow-x-auto pb-4">
+              <div className="flex flex-nowrap gap-6">
+
+                {modaProdutos.length > 0 ? (
+                  modaProdutos.map(produto => (
                     
                     <div key={produto.id} className="shrink-0 w-64"> 
                       
