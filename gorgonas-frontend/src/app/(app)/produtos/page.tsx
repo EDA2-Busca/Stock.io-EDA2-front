@@ -29,8 +29,9 @@ export default function HomePage() {
   const [CasaProdutos, setCasaProdutos] = useState<ProdutoParaCard[]>([]);
 
   const [listarProdutos, setListarProdutos] = useState<ProdutoParaCard[]>([]);
-
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [limit, setLimit] = useState(15);
 
   const [isLoading, setIsLoading] = useState(true);
 
@@ -49,7 +50,9 @@ export default function HomePage() {
           const promiseBrinquedos = api.get('/produtos/ver-mais/brinquedos');
           const promiseCasa = api.get('/produtos/ver-mais/casa');
 
-          const promiseListar = api.get('/produtos/recentes');
+          const promiseListar = api.get(
+            `/produtos/recentes?page=${currentPage}&limit=${limit}`
+          );
 
           const [responseMercado, responseFarmacia, responseBeleza, responseModa, responseEletronicos, responseJogos, responseBrinquedos, responseCasa, responseListar] = await Promise.all([
             promiseMercado,
@@ -73,7 +76,10 @@ export default function HomePage() {
           setBrinquedosProdutos(responseBrinquedos.data);
           setCasaProdutos(responseCasa.data);
 
-          setListarProdutos(responseListar.data);
+          setListarProdutos(responseListar.data.produtos);
+
+          const totalCount = responseListar.data.totalCount;
+          setTotalPages(Math.ceil(totalCount / limit));
 
         } catch (err) {
           console.error("Erro ao buscar produtos da home:", err);
@@ -84,7 +90,7 @@ export default function HomePage() {
 
       buscarDadosDaPagina();
       
-    }, []);
+    }, [currentPage, limit]);
 
   return (
     <main className="bg-[#FDF9F2] min-h-screen">
@@ -249,6 +255,46 @@ export default function HomePage() {
                 </div>
             </div>
         </section>
+
+        {/* --- ADICIONE ESTA NOVA SEÇÃO DE PAGINAÇÃO --- */}
+        <section className="flex justify-center items-center space-x-2 py-8">
+          
+          {/* Botão "Anterior" */}
+          <button
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="px-4 py-2 rounded bg-white text-black shadow-sm disabled:opacity-50"
+          >
+            Anterior
+          </button>
+
+          {/* Botões de Número (1, 2, 3...) */}
+          {/* Isso cria um array [0, 1, 2...] e o mapeia para [1, 2, 3...] */}
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNumber => (
+            <button
+              key={pageNumber}
+              onClick={() => setCurrentPage(pageNumber)}
+              className={`px-4 py-2 rounded shadow-sm ${
+                currentPage === pageNumber 
+                ? 'bg-[#6A38F3] text-white' // Estilo da página ativa
+                : 'bg-white text-black' // Estilo da página inativa
+              }`}
+            >
+              {pageNumber}
+            </button>
+          ))}
+
+          {/* Botão "Próximo" */}
+          <button
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 rounded bg-white text-black shadow-sm disabled:opacity-50"
+          >
+            Próximo
+          </button>
+
+        </section>
+
       </div>
     </main>
   );
