@@ -1,6 +1,6 @@
 import ToastProvider from "@/components/ToastProvider";
 import React from "react";
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider } from '../contexts/AuthContext';
 import type { Metadata } from 'next';
 import { League_Spartan } from 'next/font/google';
 import './globals.css';

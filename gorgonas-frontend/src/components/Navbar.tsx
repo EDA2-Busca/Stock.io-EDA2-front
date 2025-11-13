@@ -1,7 +1,7 @@
 'use client'; 
 
 import Link from 'next/link';
-import { useAuth } from '../app/contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect } from 'react';
 
 export function Navbar() {
@@ -36,7 +36,7 @@ export function Navbar() {
           /* CASO 1: LOGADO */
           <>
             <div className="flex items-center space-x-6">
-              <Link href="/carrinho">
+              <Link href="/produtos">
                 <div
                   className="h-9 w-9 bg-contain bg-no-repeat bg-center 
                          bg-[url('/sacola.png')] 

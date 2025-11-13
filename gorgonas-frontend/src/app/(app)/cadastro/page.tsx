@@ -10,7 +10,7 @@ import PasswordInput from '@/components/ui/PasswordInput';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 
-import api from '../../utilis/api';
+import api from '../../../utilis/api';
 import axios from 'axios';
 
 export default function CadastroPage() {

@@ -5,7 +5,7 @@
     import { ProductCard } from '@/components/ProductCard';
     import { useParams } from "next/navigation";
     import api from '@/utilis/api';
-    import { useAuth } from "@/app/contexts/AuthContext";
+    import { useAuth } from "@/contexts/AuthContext";
     import PencilIcon from "@/components/ui/pencil";
     import BackArrowIcon from "@/components/ui/arrow";
     interface Products {

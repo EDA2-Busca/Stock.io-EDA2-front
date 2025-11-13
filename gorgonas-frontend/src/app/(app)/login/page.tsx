@@ -9,9 +9,9 @@ import TextInput from '@/components/ui/TextInput';
 import PasswordInput from '@/components/ui/PasswordInput';
 import Button from '@/components/ui/Button';
 
-import api from '../../utilis/api';
+import api from '../../../utilis/api';
 import axios from 'axios';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../../contexts/AuthContext';
 import { jwtDecode } from 'jwt-decode';
 
 export default function LoginPage() {
