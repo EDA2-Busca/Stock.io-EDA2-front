@@ -86,7 +86,7 @@ export function Navbar() {
           <>
           <div className="flex items-center space-x-20 px-8">            
             <div className="flex items-center space-x-6">
-              <Link href="/carrinho">
+              <Link href="/produtos">
                 <div
                   className="h-9 w-9 bg-contain bg-no-repeat bg-center 
                          bg-[url('/sacola.png')] 

@@ -28,6 +28,8 @@ export default function HomePage() {
   const [brinquedosProdutos, setBrinquedosProdutos] = useState<ProdutoParaCard[]>([]);
   const [CasaProdutos, setCasaProdutos] = useState<ProdutoParaCard[]>([]);
 
+  const [listarProdutos, setListarProdutos] = useState<ProdutoParaCard[]>([]);
+
 
 
   const [isLoading, setIsLoading] = useState(true);
@@ -47,7 +49,9 @@ export default function HomePage() {
           const promiseBrinquedos = api.get('/produtos/ver-mais/brinquedos');
           const promiseCasa = api.get('/produtos/ver-mais/casa');
 
-          const [responseMercado, responseFarmacia, responseBeleza, responseModa, responseEletronicos, responseJogos, responseBrinquedos, responseCasa] = await Promise.all([
+          const promiseListar = api.get('/produtos/recentes');
+
+          const [responseMercado, responseFarmacia, responseBeleza, responseModa, responseEletronicos, responseJogos, responseBrinquedos, responseCasa, responseListar] = await Promise.all([
             promiseMercado,
             promiseFarmacia,
             promiseBeleza,
@@ -55,7 +59,9 @@ export default function HomePage() {
             promiseEletronicos,
             promiseJogos,
             promiseBrinquedos,
-            promiseCasa
+            promiseCasa,
+
+            promiseListar
           ]);
 
           setMercadoProdutos(responseMercado.data);
@@ -66,6 +72,8 @@ export default function HomePage() {
           setJogosProdutos(responseJogos.data);
           setBrinquedosProdutos(responseBrinquedos.data);
           setCasaProdutos(responseCasa.data);
+
+          setListarProdutos(responseListar.data);
 
         } catch (err) {
           console.error("Erro ao buscar produtos da home:", err);
@@ -203,6 +211,44 @@ export default function HomePage() {
             </div>
         </section>
 
+        {/* Lista de prdutos */}
+        <section>
+            <div className="container mx-auto max-w-7xl p-4 md:p-8">
+
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+                
+                    {listarProdutos.length > 0 ? (
+
+                        listarProdutos.map(produto => {
+                        
+                        const temImagem = produto.imagens && produto.imagens.length > 0;
+                        const imageUrl = temImagem 
+                            ? produto.imagens[0].urlImagem 
+                            : '/Stock.io.png';
+                        
+                        const badgeUrl = produto.loja?.logo || undefined;
+                        
+                        return (
+                            <ProductCard
+                            id={produto.id}
+                            key={produto.id}
+                            name={produto.nome}
+                            price={produto.preco.toString()} 
+                            isAvailable={produto.estoque > 0}
+                            imageUrl={imageUrl} 
+                            badgeUrl={badgeUrl}
+                            />
+                        );
+                        })
+
+                    ) : (
+                        <p className="col-span-full text-center text-gray-500 text-lg">
+                        Ops! Nenhum produto foi encontrado nesta categoria.
+                        </p>
+                    )}
+                </div>
+            </div>
+        </section>
       </div>
     </main>
   );
