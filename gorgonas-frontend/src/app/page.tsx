@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { Navbar } from '@/components/Navbar';
-import { ProductCard } from '@/components/ProductCard';
 import api from "@/utilis/api";
 import SearchBar from '@/components/ui/SearchBar';
 import CategoryList from '@/components/CategoryList';
+import { ProductRow } from '../components/ProductRow';
 
 type ProdutoParaCard = {
   id: number;
@@ -113,75 +113,34 @@ export default function HomePage() {
           <CategoryList />
         </section>
 
-        <section className="pb-12">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-[#171918]">Produtos em Mercado</h2>
-            <a href="/ver-mais/mercado" className="text-sm text-[#6A38F3] hover:underline">
-              ver mais
-            </a>
-          </div>
+        {isLoading ? (
+          <p className="text-center text-gray-500 text-lg">Carregando...</p>
+        ) : (
+          <>
+            <ProductRow 
+              title="Mercado"
+              products={mercadoProdutos}
+              viewMoreHref="/ver-mais/mercado"
+            />
 
-          <div className="overflow-x-auto pb-4">
-              <div className="flex flex-nowrap gap-6">
-                {mercadoProdutos.length > 0 ? (
-                  mercadoProdutos.map(produto => (
-                    <div key={produto.id} className="shrink-0 w-64"> 
-                      <ProductCard
-                        id={produto.id}
-                        name={produto.nome}
-                        price={produto.preco.toString()} 
-                        isAvailable={produto.estoque > 0}
-                        imageUrl={produto.imagens?.[0]?.urlImagem || '/Stock.io.png'}
-                        badgeUrl={produto.loja?.logo || undefined}
-                      />
-                    </div>
-                  ))
-
-                ) : (
-                  <p className="text-center text-gray-500 text-lg">
-                    Ops! Nenhum produto foi encontrado nesta categoria.
-                  </p>
-                )}
-              </div>
-            </div>
-        </section>
-
-        {/*Beleza*/}
-        <section className="pb-12">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-[#171918]">Produtos em Beleza</h2>
-            <a href="/ver-mais/beleza" className="text-sm text-[#6A38F3] hover:underline">
-              ver mais
-            </a>
-          </div>
-
-          <div className="overflow-x-auto pb-4">
-              <div className="flex flex-nowrap gap-6">
-
-                {belezaProdutos.length > 0 ? (
-                  belezaProdutos.map(produto => (
-                    
-                    <div key={produto.id} className="shrink-0 w-64"> 
-                      
-                      <ProductCard
-                        id={produto.id}
-                        name={produto.nome}
-                        price={produto.preco.toString()} 
-                        isAvailable={produto.estoque > 0}
-                        imageUrl={produto.imagens?.[0]?.urlImagem || '/Stock.io.png'}
-                        badgeUrl={produto.loja?.logo || undefined}
-                      />
-                    </div>
-                  ))
-
-                ) : (
-                  <p className="text-center text-gray-500 text-lg">
-                    Ops! Nenhum produto foi encontrado nesta categoria.
-                  </p>
-                )}
-              </div>
-            </div>
-        </section>
+            <ProductRow 
+              title="Beleza"
+              products={belezaProdutos}
+              viewMoreHref="/ver-mais/beleza"
+            />
+            
+            <ProductRow 
+              title="Moda"
+              products={modaProdutos}
+              viewMoreHref="/ver-mais/moda"
+            />
+            <ProductRow 
+              title="Eletrônicos"
+              products={eletronicosProdutos}
+              viewMoreHref="/ver-mais/eletronicos"
+            />
+          </>
+        )}
 
       </div>
     </main>
