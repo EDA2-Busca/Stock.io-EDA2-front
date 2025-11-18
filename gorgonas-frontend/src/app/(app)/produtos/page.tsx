@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { Navbar } from '@/components/Navbar';
-import { ProductCard } from '@/components/ProductCard'; // <-- 1. IMPORTADO PARA OS RESULTADOS
+import { ProductCard } from '@/components/ProductCard'; 
 import api from "@/utilis/api";
 import SearchBar from '@/components/ui/SearchBar';
 import CategoryList from '@/components/CategoryList';
-import { ProductRow } from '@/components/ProductRow'; // (Seu componente refatorado)
+import { ProductRow } from '@/components/ProductRow';
 
 type ProdutoParaCard = {
   id: number;
@@ -30,7 +30,6 @@ export default function HomePage() {
   const [brinquedosProdutos, setBrinquedosProdutos] = useState<ProdutoParaCard[]>([]);
   const [CasaProdutos, setCasaProdutos] = useState<ProdutoParaCard[]>([]);
 
-  // --- Estados da Paginação (sem mudança) ---
   const [listarProdutos, setListarProdutos] = useState<ProdutoParaCard[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -38,15 +37,12 @@ export default function HomePage() {
   
   const [isLoading, setIsLoading] = useState(true);
 
-  // --- 2. NOVOS ESTADOS PARA A BUSCA ---
   const [searchResults, setSearchResults] = useState<ProdutoParaCard[] | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
 
-  // --- useEffect (ATUALIZADO) ---
   useEffect(() => {
-    // Se estivermos em "modo busca", não carregue a home
     if (searchResults) { 
       setIsLoading(false);
       return; 
@@ -98,16 +94,14 @@ export default function HomePage() {
         }
       };
       buscarDadosDaPagina();
-  }, [currentPage, limit, searchResults]); // <-- 'searchResults' agora controla este efeito
+  }, [currentPage, limit, searchResults]); 
 
-  // --- 3. NOVA FUNÇÃO DE BUSCA (Chamada pelo SearchBar) ---
   const handleSearch = async (term: string) => {
     setSearchTerm(term); 
     setIsSearching(true); 
     setSearchResults([]); 
 
     try {
-      // (Depende do endpoint 'GET /produtos/buscar?q=...' no seu backend)
       const response = await api.get(`/produtos/buscar?q=${term}`);
       setSearchResults(response.data);
     } catch (err) {
@@ -118,16 +112,14 @@ export default function HomePage() {
     }
   };
 
-  // --- 4. NOVA FUNÇÃO PARA LIMPAR A BUSCA ---
   const clearSearch = () => {
     setSearchTerm('');
-    setSearchResults(null); // Define como 'null' para voltar à home
+    setSearchResults(null);
   };
 
 
   return (
     <main className="bg-[#FDF9F2] min-h-screen">
-      {/* --- Header e Hero (sem mudança) --- */}
       <header className="w-full bg-black relative overflow-hidden -mt-px pt-px">
         <div aria-hidden className="absolute inset-x-0 -top-px h-px bg-black" />
         <Navbar />
@@ -141,7 +133,6 @@ export default function HomePage() {
       
       <div className="max-w-7xl mx-auto px-8">
         
-        {/* --- 5. SearchBar ATUALIZADA --- */}
         <section className="py-6">
           <SearchBar 
             className="max-w-md ml-auto" 
@@ -149,13 +140,8 @@ export default function HomePage() {
             placeholder="Buscar por produto, loja ou categoria..."
           />
         </section>
-
-        {/* --- 6. LÓGICA DE RENDERIZAÇÃO --- */}
-        {/* Mostra os resultados da busca OU as categorias */}
         
-        {searchResults ? ( // Se 'searchResults' NÃO for nulo, mostre a busca
-          
-          // --- SEÇÃO DE RESULTADOS DA BUSCA ---
+        {searchResults ? ( 
           <section className="pb-12">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold text-[#171918]">
@@ -171,7 +157,6 @@ export default function HomePage() {
                 <p className="col-span-full text-center text-gray-500">Buscando...</p>
               ) : searchResults.length > 0 ? (
                 searchResults.map(produto => (
-                  // Usamos ProductCard aqui (uma grade)
                   <ProductCard
                     key={produto.id}
                     id={produto.id}
@@ -190,9 +175,7 @@ export default function HomePage() {
             </div>
           </section>
 
-        ) : ( // Se 'searchResults' for nulo, mostre a home normal
-          
-          // --- SEÇÃO DE CATEGORIAS (Seu código original) ---
+        ) : ( 
           <>
             {isLoading ? (
               <div className="py-12 text-center">
