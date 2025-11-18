@@ -32,10 +32,10 @@ export default function CategoryList() {
   return (
     <section className="w-full"> 
       <h2 className="text-2xl font-bold text-[#171918] mb-4">
-        Categoria
+        Categorias
       </h2>
       
-      <div className="flex space-x-4 overflow-x-auto pb-4">
+      <div className="flex space-x-6 overflow-x-auto pb-4">
         {categories.map((category) => (
           <CategoryCard
             key={category.label}

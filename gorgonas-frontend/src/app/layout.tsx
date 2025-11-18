@@ -1,5 +1,6 @@
-// app/layout.tsx
-
+import ToastProvider from "@/components/ToastProvider";
+import React from "react";
+import { AuthProvider } from '../contexts/AuthContext';
 import type { Metadata } from 'next';
 import { League_Spartan } from 'next/font/google';
 import './globals.css';
@@ -22,9 +23,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-br">
-      {/* 3. MUDE O className do <body> para isto: */}
-      <body className={leagueSpartan.className}>
-        {children}
+      <body className={leagueSpartan.className}> 
+        <AuthProvider>
+        {/* Renderiza o conteúdo das páginas */}
+        {children} 
+        {/* Adiciona o container de notificações */}
+        <ToastProvider />
+        </AuthProvider>
       </body>
     </html>
   );
