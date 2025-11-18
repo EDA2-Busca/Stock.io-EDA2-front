@@ -1,9 +1,12 @@
 'use client';
 import React from 'react';
 import { FaPlus } from 'react-icons/fa';
-import { FiEdit2 } from 'react-icons/fi'; // Ícone de Lápis/Editar
+import { FiEdit2 } from 'react-icons/fi';
+import { useState } from 'react';
+import AdicionarProdutoModal from "../../components/ModalAddProduto";
 
 type Props = {
+  id: number;
   storeName: string;
   category: string;
   description: string;
@@ -12,9 +15,11 @@ type Props = {
 };
 
 // Componente para o banner full-width
-export default function StoreBanner({ storeName, category, description, bannerImageUrl, isLoggedIn }: Props) {
+export default function StoreBanner({ id, storeName, category, description, bannerImageUrl, isLoggedIn }: Props) {
   // Simulação, no futuro viria do 'isOwner'
-  const isOwner = true; 
+  const isOwner = true;
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <section className="w-full h-[50vh] relative flex items-center justify-center text-white">
@@ -51,15 +56,24 @@ export default function StoreBanner({ storeName, category, description, bannerIm
           
           {/* Botão Adicionar Produto (só para o dono) */}
           {isOwner && (
-            <button 
+            <button onClick={() => setIsModalOpen(true)}
               className="flex items-center justify-center w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/40 transition-colors"
-              title="Adicionar Produto" 
+              title="Adicionar Produto"
+              
             >
               <FaPlus size={22} />
             </button>
           )}
         </div>
       )}
+
+      <AdicionarProdutoModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)} // Função para fechar
+        lojaId={id}           // Passa o ID da loja atual
+        categoriaLoja={category} // Passa a categoria da loja atual
+      />
+
     </section>
   );
 }
