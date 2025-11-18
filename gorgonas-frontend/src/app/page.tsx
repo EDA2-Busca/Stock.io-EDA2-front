@@ -208,8 +208,8 @@ export default function HomePage() {
                   products={eletronicosProdutos}
                   viewMoreHref="/ver-mais/eletronicos"
                 />
+                <StoreList/>
               </>
-              <StoreList/>
             )}
           </>
         )}
