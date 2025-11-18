@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
-import api from '../../utilis/api';
+import api from '../utilis/api';
 
 // 1. Define a interface do Usuário
 interface User {

@@ -1,0 +1,301 @@
+'use client';
+
+import { useState, useEffect } from "react";
+import { Navbar } from '@/components/Navbar';
+import { ProductCard } from '@/components/ProductCard';
+import api from "@/utilis/api";
+import SearchBar from '@/components/ui/SearchBar';
+import CategoryList from '@/components/CategoryList';
+
+type ProdutoParaCard = {
+  id: number;
+  nome: string;
+  preco: number;
+  estoque: number;
+  loja: { logo: string | null } | null;
+  imagens: { urlImagem: string }[];
+};
+
+
+export default function HomePage() {
+
+  const [mercadoProdutos, setMercadoProdutos] = useState<ProdutoParaCard[]>([]);
+  const [farmaciaProdutos, setFarmaciaProdutos] = useState<ProdutoParaCard[]>([]);
+  const [belezaProdutos, setBelezaProdutos] = useState<ProdutoParaCard[]>([]);
+  const [modaProdutos, setModaProdutos] = useState<ProdutoParaCard[]>([]);
+  const [eletronicosProdutos, setEletronicosProdutos] = useState<ProdutoParaCard[]>([]);
+  const [jogosProdutos, setJogosProdutos] = useState<ProdutoParaCard[]>([]);
+  const [brinquedosProdutos, setBrinquedosProdutos] = useState<ProdutoParaCard[]>([]);
+  const [CasaProdutos, setCasaProdutos] = useState<ProdutoParaCard[]>([]);
+
+  const [listarProdutos, setListarProdutos] = useState<ProdutoParaCard[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [limit, setLimit] = useState(15);
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+
+      const buscarDadosDaPagina = async () => {
+        try {
+          setIsLoading(true);
+
+          const promiseMercado = api.get('/produtos/ver-mais/mercado');
+          const promiseFarmacia = api.get('/produtos/ver-mais/farmacia');
+          const promiseBeleza = api.get('/produtos/ver-mais/beleza');
+          const promiseModa = api.get('/produtos/ver-mais/moda');
+          const promiseEletronicos = api.get('/produtos/ver-mais/eletronicos');
+          const promiseJogos = api.get('/produtos/ver-mais/jogos');
+          const promiseBrinquedos = api.get('/produtos/ver-mais/brinquedos');
+          const promiseCasa = api.get('/produtos/ver-mais/casa');
+
+          const promiseListar = api.get(
+            `/produtos/recentes?page=${currentPage}&limit=${limit}`
+          );
+
+          const [responseMercado, responseFarmacia, responseBeleza, responseModa, responseEletronicos, responseJogos, responseBrinquedos, responseCasa, responseListar] = await Promise.all([
+            promiseMercado,
+            promiseFarmacia,
+            promiseBeleza,
+            promiseModa,
+            promiseEletronicos,
+            promiseJogos,
+            promiseBrinquedos,
+            promiseCasa,
+
+            promiseListar
+          ]);
+
+          setMercadoProdutos(responseMercado.data);
+          setFarmaciaProdutos(responseFarmacia.data);
+          setBelezaProdutos(responseBeleza.data);
+          setModaProdutos(responseModa.data);
+          setEletronicosProdutos(responseEletronicos.data);
+          setJogosProdutos(responseJogos.data);
+          setBrinquedosProdutos(responseBrinquedos.data);
+          setCasaProdutos(responseCasa.data);
+
+          setListarProdutos(responseListar.data.produtos);
+
+          const totalCount = responseListar.data.totalCount;
+          setTotalPages(Math.ceil(totalCount / limit));
+
+        } catch (err) {
+          console.error("Erro ao buscar produtos da home:", err);
+        } finally {
+          setIsLoading(false); // Termina de carregar (com sucesso ou erro)
+        }
+      };
+
+      buscarDadosDaPagina();
+      
+    }, [currentPage, limit]);
+
+  return (
+    <main className="bg-[#FDF9F2] min-h-screen">
+      <header className="w-full bg-black relative overflow-hidden -mt-px pt-px">
+        <div aria-hidden className="absolute inset-x-0 -top-px h-px bg-black" />
+        <Navbar />
+
+        <section className="w-full h-[30vh] flex items-center justify-center [&_h2]:text-white">
+            <div>
+                <CategoryList/>
+            </div>
+        </section>
+      </header>
+      <div className="max-w-7xl mx-auto px-8">
+        <section className="py-6">
+          <SearchBar className="max-w-md ml-auto" />
+        </section>
+
+        {/*Mercado*/}
+        <section className="pb-12">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold text-[#171918]">Produtos em Mercado</h2>
+            <a href="/ver-mais/mercado" className="text-sm text-[#6A38F3] hover:underline">
+              ver mais
+            </a>
+          </div>
+
+          <div className="overflow-x-auto pb-4">
+              <div className="flex flex-nowrap gap-6">
+                {mercadoProdutos.length > 0 ? (
+                  mercadoProdutos.map(produto => (
+                    <div key={produto.id} className="shrink-0 w-64"> 
+                      <ProductCard
+                        id={produto.id}
+                        name={produto.nome}
+                        price={produto.preco.toString()} 
+                        isAvailable={produto.estoque > 0}
+                        imageUrl={produto.imagens?.[0]?.urlImagem || '/Stock.io.png'}
+                        badgeUrl={produto.loja?.logo || undefined}
+                      />
+                    </div>
+                  ))
+
+                ) : (
+                  <p className="text-center text-gray-500 text-lg">
+                    Ops! Nenhum produto foi encontrado nesta categoria.
+                  </p>
+                )}
+              </div>
+            </div>
+        </section>
+
+        {/*Beleza*/}
+        <section className="pb-12">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold text-[#171918]">Produtos em Beleza</h2>
+            <a href="/ver-mais/beleza" className="text-sm text-[#6A38F3] hover:underline">
+              ver mais
+            </a>
+          </div>
+
+          <div className="overflow-x-auto pb-4">
+              <div className="flex flex-nowrap gap-6">
+
+                {belezaProdutos.length > 0 ? (
+                  belezaProdutos.map(produto => (
+                    
+                    <div key={produto.id} className="shrink-0 w-64"> 
+                      
+                      <ProductCard
+                        id={produto.id}
+                        name={produto.nome}
+                        price={produto.preco.toString()} 
+                        isAvailable={produto.estoque > 0}
+                        imageUrl={produto.imagens?.[0]?.urlImagem || '/Stock.io.png'}
+                        badgeUrl={produto.loja?.logo || undefined}
+                      />
+                    </div>
+                  ))
+
+                ) : (
+                  <p className="text-center text-gray-500 text-lg">
+                    Ops! Nenhum produto foi encontrado nesta categoria.
+                  </p>
+                )}
+              </div>
+            </div>
+        </section>
+
+        {/*Moda*/}
+        <section className="pb-12">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold text-[#171918]">Produtos em Moda</h2>
+            <a href="/ver-mais/moda" className="text-sm text-[#6A38F3] hover:underline">
+              ver mais
+            </a>
+          </div>
+
+          <div className="overflow-x-auto pb-4">
+              <div className="flex flex-nowrap gap-6">
+
+                {modaProdutos.length > 0 ? (
+                  modaProdutos.map(produto => (
+                    
+                    <div key={produto.id} className="shrink-0 w-64"> 
+                      
+                      <ProductCard
+                        id={produto.id}
+                        name={produto.nome}
+                        price={produto.preco.toString()} 
+                        isAvailable={produto.estoque > 0}
+                        imageUrl={produto.imagens?.[0]?.urlImagem || '/Stock.io.png'}
+                        badgeUrl={produto.loja?.logo || undefined}
+                      />
+                    </div>
+                  ))
+
+                ) : (
+                  <p className="text-center text-gray-500 text-lg">
+                    Ops! Nenhum produto foi encontrado nesta categoria.
+                  </p>
+                )}
+              </div>
+            </div>
+        </section>
+
+        {/* Lista de prdutos */}
+        <section>
+            <div className="container mx-auto max-w-7xl p-4 md:p-8">
+
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+                
+                    {listarProdutos.length > 0 ? (
+
+                        listarProdutos.map(produto => {
+                        
+                        const temImagem = produto.imagens && produto.imagens.length > 0;
+                        const imageUrl = temImagem 
+                            ? produto.imagens[0].urlImagem 
+                            : '/Stock.io.png';
+                        
+                        const badgeUrl = produto.loja?.logo || undefined;
+                        
+                        return (
+                            <ProductCard
+                            id={produto.id}
+                            key={produto.id}
+                            name={produto.nome}
+                            price={produto.preco.toString()} 
+                            isAvailable={produto.estoque > 0}
+                            imageUrl={imageUrl} 
+                            badgeUrl={badgeUrl}
+                            />
+                        );
+                        })
+
+                    ) : (
+                        <p className="col-span-full text-center text-gray-500 text-lg">
+                        Ops! Nenhum produto foi encontrado nesta categoria.
+                        </p>
+                    )}
+                </div>
+            </div>
+        </section>
+
+        {/* --- ADICIONE ESTA NOVA SEÇÃO DE PAGINAÇÃO --- */}
+        <section className="flex justify-center items-center space-x-2 py-8">
+          
+          {/* Botão "Anterior" */}
+          <button
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="px-4 py-2 rounded bg-white text-black shadow-sm disabled:opacity-50"
+          >
+            Anterior
+          </button>
+
+          {/* Botões de Número (1, 2, 3...) */}
+          {/* Isso cria um array [0, 1, 2...] e o mapeia para [1, 2, 3...] */}
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNumber => (
+            <button
+              key={pageNumber}
+              onClick={() => setCurrentPage(pageNumber)}
+              className={`px-4 py-2 rounded shadow-sm ${
+                currentPage === pageNumber 
+                ? 'bg-[#6A38F3] text-white' // Estilo da página ativa
+                : 'bg-white text-black' // Estilo da página inativa
+              }`}
+            >
+              {pageNumber}
+            </button>
+          ))}
+
+          {/* Botão "Próximo" */}
+          <button
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 rounded bg-white text-black shadow-sm disabled:opacity-50"
+          >
+            Próximo
+          </button>
+
+        </section>
+
+      </div>
+    </main>
+  );
+}
