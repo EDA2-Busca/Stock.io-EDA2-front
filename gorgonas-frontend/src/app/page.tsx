@@ -6,6 +6,7 @@ import { ProductCard } from '@/components/ProductCard';
 import api from "@/utilis/api";
 import SearchBar from '@/components/ui/SearchBar';
 import CategoryList from '@/components/CategoryList';
+import StoreList from "@/components/ui/StoreList";
 import { ProductRow } from '../components/ProductRow';
 
 type ProdutoParaCard = {
@@ -175,7 +176,6 @@ export default function HomePage() {
               )}
             </div>
           </section>
-
         ) : ( // Se 'searchResults' for nulo, mostre a home normal
           <>
             <section className="pb-6">
@@ -193,11 +193,6 @@ export default function HomePage() {
                   products={mercadoProdutos}
                   viewMoreHref="/ver-mais/mercado"
                 />
-                 <ProductRow 
-                  title="Farmácia"
-                  products={farmaciaProdutos}
-                  viewMoreHref="/ver-mais/farmacia"
-                />
                 <ProductRow 
                   title="Beleza"
                   products={belezaProdutos}
@@ -213,21 +208,7 @@ export default function HomePage() {
                   products={eletronicosProdutos}
                   viewMoreHref="/ver-mais/eletronicos"
                 />
-                <ProductRow 
-                  title="Jogos"
-                  products={jogosProdutos}
-                  viewMoreHref="/ver-mais/jogos"
-                />
-                 <ProductRow 
-                  title="Brinquedos"
-                  products={brinquedosProdutos}
-                  viewMoreHref="/ver-mais/brinquedos"
-                />
-                 <ProductRow 
-                  title="Casa"
-                  products={CasaProdutos}
-                  viewMoreHref="/ver-mais/casa"
-                />
+                <StoreList/>
               </>
             )}
           </>
