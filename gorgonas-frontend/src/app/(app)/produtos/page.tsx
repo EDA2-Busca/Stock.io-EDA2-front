@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { Navbar } from '@/components/Navbar';
-import { ProductCard } from '@/components/ProductCard';
+import { ProductCard } from '@/components/ProductCard'; 
 import api from "@/utilis/api";
 import SearchBar from '@/components/ui/SearchBar';
 import CategoryList from '@/components/CategoryList';
+import { ProductRow } from '@/components/ProductRow';
 
 type ProdutoParaCard = {
   id: number;
@@ -19,6 +20,7 @@ type ProdutoParaCard = {
 
 export default function HomePage() {
 
+  // --- Estados das Categorias (sem mudança) ---
   const [mercadoProdutos, setMercadoProdutos] = useState<ProdutoParaCard[]>([]);
   const [farmaciaProdutos, setFarmaciaProdutos] = useState<ProdutoParaCard[]>([]);
   const [belezaProdutos, setBelezaProdutos] = useState<ProdutoParaCard[]>([]);
@@ -32,10 +34,19 @@ export default function HomePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [limit, setLimit] = useState(15);
-
+  
   const [isLoading, setIsLoading] = useState(true);
 
+  const [searchResults, setSearchResults] = useState<ProdutoParaCard[] | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
+
   useEffect(() => {
+    if (searchResults) { 
+      setIsLoading(false);
+      return; 
+    }
 
       const buscarDadosDaPagina = async () => {
         try {
@@ -49,11 +60,9 @@ export default function HomePage() {
           const promiseJogos = api.get('/produtos/ver-mais/jogos');
           const promiseBrinquedos = api.get('/produtos/ver-mais/brinquedos');
           const promiseCasa = api.get('/produtos/ver-mais/casa');
-
           const promiseListar = api.get(
             `/produtos/recentes?page=${currentPage}&limit=${limit}`
           );
-
           const [responseMercado, responseFarmacia, responseBeleza, responseModa, responseEletronicos, responseJogos, responseBrinquedos, responseCasa, responseListar] = await Promise.all([
             promiseMercado,
             promiseFarmacia,
@@ -63,7 +72,6 @@ export default function HomePage() {
             promiseJogos,
             promiseBrinquedos,
             promiseCasa,
-
             promiseListar
           ]);
 
@@ -75,22 +83,40 @@ export default function HomePage() {
           setJogosProdutos(responseJogos.data);
           setBrinquedosProdutos(responseBrinquedos.data);
           setCasaProdutos(responseCasa.data);
-
           setListarProdutos(responseListar.data.produtos);
-
           const totalCount = responseListar.data.totalCount;
           setTotalPages(Math.ceil(totalCount / limit));
 
         } catch (err) {
           console.error("Erro ao buscar produtos da home:", err);
         } finally {
-          setIsLoading(false); // Termina de carregar (com sucesso ou erro)
+          setIsLoading(false); 
         }
       };
-
       buscarDadosDaPagina();
-      
-    }, [currentPage, limit]);
+  }, [currentPage, limit, searchResults]); 
+
+  const handleSearch = async (term: string) => {
+    setSearchTerm(term); 
+    setIsSearching(true); 
+    setSearchResults([]); 
+
+    try {
+      const response = await api.get(`/produtos/buscar?q=${term}`);
+      setSearchResults(response.data);
+    } catch (err) {
+      console.error("Erro ao buscar:", err);
+      setSearchResults([]); 
+    } finally {
+      setIsSearching(false); 
+    }
+  };
+
+  const clearSearch = () => {
+    setSearchTerm('');
+    setSearchResults(null);
+  };
+
 
   return (
     <main className="bg-[#FDF9F2] min-h-screen">
@@ -104,197 +130,174 @@ export default function HomePage() {
             </div>
         </section>
       </header>
+      
       <div className="max-w-7xl mx-auto px-8">
+        
         <section className="py-6">
-          <SearchBar className="max-w-md ml-auto" />
+          <SearchBar 
+            className="max-w-md ml-auto" 
+            onSearch={handleSearch} // Passa a função para o componente
+            placeholder="Buscar por produto, loja ou categoria..."
+          />
         </section>
-
-        {/*Mercado*/}
-        <section className="pb-12">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-[#171918]">Produtos em Mercado</h2>
-            <a href="/ver-mais/mercado" className="text-sm text-[#6A38F3] hover:underline">
-              ver mais
-            </a>
-          </div>
-
-          <div className="overflow-x-auto pb-4">
-              <div className="flex flex-nowrap gap-6">
-                {mercadoProdutos.length > 0 ? (
-                  mercadoProdutos.map(produto => (
-                    <div key={produto.id} className="shrink-0 w-64"> 
-                      <ProductCard
-                        id={produto.id}
-                        name={produto.nome}
-                        price={produto.preco.toString()} 
-                        isAvailable={produto.estoque > 0}
-                        imageUrl={produto.imagens?.[0]?.urlImagem || '/Stock.io.png'}
-                        badgeUrl={produto.loja?.logo || undefined}
-                      />
-                    </div>
-                  ))
-
-                ) : (
-                  <p className="text-center text-gray-500 text-lg">
-                    Ops! Nenhum produto foi encontrado nesta categoria.
-                  </p>
-                )}
-              </div>
+        
+        {searchResults ? ( 
+          <section className="pb-12">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-[#171918]">
+                Resultados para: "{searchTerm}"
+              </h2>
+              <button onClick={clearSearch} className="text-sm text-[#6A38F3] hover:underline">
+                Limpar busca
+              </button>
             </div>
-        </section>
-
-        {/*Beleza*/}
-        <section className="pb-12">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-[#171918]">Produtos em Beleza</h2>
-            <a href="/ver-mais/beleza" className="text-sm text-[#6A38F3] hover:underline">
-              ver mais
-            </a>
-          </div>
-
-          <div className="overflow-x-auto pb-4">
-              <div className="flex flex-nowrap gap-6">
-
-                {belezaProdutos.length > 0 ? (
-                  belezaProdutos.map(produto => (
-                    
-                    <div key={produto.id} className="shrink-0 w-64"> 
-                      
-                      <ProductCard
-                        id={produto.id}
-                        name={produto.nome}
-                        price={produto.preco.toString()} 
-                        isAvailable={produto.estoque > 0}
-                        imageUrl={produto.imagens?.[0]?.urlImagem || '/Stock.io.png'}
-                        badgeUrl={produto.loja?.logo || undefined}
-                      />
-                    </div>
-                  ))
-
-                ) : (
-                  <p className="text-center text-gray-500 text-lg">
-                    Ops! Nenhum produto foi encontrado nesta categoria.
-                  </p>
-                )}
-              </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+              {isSearching ? (
+                <p className="col-span-full text-center text-gray-500">Buscando...</p>
+              ) : searchResults.length > 0 ? (
+                searchResults.map(produto => (
+                  <ProductCard
+                    key={produto.id}
+                    id={produto.id}
+                    name={produto.nome}
+                    price={produto.preco.toString()} 
+                    isAvailable={produto.estoque > 0}
+                    imageUrl={produto.imagens?.[0]?.urlImagem || '/Stock.io.png'}
+                    badgeUrl={produto.loja?.logo || undefined}
+                  />
+                ))
+              ) : (
+                <p className="col-span-full text-center text-gray-500 text-lg">
+                  Nenhum produto encontrado para "{searchTerm}".
+                </p>
+              )}
             </div>
-        </section>
+          </section>
 
-        {/*Moda*/}
-        <section className="pb-12">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-[#171918]">Produtos em Moda</h2>
-            <a href="/ver-mais/moda" className="text-sm text-[#6A38F3] hover:underline">
-              ver mais
-            </a>
-          </div>
-
-          <div className="overflow-x-auto pb-4">
-              <div className="flex flex-nowrap gap-6">
-
-                {modaProdutos.length > 0 ? (
-                  modaProdutos.map(produto => (
-                    
-                    <div key={produto.id} className="shrink-0 w-64"> 
-                      
-                      <ProductCard
-                        id={produto.id}
-                        name={produto.nome}
-                        price={produto.preco.toString()} 
-                        isAvailable={produto.estoque > 0}
-                        imageUrl={produto.imagens?.[0]?.urlImagem || '/Stock.io.png'}
-                        badgeUrl={produto.loja?.logo || undefined}
-                      />
-                    </div>
-                  ))
-
-                ) : (
-                  <p className="text-center text-gray-500 text-lg">
-                    Ops! Nenhum produto foi encontrado nesta categoria.
-                  </p>
-                )}
+        ) : ( 
+          <>
+            {isLoading ? (
+              <div className="py-12 text-center">
+                <p className="text-gray-500 text-lg">Carregando...</p>
               </div>
-            </div>
-        </section>
+            ) : (
+              <>
+                <ProductRow 
+                  title="Mercado"
+                  products={mercadoProdutos}
+                  viewMoreHref="/ver-mais/mercado"
+                />
+                <ProductRow 
+                  title="Farmácia"
+                  products={farmaciaProdutos}
+                  viewMoreHref="/ver-mais/farmacia"
+                />
+                <ProductRow 
+                  title="Beleza"
+                  products={belezaProdutos}
+                  viewMoreHref="/ver-mais/beleza"
+                />
+                <ProductRow 
+                  title="Moda"
+                  products={modaProdutos}
+                  viewMoreHref="/ver-mais/moda"
+                />
+                <ProductRow 
+                  title="Eletrônicos"
+                  products={eletronicosProdutos}
+                  viewMoreHref="/ver-mais/eletronicos"
+                />
+                <ProductRow 
+                  title="Jogos"
+                  products={jogosProdutos}
+                  viewMoreHref="/ver-mais/jogos"
+                />
+                <ProductRow 
+                  title="Brinquedos"
+                  products={brinquedosProdutos}
+                  viewMoreHref="/ver-mais/brinquedos"
+                />
+                <ProductRow 
+                  title="Casa"
+                  products={CasaProdutos}
+                  viewMoreHref="/ver-mais/casa"
+                />
 
-        {/* Lista de prdutos */}
-        <section>
-            <div className="container mx-auto max-w-7xl p-4 md:p-8">
-
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
-                
-                    {listarProdutos.length > 0 ? (
-
+                {/* Lista de Produtos Paginada */}
+                <section>
+                  <div className="container mx-auto max-w-7xl p-4 md:p-8">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+                      {listarProdutos.length > 0 ? (
                         listarProdutos.map(produto => {
-                        
-                        const temImagem = produto.imagens && produto.imagens.length > 0;
-                        const imageUrl = temImagem 
-                            ? produto.imagens[0].urlImagem 
-                            : '/Stock.io.png';
-                        
-                        const badgeUrl = produto.loja?.logo || undefined;
-                        
-                        return (
-                            <ProductCard
-                            id={produto.id}
-                            key={produto.id}
-                            name={produto.nome}
-                            price={produto.preco.toString()} 
-                            isAvailable={produto.estoque > 0}
-                            imageUrl={imageUrl} 
-                            badgeUrl={badgeUrl}
-                            />
-                        );
+                          const temImagem = produto.imagens && produto.imagens.length > 0;
+                          const imageUrl = temImagem 
+                              ? produto.imagens[0].urlImagem 
+                              : '/Stock.io.png';
+                          const badgeUrl = produto.loja?.logo || undefined;
+                          
+                          return (
+                              <ProductCard
+                                id={produto.id}
+                                key={produto.id}
+                                name={produto.nome}
+                                price={produto.preco.toString()} 
+                                isAvailable={produto.estoque > 0}
+                                imageUrl={imageUrl} 
+                                badgeUrl={badgeUrl}
+                              />
+                          );
                         })
-
-                    ) : (
+                      ) : (
                         <p className="col-span-full text-center text-gray-500 text-lg">
-                        Ops! Nenhum produto foi encontrado nesta categoria.
+                          Ops! Nenhum produto foi encontrado.
                         </p>
-                    )}
-                </div>
-            </div>
-        </section>
+                      )}
+                    </div>
+                  </div>
+                </section>
 
-        {/* --- ADICIONE ESTA NOVA SEÇÃO DE PAGINAÇÃO --- */}
-        <section className="flex justify-center items-center space-x-2 py-8">
-          
-          {/* Botão "Anterior" */}
-          <button
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className="px-4 py-2 rounded bg-white text-black shadow-sm disabled:opacity-50"
-          >
-            Anterior
-          </button>
+                {/* Paginação */}
+                <section className="flex justify-center items-center space-x-2 py-8">
+                  
+                  {/* Botão "Anterior" */}
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="px-4 py-2 rounded bg-white text-black shadow-sm disabled:opacity-50"
+                  >
+                    Anterior
+                  </button>
 
-          {/* Botões de Número (1, 2, 3...) */}
-          {/* Isso cria um array [0, 1, 2...] e o mapeia para [1, 2, 3...] */}
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNumber => (
-            <button
-              key={pageNumber}
-              onClick={() => setCurrentPage(pageNumber)}
-              className={`px-4 py-2 rounded shadow-sm ${
-                currentPage === pageNumber 
-                ? 'bg-[#6A38F3] text-white' // Estilo da página ativa
-                : 'bg-white text-black' // Estilo da página inativa
-              }`}
-            >
-              {pageNumber}
-            </button>
-          ))}
+                  {/* Botões de Número */}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNumber => (
+                    <button
+                      key={pageNumber}
+                      onClick={() => setCurrentPage(pageNumber)}
+                      className={`px-4 py-2 rounded shadow-sm ${
+                        currentPage === pageNumber 
+                        ? 'bg-[#6A38F3] text-white' 
+                        : 'bg-white text-black' 
+                      }`}
+                    >
+                      {pageNumber}
+                    </button>
+                  ))}
 
-          {/* Botão "Próximo" */}
-          <button
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            className="px-4 py-2 rounded bg-white text-black shadow-sm disabled:opacity-50"
-          >
-            Próximo
-          </button>
+                  {/* Botão "Próximo" */}
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="px-4 py-2 rounded bg-white text-black shadow-sm disabled:opacity-50"
+                  >
+                    Próximo
+                  </button>
 
-        </section>
-
+                </section>
+              </>
+            )}
+          </>
+        )}
       </div>
     </main>
   );
