@@ -1,0 +1,44 @@
+import Link from "next/link";
+import Image from "next/image";
+
+interface StoreCardProps {
+  name: string;
+  category: string;
+  imageUrl: string;
+  slug: string;
+}
+
+export function StoreCard({ name, category, imageUrl, slug }: StoreCardProps) {
+  return (
+    <Link href={`/lojas/${slug}`}>
+      <div className="group flex w-[161px] flex-col items-center text-center cursor-pointer">
+        
+        {/* Círculo com o logo */}
+        <div
+          className="flex h-[135px] w-[135px] items-center justify-center
+          rounded-full bg-white shadow-sm ring-1 ring-black/5
+          transition-all duration-200 group-hover:scale-[1.04] group-hover:shadow-md"
+        >
+          <Image
+            src={imageUrl}
+            alt={name}
+            width={115}
+            height={115}
+            className="object-contain"
+          />
+        </div>
+
+        {/* Nome + categoria */}
+        <div className="mt-3 flex h-[53px] w-full flex-col items-center justify-center">
+          <p className="w-full truncate text-[15px] font-semibold leading-tight text-black">
+            {name}
+          </p>
+
+          <p className="mt-0.5 text-[13px] font-medium lowercase text-[#6A38F3]">
+            {category}
+          </p>
+        </div>
+      </div>
+    </Link>
+  );
+}

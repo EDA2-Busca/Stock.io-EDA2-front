@@ -3,6 +3,8 @@ import { ProductCard } from '@/components/ProductCard';
 
 import SearchBar from '@/components/ui/SearchBar';
 import CategoryList from '@/components/CategoryList';
+import StoreList from "@/components/ui/StoreList";
+
 
 export default function HomePage() {
   return (
@@ -74,7 +76,11 @@ export default function HomePage() {
             </a>
           </div>
         </section>
+        {/* --- Seção de Lojas (NOVO) --- */}
+        <StoreList />
       </div>
+         
+
     </main>
   );
 }
