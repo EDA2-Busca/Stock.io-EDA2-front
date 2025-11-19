@@ -18,17 +18,13 @@ interface ProductRowProps {
 }
 
 export function ProductRow({ title, products, viewMoreHref }: ProductRowProps) {
-
     return (
         <section className="pb-12">
-
-            {/* CORREÇÃO: O link deve estar DENTRO desta div */}
             <div className="flex justify-end mb-4">
                 <a href={viewMoreHref} className="text-sm text-[#6A38F3] hover:underline">
                     ver mais
                 </a>
             </div>
-
             <div className="overflow-x-auto pb-4">
                 <div className="flex flex-nowrap gap-6">
                     {products.length > 0 ? (
