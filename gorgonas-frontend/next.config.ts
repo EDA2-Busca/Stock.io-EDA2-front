@@ -6,17 +6,11 @@ const nextConfig: NextConfig = {
   // --- ADICIONE ESTE BLOCO ---
   images: {
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'www.infoescola.com', // O domínio da imagem do tatu
-      },
-      {
-        protocol: 'https',
-        hostname: 'via.placeholder.com', // Para o seu placeholder.png
-      },
-      // Adicione outros domínios aqui conforme precisar
-      // Ex: { protocol: 'https', hostname: 'meu-s3-bucket.amazonaws.com' }
+      { protocol: 'https', hostname: 'www.infoescola.com' },
+      { protocol: 'https', hostname: 'via.placeholder.com' },
     ],
+    // Evita falhas de otimização quando DNS externo oscila (usa a imagem direta)
+    unoptimized: true,
   },
   // -------------------------
 };

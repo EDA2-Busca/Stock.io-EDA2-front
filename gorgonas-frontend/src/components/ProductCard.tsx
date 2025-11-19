@@ -1,5 +1,6 @@
 import Image from 'next/image'; 
 import Link from 'next/link'
+import { useState } from 'react';
 interface ProductCardProps {
   id: number;
   name: string;
@@ -19,16 +20,19 @@ export function ProductCard({
   badgeUrl,
   isAvailable,
 }: ProductCardProps) {
+  const [src, setSrc] = useState(imageUrl);
+  const fallback = '/avatar-placeholder.png';
   return (
     <Link href={`/produto/${id}`}>
     <div className="bg-white rounded-2xl shadow-sm p-4 flex flex-col transition-all duration-300 hover:shadow-md">
       <div className="relative w-full h-40 flex items-center justify-center mb-4">
         <Image
-          src={imageUrl}
+          src={src}
           alt={name}
           width={150}
           height={150}
           className="object-contain max-h-full"
+          onError={() => { if (src !== fallback) setSrc(fallback); }}
         />
         {badgeUrl && (
           <Image
