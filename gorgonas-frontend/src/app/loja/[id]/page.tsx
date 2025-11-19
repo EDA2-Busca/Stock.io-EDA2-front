@@ -9,6 +9,7 @@ import { ProductCard } from '@/components/ProductCard';
 import ProductScroll from '@/components/ProductScroll';
 import Pagination from '@/components/ui/Pagination';
 import StoreBanner from '@/components/ui/StoreBanner';
+import { useParams } from 'next/navigation';
 // Importação corrigida (assumindo que está em 'ui/')
 import StoreReviewSection from '@/components/ui/StoreReviewSection'; 
 
@@ -17,7 +18,7 @@ import StoreReviewSection from '@/components/ui/StoreReviewSection';
 
 const mockStore = {
   name: "Rare Beauty",
-  category: "beleza",
+  category: "mercado",
   description: "by Selena Gomez",
   rating: 4.75,
   // Caminho corrigido para uma imagem que existe na sua pasta /public
@@ -71,10 +72,11 @@ const mockReviews = [
 
 
 // --- Página da Loja Específica ---
-export default function StorePage({ params }: { params: { id: string } }) {
+export default function StorePage() {
   
   // "Desembrulha" o 'id' aqui para corrigir o erro 'params.id'
-  const id = params.id;
+    const params = useParams();
+    const id = params.id as string; 
   
   // Simulação do estado de login
   // TODO: Substituir por: const { isLoggedIn } = useAuth();
@@ -86,7 +88,8 @@ export default function StorePage({ params }: { params: { id: string } }) {
       <Navbar />
 
       {/* 1. Secção do Banner (Imagem Full-Width) */}
-      <StoreBanner 
+      <StoreBanner
+        id={Number(id)} 
         storeName={mockStore.name}
         category={mockStore.category}
         description={mockStore.description}
