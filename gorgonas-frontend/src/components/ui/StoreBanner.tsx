@@ -12,12 +12,12 @@ type Props = {
   description: string;
   bannerImageUrl: string;
   isLoggedIn: boolean;
+  isOwner: boolean;
+  onProductCreated?: (p: { id: number; nome: string; preco: number; estoque: number; imagens?: any[] }) => void;
 };
 
 // Componente para o banner full-width
-export default function StoreBanner({ id, storeName, category, description, bannerImageUrl, isLoggedIn }: Props) {
-  // Simulação, no futuro viria do 'isOwner'
-  const isOwner = true;
+export default function StoreBanner({ id, storeName, category, description, bannerImageUrl, isLoggedIn, isOwner, onProductCreated }: Props) {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -69,9 +69,12 @@ export default function StoreBanner({ id, storeName, category, description, bann
 
       <AdicionarProdutoModal 
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)} // Função para fechar
-        lojaId={id}           // Passa o ID da loja atual
-        categoriaLoja={category} // Passa a categoria da loja atual
+        onClose={() => setIsModalOpen(false)}
+        lojaId={id}
+        categoriaLoja={category}
+        onCreated={(p) => {
+          onProductCreated?.(p);
+        }}
       />
 
     </section>

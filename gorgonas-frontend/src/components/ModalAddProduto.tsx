@@ -9,6 +9,7 @@ interface AdicionarProdutoModalProps {
   onClose: () => void;
   lojaId: number;      
   categoriaLoja: string;
+  onCreated?: (produto: { id: number; nome: string; preco: number; estoque: number; imagens?: any[] }) => void;
 }
 
 // Tipo para a Subcategoria
@@ -23,6 +24,7 @@ export default function AdicionarProdutoModal({
   onClose,
   lojaId,
   categoriaLoja,
+  onCreated,
 }: AdicionarProdutoModalProps) {
   
   // --- Estados do Formulário ---
@@ -66,7 +68,10 @@ export default function AdicionarProdutoModal({
     setQuantidade((prev) => Math.max(1, prev + amount));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Prepara o objeto (sem as imagens por enquanto)
@@ -79,19 +84,36 @@ export default function AdicionarProdutoModal({
       subcategoriaId: Number(subcategoriaId),
     };
 
-    console.log('Pronto para enviar:', dadosProduto);
-
-    try{
-
-      const response = api.post('/produtos', dadosProduto);
-
-    }catch(error){
-
-      console.log('Erro ao adicionar produto:', error);
-
-    };
-    
-    onClose();
+    if (isSubmitting) return;
+    setErrorMessage(null);
+    setIsSubmitting(true);
+    try {
+      const response = await api.post('/produtos', dadosProduto);
+      const created = response.data;
+      // Callback para atualização otimista
+      if (created && onCreated) {
+        onCreated(created);
+      }
+      // Limpa campos para próxima abertura
+      setNome('');
+      setSubcategoriaId('');
+      setDescricao('');
+      setPreco('');
+      setQuantidade(1);
+      onClose();
+    } catch (error) {
+      console.error('Erro ao adicionar produto:', error);
+      const status = error?.response?.status;
+      if (status === 409) {
+        setErrorMessage('Já existe um produto com este nome.');
+      } else if (status === 400) {
+        setErrorMessage('Dados inválidos. Verifique os campos.');
+      } else {
+        setErrorMessage('Falha ao salvar. Tente novamente.');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -145,7 +167,7 @@ export default function AdicionarProdutoModal({
           {/* Dropdown de Subcategorias (Integrado) */}
           <div className="relative">
             <select
-              className={`${inputStyle} ${!subcategoriaId ? 'text-gray-500' : 'text-gray-900'} appearance-none`}
+              className={`${inputStyle} ${!subcategoriaId ? 'text-gray-500' : 'text-gray-900'} appearance-none bg-white border border-gray-300 focus:ring-2 focus:ring-[#6A38F3]`}
               value={subcategoriaId}
               onChange={(e) => setSubcategoriaId(e.target.value)}
               required
@@ -163,7 +185,7 @@ export default function AdicionarProdutoModal({
               ))}
             </select>
             {/* Ícone de seta para indicar dropdown*/}
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-600">
               <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
             </div>
           </div>
@@ -197,10 +219,14 @@ export default function AdicionarProdutoModal({
           <div className="pt-4">
             <button
               type="submit"
-              className="w-full bg-[#6A38F3] text-white font-bold py-4 rounded-xl text-lg hover:bg-[#5a2ee0] transition-colors shadow-md hover:shadow-lg transform active:scale-[0.99]"
+              disabled={isSubmitting}
+              className="w-full bg-[#6A38F3] disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl text-lg hover:bg-[#5a2ee0] transition-colors shadow-md hover:shadow-lg transform active:scale-[0.99]"
             >
-              Adicionar
+              {isSubmitting ? 'Salvando...' : 'Adicionar'}
             </button>
+            {errorMessage && (
+              <p className="mt-3 text-sm text-red-600 font-medium">{errorMessage}</p>
+            )}
           </div>
         </form>
       </div>
