@@ -121,7 +121,37 @@ export default function LojasPage() {
     </section>
   );
 
-if (isLoading) 
+    if (isLoading) {
+    return (
+      <main className="bg-[#FDF9F2] min-h-screen">
+        <header className="w-full bg-black relative overflow-hidden -mt-px pt-px">
+          <div aria-hidden className="absolute inset-x-0 -top-px h-px bg-black" />
+          <Navbar />
+
+          <section className="w-full h-[30vh] flex items-center justify-center [&_h2]:text-white">
+            <div>
+              <CategoryList />
+            </div>
+          </section>
+        </header>
+
+        <div className="max-w-7xl mx-auto px-8">
+          <section className="py-6">
+            <SearchBar
+              className="max-w-md ml-auto"
+              onSearch={() => {}}
+            />
+          </section>
+
+          <p className="text-center text-gray-600 text-lg">
+            Carregando lojas...
+          </p>
+        </div>
+      </main>
+    );
+  }
+
+  // QUANDO NÃO ESTÁ CARREGANDO, RENDER NORMAL
   return (
     <main className="bg-[#FDF9F2] min-h-screen">
       {/* HEADER IGUAL AO DE PRODUTOS */}
@@ -139,15 +169,11 @@ if (isLoading)
       <div className="max-w-7xl mx-auto px-8">
         {/* SearchBar */}
         <section className="py-6">
-  <SearchBar
-    className="max-w-md ml-auto"
-    onSearch={(term) => {
-      console.log("Termo buscado em lojas:", term);
-      //  filtro das lojas aqui
-    }}
-  />
-</section>
-
+          <SearchBar
+            className="max-w-md ml-auto"
+            onSearch={() => {}}
+          />
+        </section>
 
         {/* SEÇÕES DE LOJAS */}
         {renderSecao("Lojas em Mercado", "/lojas/ver-mais/mercado", mercadoLojas)}
