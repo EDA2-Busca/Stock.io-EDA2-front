@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from "react";
@@ -25,9 +24,13 @@ export default function CategoriaPage() {
   const [maisAvaliados, setMaisAvaliados] = useState<ProdutoParaCard[]>([]);
   const [eletronicosProdutos, setEletronicosProdutos] = useState<ProdutoParaCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Estados de Paginação
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [limit, setLimit] = useState(15);
+  const [limit, setLimit] = useState(3);
+  
+  // Estados de Busca
   const [searchResults, setSearchResults] = useState<ProdutoParaCard[] | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -69,13 +72,12 @@ export default function CategoriaPage() {
       try {
         setIsLoading(true);
         
-        // Chamada 1: Lista Principal (Paginada)
+        // 1. Lista Principal (Paginada)
         const promisePrincipal = api.get(
-          `/produtos/ver-mais/eletronicos?page=${currentPage}&limit=${limit}`
+          `/produtos/categoria/eletronicos?page=${currentPage}&limit=${limit}`
         );
         
-        // Chamada 2: Candidatos para "Mais Avaliados"
-        // Trazemos mais itens (50) para calcular a média e pegar os melhores
+        // 2. Mais Avaliados
         const promiseMaisAvaliados = api.get(
           '/produtos/ver-mais/eletronicos?limit=50'
         );
@@ -85,29 +87,25 @@ export default function CategoriaPage() {
           promiseMaisAvaliados
         ]);
 
-        // --- Configura Lista Principal ---
-        const listaProdutos = responsePrincipal.data.produtos || responsePrincipal.data;
-        const total = responsePrincipal.data.totalCount || listaProdutos.length;
+        const dadosPrincipal = responsePrincipal.data;
+        const listaProdutos = dadosPrincipal.produtos || [];
+        const total = dadosPrincipal.totalCount || 0;
+
         setEletronicosProdutos(listaProdutos);
         setTotalPages(Math.ceil(total / limit));
 
-        // --- 2. LÓGICA DE ORDENAÇÃO (NO FRONTEND) ---
-        let candidatos = responseAvaliados.data.produtos || responseAvaliados.data;
+        let candidatos = Array.isArray(responseAvaliados.data) ? responseAvaliados.data : responseAvaliados.data.produtos || [];
 
-        // Função auxiliar para calcular a média de notas
         const getMedia = (prod: ProdutoParaCard) => {
             if (!prod.avaliacoes || prod.avaliacoes.length === 0) return 0;
             const soma = prod.avaliacoes.reduce((acc, curr) => acc + curr.nota, 0);
             return soma / prod.avaliacoes.length;
         };
 
-        // Ordena: Maior média primeiro (Decrescente)
-        // (Média B - Média A)
         const listaOrdenadaPorNota = candidatos.sort((a: ProdutoParaCard, b: ProdutoParaCard) => {
             return getMedia(b) - getMedia(a);
         });
 
-        // Salva apenas os Top 10 melhores
         setMaisAvaliados(listaOrdenadaPorNota.slice(0, 10));
 
       } catch (err) {
@@ -122,7 +120,7 @@ export default function CategoriaPage() {
 
   const dataToDisplay = searchResults || eletronicosProdutos;
   const isDisplayingSearch = searchResults !== null;
-  const title = isDisplayingSearch ? `Resultados da Busca` : "Eletrônicos em Destaque";
+  const title = isDisplayingSearch ? `Resultados da Busca` : "";
 
   if (isLoading) {
     return (
@@ -183,6 +181,12 @@ export default function CategoriaPage() {
               </button>
             </div>
           )}
+          {!isDisplayingSearch && (
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">
+              {title}
+            </h2>
+          )}
+
           {isSearching ? (
             <div className="py-12 text-center col-span-full">
               <p className="text-gray-500">Buscando resultados...</p>
@@ -221,40 +225,51 @@ export default function CategoriaPage() {
           )}
         </section>
 
+        {/* --- AQUI ESTÁ A PAGINAÇÃO --- */}
+        {/* Só aparece se não estiver buscando e houver mais de 1 página */}
         {!isDisplayingSearch && totalPages > 1 && (
-          <section className="flex justify-center items-center space-x-2 py-8">
+          <section className="flex justify-center items-center space-x-2 py-8 mb-12">
+            
+            {/* Botão Anterior */}
             <button
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="px-4 py-2 rounded bg-white text-black shadow-sm disabled:opacity-50"
+              className="px-4 py-2 rounded bg-white text-black shadow-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
             >
               Anterior
             </button>
+
+            {/* Números das Páginas */}
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNumber => (
               <button
                 key={pageNumber}
                 onClick={() => setCurrentPage(pageNumber)}
-                className={`px-4 py-2 rounded shadow-sm ${currentPage === pageNumber
-                  ? 'bg-[#6A38F3] text-white'
-                  : 'bg-white text-black'
-                  }`}
+                className={`px-4 py-2 rounded shadow-sm transition-colors ${
+                  currentPage === pageNumber
+                    ? 'bg-[#6A38F3] text-white' // Estilo Ativo
+                    : 'bg-white text-black hover:bg-gray-50' // Estilo Inativo
+                }`}
               >
                 {pageNumber}
               </button>
             ))}
+
+            {/* Botão Próximo */}
             <button
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 rounded bg-white text-black shadow-sm disabled:opacity-50"
+              className="px-4 py-2 rounded bg-white text-black shadow-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
             >
               Próximo
             </button>
           </section>
         )}
       </div>
+      
+      {/* RODAPÉ */}
       {!isDisplayingSearch && (
         <>
-          <div className="w-full h-[430px] bg-black  py-10 mt-auto">
+          <div className="w-full h-[430px] bg-black py-10 mt-auto">
             <div className="max-w-[1440px] mx-auto px-8">
               <div className="flex justify-between items-end mb-8">
                 <h2 className="text-4xl font-500 text-white">
@@ -268,6 +283,19 @@ export default function CategoriaPage() {
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-baseline gap-1">
                 <h2 className="text-4xl font-bold text-[#171918]">Melhores Avaliados</h2>
+              </div>
+            </div>
+            <ProductRow
+              title="" 
+              products={maisAvaliados}
+              viewMoreHref="/ver-mais/eletronicos"
+            />
+          </section>
+
+          <section className="pb-12 max-w-[1440px] mx-auto px-8 py-13">
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-baseline gap-1">
+                <h2 className="text-4xl font-bold text-[#171918]">Mais Recentes</h2>
               </div>
             </div>
             <ProductRow
