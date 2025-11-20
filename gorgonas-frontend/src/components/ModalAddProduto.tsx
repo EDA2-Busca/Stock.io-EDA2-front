@@ -32,7 +32,7 @@ export default function AdicionarProdutoModal({
   const [subcategoriaId, setSubcategoriaId] = useState('');
   const [descricao, setDescricao] = useState('');
   const [preco, setPreco] = useState('');
-  const [quantidade, setQuantidade] = useState(1);
+  const [quantidade, setQuantidade] = useState(0);
 
   // Estado para a lista que vem do backend
   const [listaSubcategorias, setListaSubcategorias] = useState<Subcategoria[]>([]);
@@ -65,7 +65,7 @@ export default function AdicionarProdutoModal({
 
   // --- Handlers ---
   const handleQuantityChange = (amount: number) => {
-    setQuantidade((prev) => Math.max(1, prev + amount));
+    setQuantidade((prev) => Math.max(0, prev + amount));
   };
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -108,7 +108,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       setSubcategoriaId('');
       setDescricao('');
       setPreco('');
-      setQuantidade(1);
+      setQuantidade(0);
       onClose();
     } catch (error: any) {
       console.error('Erro ao adicionar produto:', error);
