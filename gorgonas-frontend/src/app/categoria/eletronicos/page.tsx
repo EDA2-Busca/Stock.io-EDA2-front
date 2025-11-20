@@ -28,7 +28,7 @@ export default function CategoriaPage() {
   // Estados de Paginação
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [limit, setLimit] = useState(3);
+  const [limit, setLimit] = useState(2);
   
   // Estados de Busca
   const [searchResults, setSearchResults] = useState<ProdutoParaCard[] | null>(null);
@@ -228,40 +228,20 @@ export default function CategoriaPage() {
         {/* --- AQUI ESTÁ A PAGINAÇÃO --- */}
         {/* Só aparece se não estiver buscando e houver mais de 1 página */}
         {!isDisplayingSearch && totalPages > 1 && (
-          <section className="flex justify-center items-center space-x-2 py-8 mb-12">
-            
-            {/* Botão Anterior */}
-            <button
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 rounded bg-white text-black shadow-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-            >
-              Anterior
-            </button>
-
-            {/* Números das Páginas */}
+          <section className="flex justify-center items-center space-x-2 py-2 mb-12">
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNumber => (
               <button
                 key={pageNumber}
                 onClick={() => setCurrentPage(pageNumber)}
-                className={`px-4 py-2 rounded shadow-sm transition-colors ${
-                  currentPage === pageNumber
-                    ? 'bg-[#6A38F3] text-white' // Estilo Ativo
-                    : 'bg-white text-black hover:bg-gray-50' // Estilo Inativo
+                className={`transition-all duration-200 font-light leading-none px-5 ${
+                  currentPage === pageNumber 
+                    ? 'text-5xl text-black font-normal' // Ativo: Maior e Preto (sem caixa)
+                    : 'text-3xl text-[#171918]/60 hover:text-[#171918]' // Inativo: Menor e Cinza (sem caixa)
                 }`}
               >
                 {pageNumber}
               </button>
             ))}
-
-            {/* Botão Próximo */}
-            <button
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 rounded bg-white text-black shadow-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-            >
-              Próximo
-            </button>
           </section>
         )}
       </div>
