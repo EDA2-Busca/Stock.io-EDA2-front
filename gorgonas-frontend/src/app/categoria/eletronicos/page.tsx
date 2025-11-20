@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from "react";
@@ -7,6 +8,7 @@ import api from "@/utilis/api";
 import SearchBar from '@/components/ui/SearchBar';
 import StoreList from "@/components/ui/StoreList";
 import { ProductRow } from "@/components/ProductRow";
+
 // Definição do Tipo de Dados
 type ProdutoParaCard = {
   id: number;
@@ -15,10 +17,12 @@ type ProdutoParaCard = {
   estoque: number;
   loja: { logo: string | null } | null;
   imagens: { urlImagem: string }[];
+  avaliacoes?: { nota: number }[]; 
 };
 
 
 export default function CategoriaPage() {
+  const [maisAvaliados, setMaisAvaliados] = useState<ProdutoParaCard[]>([]);
   const [eletronicosProdutos, setEletronicosProdutos] = useState<ProdutoParaCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -55,24 +59,56 @@ export default function CategoriaPage() {
     }
   };
 
-
   useEffect(() => {
     if (searchResults !== null) {
       setIsLoading(false);
       return;
     }
-
+    
     const buscarDadosDaPagina = async () => {
       try {
         setIsLoading(true);
-        const responseEletronicos = await api.get(
+        
+        // Chamada 1: Lista Principal (Paginada)
+        const promisePrincipal = api.get(
           `/produtos/ver-mais/eletronicos?page=${currentPage}&limit=${limit}`
         );
-        const listaProdutos = responseEletronicos.data.produtos || responseEletronicos.data;
-        const total = responseEletronicos.data.totalCount || listaProdutos.length;
+        
+        // Chamada 2: Candidatos para "Mais Avaliados"
+        // Trazemos mais itens (50) para calcular a média e pegar os melhores
+        const promiseMaisAvaliados = api.get(
+          '/produtos/ver-mais/eletronicos?limit=50'
+        );
+        
+        const [responsePrincipal, responseAvaliados] = await Promise.all([
+          promisePrincipal,
+          promiseMaisAvaliados
+        ]);
 
+        // --- Configura Lista Principal ---
+        const listaProdutos = responsePrincipal.data.produtos || responsePrincipal.data;
+        const total = responsePrincipal.data.totalCount || listaProdutos.length;
         setEletronicosProdutos(listaProdutos);
         setTotalPages(Math.ceil(total / limit));
+
+        // --- 2. LÓGICA DE ORDENAÇÃO (NO FRONTEND) ---
+        let candidatos = responseAvaliados.data.produtos || responseAvaliados.data;
+
+        // Função auxiliar para calcular a média de notas
+        const getMedia = (prod: ProdutoParaCard) => {
+            if (!prod.avaliacoes || prod.avaliacoes.length === 0) return 0;
+            const soma = prod.avaliacoes.reduce((acc, curr) => acc + curr.nota, 0);
+            return soma / prod.avaliacoes.length;
+        };
+
+        // Ordena: Maior média primeiro (Decrescente)
+        // (Média B - Média A)
+        const listaOrdenadaPorNota = candidatos.sort((a: ProdutoParaCard, b: ProdutoParaCard) => {
+            return getMedia(b) - getMedia(a);
+        });
+
+        // Salva apenas os Top 10 melhores
+        setMaisAvaliados(listaOrdenadaPorNota.slice(0, 10));
 
       } catch (err) {
         console.error("Erro ao buscar produtos:", err);
@@ -127,8 +163,7 @@ export default function CategoriaPage() {
       </header>
 
       {/* SEÇÃO CONTEÚDO E LISTAGEM */}
-      <div className="max-w-[1440px] mx-auto px-8">
-
+      <div className="max-w-[1440px] mx-auto px-8 w-full grow">
         <section className="py-6 flex justify-end">
           <SearchBar
             className="max-w-md"
@@ -136,7 +171,6 @@ export default function CategoriaPage() {
             placeholder="Buscar em Eletrônicos..."
           />
         </section>
-
         <section className="pb-12 pt-4">
 
           {isDisplayingSearch && (
@@ -154,7 +188,7 @@ export default function CategoriaPage() {
               <p className="text-gray-500">Buscando resultados...</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 md:gap-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 md:gap-8 mb-8">
 
               {dataToDisplay.length > 0 ? (
                 dataToDisplay.map(produto => {
@@ -162,9 +196,7 @@ export default function CategoriaPage() {
                   const imageUrl = temImagem
                     ? produto.imagens[0].urlImagem
                     : '/Stock.io.png';
-
                   const badgeUrl = produto.loja?.logo || undefined;
-
                   return (
                     <ProductCard
                       id={produto.id}
@@ -177,7 +209,6 @@ export default function CategoriaPage() {
                     />
                   );
                 })
-
               ) : (
                 <p className="col-span-full text-center text-gray-500 text-lg py-12">
                   {isDisplayingSearch
@@ -223,7 +254,7 @@ export default function CategoriaPage() {
       </div>
       {!isDisplayingSearch && (
         <>
-          <div className="w-full bg-black py-7 mt-auto">
+          <div className="w-full h-[430px] bg-black  py-10 mt-auto">
             <div className="max-w-[1440px] mx-auto px-8">
               <div className="flex justify-between items-end mb-8">
                 <h2 className="text-4xl font-500 text-white">
@@ -233,14 +264,20 @@ export default function CategoriaPage() {
               <StoreList />
             </div>
           </div>
-          <div className="max-w-[1440px] mx-auto px-8 py-10">
-            <ProductRow 
-              products={eletronicosProdutos}
-              viewMoreHref="/ver-mais/beleza"
+          <section className="pb-12 max-w-[1440px] mx-auto px-8 py-13">
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-baseline gap-1">
+                <h2 className="text-4xl font-bold text-[#171918]">Melhores Avaliados</h2>
+              </div>
+            </div>
+            <ProductRow
+              title="" 
+              products={maisAvaliados}
+              viewMoreHref="/ver-mais/eletronicos"
             />
-          </div>
+          </section>
         </>
-        )}
+      )}
     </main>
   );
 }

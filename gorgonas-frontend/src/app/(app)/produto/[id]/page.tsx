@@ -26,7 +26,7 @@
         
         subcategoria: { nome: string };
         imagens?: { ordem: number, urlImagem: string }[];
-        avaliacoes?: { rating: number }[];
+        avaliacoes?: { nota: number }[];
     }
 
 
@@ -101,7 +101,7 @@
         });
 
         const avgRating = (products.avaliacoes && products.avaliacoes.length > 0)
-            ? (products.avaliacoes.reduce((acc, r) => acc + r.rating, 0) / products.avaliacoes.length).toFixed(1)
+            ? (products.avaliacoes.reduce((acc, r) => acc + r.nota, 0) / products.avaliacoes.length).toFixed(1)
             : "N/A";
 
         const totalReviews = products.avaliacoes?.length || 0;
