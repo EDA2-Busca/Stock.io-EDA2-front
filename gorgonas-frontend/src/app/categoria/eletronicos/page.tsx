@@ -16,20 +16,21 @@ type ProdutoParaCard = {
   estoque: number;
   loja: { logo: string | null } | null;
   imagens: { urlImagem: string }[];
-  avaliacoes?: { nota: number }[]; 
+  avaliacoes?: { nota: number }[];
 };
 
 
 export default function CategoriaPage() {
   const [maisAvaliados, setMaisAvaliados] = useState<ProdutoParaCard[]>([]);
+  const [recemAdicionados, setRecemAdicionados] = useState<ProdutoParaCard[]>([]);
   const [eletronicosProdutos, setEletronicosProdutos] = useState<ProdutoParaCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Estados de Paginação
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [limit, setLimit] = useState(2);
-  
+
   // Estados de Busca
   const [searchResults, setSearchResults] = useState<ProdutoParaCard[] | null>(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -67,24 +68,29 @@ export default function CategoriaPage() {
       setIsLoading(false);
       return;
     }
-    
+
     const buscarDadosDaPagina = async () => {
       try {
         setIsLoading(true);
-        
+
         // 1. Lista Principal (Paginada)
         const promisePrincipal = api.get(
           `/produtos/categoria/eletronicos?page=${currentPage}&limit=${limit}`
         );
-        
+
         // 2. Mais Avaliados
         const promiseMaisAvaliados = api.get(
           '/produtos/ver-mais/eletronicos?limit=50'
         );
-        
-        const [responsePrincipal, responseAvaliados] = await Promise.all([
+
+        const promiseRecentes = api.get(
+          '/produtos/ver-mais/eletronicos?limit=10&ordenar=recentes'
+        );
+
+        const [responsePrincipal, responseAvaliados, responseRecentes] = await Promise.all([
           promisePrincipal,
-          promiseMaisAvaliados
+          promiseMaisAvaliados,
+          promiseRecentes 
         ]);
 
         const dadosPrincipal = responsePrincipal.data;
@@ -97,16 +103,21 @@ export default function CategoriaPage() {
         let candidatos = Array.isArray(responseAvaliados.data) ? responseAvaliados.data : responseAvaliados.data.produtos || [];
 
         const getMedia = (prod: ProdutoParaCard) => {
-            if (!prod.avaliacoes || prod.avaliacoes.length === 0) return 0;
-            const soma = prod.avaliacoes.reduce((acc, curr) => acc + curr.nota, 0);
-            return soma / prod.avaliacoes.length;
+          if (!prod.avaliacoes || prod.avaliacoes.length === 0) return 0;
+          const soma = prod.avaliacoes.reduce((acc, curr) => acc + curr.nota, 0);
+          return soma / prod.avaliacoes.length;
         };
 
         const listaOrdenadaPorNota = candidatos.sort((a: ProdutoParaCard, b: ProdutoParaCard) => {
-            return getMedia(b) - getMedia(a);
+          return getMedia(b) - getMedia(a);
         });
 
         setMaisAvaliados(listaOrdenadaPorNota.slice(0, 10));
+
+        const listaRecentes = Array.isArray(responseRecentes.data)
+            ? responseRecentes.data
+            : responseRecentes.data.produtos || [];
+        setRecemAdicionados(listaRecentes);
 
       } catch (err) {
         console.error("Erro ao buscar produtos:", err);
@@ -233,11 +244,10 @@ export default function CategoriaPage() {
               <button
                 key={pageNumber}
                 onClick={() => setCurrentPage(pageNumber)}
-                className={`transition-all duration-200 font-light leading-none px-5 ${
-                  currentPage === pageNumber 
-                    ? 'text-5xl text-black font-normal' // Ativo: Maior e Preto (sem caixa)
-                    : 'text-3xl text-[#171918]/60 hover:text-[#171918]' // Inativo: Menor e Cinza (sem caixa)
-                }`}
+                className={`transition-all duration-200 font-light leading-none px-5 ${currentPage === pageNumber
+                  ? 'text-5xl text-black font-normal' // Ativo: Maior e Preto (sem caixa)
+                  : 'text-3xl text-[#171918]/60 hover:text-[#171918]' // Inativo: Menor e Cinza (sem caixa)
+                  }`}
               >
                 {pageNumber}
               </button>
@@ -245,7 +255,7 @@ export default function CategoriaPage() {
           </section>
         )}
       </div>
-      
+
       {/* RODAPÉ */}
       {!isDisplayingSearch && (
         <>
@@ -266,7 +276,7 @@ export default function CategoriaPage() {
               </div>
             </div>
             <ProductRow
-              title="" 
+              title=""
               products={maisAvaliados}
               viewMoreHref="/ver-mais/eletronicos"
             />
@@ -278,11 +288,7 @@ export default function CategoriaPage() {
                 <h2 className="text-4xl font-bold text-[#171918]">Mais Recentes</h2>
               </div>
             </div>
-            <ProductRow
-              title="" 
-              products={maisAvaliados}
-              viewMoreHref="/ver-mais/eletronicos"
-            />
+            <ProductRow title="" products={recemAdicionados} viewMoreHref="/ver-mais/eletronicos?ordenar=createdAt" />
           </section>
         </>
       )}
