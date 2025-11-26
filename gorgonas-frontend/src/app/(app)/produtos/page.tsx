@@ -75,6 +75,8 @@ export default function HomePage() {
             promiseListar
           ]);
 
+          console.log("Produto exemplo:", responseMercado?.data?.[0]);
+
           setMercadoProdutos(responseMercado.data);
           setFarmaciaProdutos(responseFarmacia.data);
           setBelezaProdutos(responseBeleza.data);
