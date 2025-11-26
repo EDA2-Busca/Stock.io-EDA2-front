@@ -1,4 +1,8 @@
+"use client";
+
+import { useState } from "react";
 import { StoreCard } from "./StoreCard";
+import StoresFilter from "@/components/ui/StoresFilter";
 
 const stores = [
   {
@@ -102,20 +106,41 @@ const stores = [
 ];
 
 export default function StoreList() {
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+
+  const handleFilterChange = (selected: string[]) => {
+    setSelectedCategories(selected);
+  };
+
+  const filteredStores =
+    selectedCategories.length === 0
+      ? stores
+      : stores.filter((s) => selectedCategories.includes(s.category));
+
   return (
     <section className="mt-10">
-      <div className="mb-4 flex items-center justify-between">
+      {/* TÍTULO + FILTRO + VER MAIS */}
+      <div className="mb-4 flex items-center justify-between gap-4">
+
         <h2 className="text-2xl font-bold text-black">Lojas</h2>
-        <a
-          href="/lojas"
-          className="text-sm font-semibold text-[#6A38F3]"
-        >
-          ver mais
-        </a>
+
+        <div className="flex items-center gap-4">
+          <div className="w-[200px]">
+            <StoresFilter onFilterChange={handleFilterChange} />
+          </div>
+
+          <a
+            href="/lojas"
+            className="text-sm font-semibold text-[#6A38F3]"
+          >
+            ver mais
+          </a>
+        </div>
       </div>
 
+      {/* LISTA DE LOJAS (FILTRADA) */}
       <div className="flex gap-[30px] overflow-x-auto pb-2">
-        {stores.map((store) => (
+        {filteredStores.map((store) => (
           <StoreCard
             key={store.id}
             name={store.name}

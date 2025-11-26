@@ -15,23 +15,42 @@ import {
 } from "lucide-react";
 
 const categorias = [
-  { label: "Mercado", icon: <ShoppingCart size={18} strokeWidth={2} /> },
-  { label: "Farmácia", icon: <Pill size={18} strokeWidth={2} /> },
-  { label: "Beleza", icon: <Brush size={18} strokeWidth={2} /> },
-  { label: "Moda", icon: <Shirt size={18} strokeWidth={2} /> },
-  { label: "Eletrônicos", icon: <Laptop size={18} strokeWidth={2} /> },
-  { label: "Jogos", icon: <Gamepad2 size={18} strokeWidth={2} /> },
-  { label: "Brinquedos", icon: <ToyBrick size={18} strokeWidth={2} /> },
-  { label: "Casa", icon: <Home size={18} strokeWidth={2} /> },
+  { label: "mercado", icon: <ShoppingCart size={18} strokeWidth={2} /> },
+  { label: "farmácia", icon: <Pill size={18} strokeWidth={2} /> },
+  { label: "beleza", icon: <Brush size={18} strokeWidth={2} /> },
+  { label: "moda", icon: <Shirt size={18} strokeWidth={2} /> },
+  { label: "eletrônicos", icon: <Laptop size={18} strokeWidth={2} /> },
+  { label: "jogos", icon: <Gamepad2 size={18} strokeWidth={2} /> },
+  { label: "brinquedos", icon: <ToyBrick size={18} strokeWidth={2} /> },
+  { label: "casa", icon: <Home size={18} strokeWidth={2} /> },
 ];
 
-export default function StoresFilter() {
+interface StoresFilterProps {
+  onFilterChange?: (selected: string[]) => void;
+}
+
+export default function StoresFilter({ onFilterChange }: StoresFilterProps) {
   const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
+
+  const toggleCategory = (cat: string) => {
+    let updated: string[];
+
+    if (selected.includes(cat)) {
+      updated = selected.filter((c) => c !== cat);
+    } else {
+      updated = [...selected, cat];
+    }
+
+    setSelected(updated);
+
+    // 🔥 Envia para o StoreList
+    onFilterChange?.(updated);
+  };
 
   return (
     <div className="relative w-[240px] select-none">
-
-      {/* BOTÃO DO FILTRO */}
+      {/* BOTÃO */}
       <button
         onClick={() => setOpen(!open)}
         className="
@@ -41,11 +60,7 @@ export default function StoresFilter() {
         "
       >
         <span className="text-[17px] font-medium">filtros</span>
-        {open ? (
-          <ChevronUp size={18} strokeWidth={2} />
-        ) : (
-          <ChevronDown size={18} strokeWidth={2} />
-        )}
+        {open ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
       </button>
 
       {/* DROPDOWN */}
@@ -56,7 +71,6 @@ export default function StoresFilter() {
             border border-[#E6E6E6] animate-in fade-in slide-in-from-top-2
           "
         >
-          {/* TÍTULO */}
           <div className="flex justify-between items-center mb-3">
             <h3 className="text-[22px] font-medium text-[#6A38F3]">
               filtros
@@ -64,23 +78,23 @@ export default function StoresFilter() {
             <ChevronUp size={20} className="text-[#6A38F3]" />
           </div>
 
-          {/* LISTA DE CATEGORIAS */}
           <div className="space-y-4">
             {categorias.map((item) => (
               <label
                 key={item.label}
                 className="flex items-center gap-3 cursor-pointer"
               >
-                {/* Checkbox */}
                 <input
                   type="checkbox"
+                  checked={selected.includes(item.label)}
+                  onChange={() => toggleCategory(item.label)}
                   className="
                     h-[22px] w-[22px] rounded-md border-2 border-[#6A38F3]
                     accent-[#6A38F3] cursor-pointer
                   "
                 />
-                {/* Texto + ícone */}
-                <span className="flex items-center gap-2 text-[18px] text-[#6A38F3]">
+
+                <span className="flex items-center gap-2 text-[18px] text-[#6A38F3] capitalize">
                   {item.label}
                   {item.icon}
                 </span>
