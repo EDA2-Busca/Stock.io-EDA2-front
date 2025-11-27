@@ -4,6 +4,8 @@ import { FaPlus } from 'react-icons/fa';
 import { FiEdit2 } from 'react-icons/fi';
 import { useState } from 'react';
 import AdicionarProdutoModal from "../../components/ModalAddProduto";
+import EditStoreModal from "./EditStoreModal";
+import { toast } from 'react-toastify';
 
 type Props = {
   id: number;
@@ -14,12 +16,15 @@ type Props = {
   isLoggedIn: boolean;
   isOwner: boolean;
   onProductCreated?: (p: { id: number; nome: string; preco: number; estoque: number; imagens?: any[] }) => void;
+  onStoreUpdated?: () => void;
+  onStoreDeleted?: () => void;
 };
 
 // Componente para o banner full-width
-export default function StoreBanner({ id, storeName, category, description, bannerImageUrl, isLoggedIn, isOwner, onProductCreated }: Props) {
+export default function StoreBanner({ id, storeName, category, description, bannerImageUrl, isLoggedIn, isOwner, onProductCreated, onStoreUpdated, onStoreDeleted }: Props) {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   return (
     <section className="w-full h-[50vh] relative flex items-center justify-center text-white">
@@ -46,7 +51,8 @@ export default function StoreBanner({ id, storeName, category, description, bann
           
           {/* Botão Editar Loja (só para o dono) */}
           {isOwner && (
-            <button 
+            <button
+              onClick={() => setIsEditOpen(true)}
               className="flex items-center justify-center w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/40 transition-colors"
               title="Editar Loja"
             >
@@ -76,6 +82,29 @@ export default function StoreBanner({ id, storeName, category, description, bann
           onProductCreated?.(p);
         }}
       />
+
+      {isOwner && (
+        <EditStoreModal
+          isOpen={isEditOpen}
+          onClose={() => setIsEditOpen(false)}
+          lojaId={String(id)}
+          initialName={storeName}
+          initialCategory={category}
+          initialImages={{ bannerUrl: bannerImageUrl }}
+          onUpdated={(updated) => {
+            // Atualização leve no banner após salvar
+            // Ideal: re-fetch da loja; por ora, apenas fechar modal e notificar
+            setIsEditOpen(false);
+            toast?.success?.("Loja atualizada");
+            onStoreUpdated?.();
+          }}
+          onDeleted={() => {
+            // Ideal: redirecionar para feed ou página inicial
+            setIsEditOpen(false);
+            onStoreDeleted?.();
+          }}
+        />
+      )}
 
     </section>
   );
