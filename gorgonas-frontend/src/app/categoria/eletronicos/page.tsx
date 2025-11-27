@@ -72,8 +72,6 @@ export default function CategoriaPage() {
     const buscarDadosDaPagina = async () => {
       try {
         setIsLoading(true);
-
-        // 1. Lista Principal (Paginada)
         const promisePrincipal = api.get(
           `/produtos/categoria/eletronicos?page=${currentPage}&limit=${limit}`
         );
@@ -171,7 +169,6 @@ export default function CategoriaPage() {
         </section>
       </header>
 
-      {/* SEÇÃO CONTEÚDO E LISTAGEM */}
       <div className="max-w-[1440px] mx-auto px-8 w-full grow">
         <section className="py-6 flex justify-end">
           <SearchBar
@@ -203,7 +200,7 @@ export default function CategoriaPage() {
               <p className="text-gray-500">Buscando resultados...</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 md:gap-8 mb-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 md:gap-8 mb-0">
 
               {dataToDisplay.length > 0 ? (
                 dataToDisplay.map(produto => {
@@ -236,8 +233,6 @@ export default function CategoriaPage() {
           )}
         </section>
 
-        {/* --- AQUI ESTÁ A PAGINAÇÃO --- */}
-        {/* Só aparece se não estiver buscando e houver mais de 1 página */}
         {!isDisplayingSearch && totalPages > 1 && (
           <section className="flex justify-center items-center space-x-2 py-2 mb-12">
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNumber => (
@@ -245,8 +240,8 @@ export default function CategoriaPage() {
                 key={pageNumber}
                 onClick={() => setCurrentPage(pageNumber)}
                 className={`transition-all duration-200 font-light leading-none px-5 ${currentPage === pageNumber
-                  ? 'text-5xl text-black font-normal' // Ativo: Maior e Preto (sem caixa)
-                  : 'text-3xl text-[#171918]/60 hover:text-[#171918]' // Inativo: Menor e Cinza (sem caixa)
+                  ? 'text-5xl text-black font-normal' 
+                  : 'text-3xl text-[#171918]/60 hover:text-[#171918]' 
                   }`}
               >
                 {pageNumber}
@@ -266,13 +261,13 @@ export default function CategoriaPage() {
                   Principais Lojas
                 </h2>
               </div>
-              <StoreList />
+              <StoreList categoria='ELETRONICOS' />
             </div>
           </div>
-          <section className="pb-12 max-w-[1440px] mx-auto px-8 py-13">
-            <div className="flex justify-between items-center mb-4">
+          <section className="pb-0 max-w-[1440px] mx-auto px-8 py-12">
+            <div className="flex justify-between items-center mb-0">
               <div className="flex items-baseline gap-1">
-                <h2 className="text-4xl font-bold text-[#171918]">Melhores Avaliados</h2>
+                <h2 className="text-4xl font-500 text-[#171918]">Melhores Avaliados</h2>
               </div>
             </div>
             <ProductRow
@@ -282,10 +277,10 @@ export default function CategoriaPage() {
             />
           </section>
 
-          <section className="pb-12 max-w-[1440px] mx-auto px-8 py-13">
-            <div className="flex justify-between items-center mb-4">
+          <section className="pb-8 max-w-[1440px] mx-auto px-8 py-0">
+            <div className="flex justify-between items-center mb-0">
               <div className="flex items-baseline gap-1">
-                <h2 className="text-4xl font-bold text-[#171918]">Mais Recentes</h2>
+                <h2 className="text-4xl font-500 text-[#171918]">Recém adicionados</h2>
               </div>
             </div>
             <ProductRow title="" products={recemAdicionados} viewMoreHref="/ver-mais/eletronicos?ordenar=createdAt" />
