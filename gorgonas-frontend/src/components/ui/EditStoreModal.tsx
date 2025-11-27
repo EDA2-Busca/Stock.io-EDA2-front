@@ -41,7 +41,8 @@ export default function EditStoreModal({
   const [nomeLoja, setNomeLoja] = useState(initialName || "");
   const [categoria, setCategoria] = useState(initialCategory || "");
   const [categoriaId, setCategoriaId] = useState<number | null>(null);
-  const categoriasNomes = ["Mercado", "Farmácia", "Moda", "Eletrônicos"]; // fallback baseado no produto
+  const categoriasNomes = ["Mercado", "Farmácia", "Moda", "Eletrônicos"]; 
+  const [resolvendoCategoria, setResolvendoCategoria] = useState(false);
 
   const [perfilFile, setPerfilFile] = useState<File | null>(null);
   const [logoSvgFile, setLogoSvgFile] = useState<File | null>(null);
@@ -49,16 +50,36 @@ export default function EditStoreModal({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [categoriaAlteradaPeloUsuario, setCategoriaAlteradaPeloUsuario] = useState(false);
 
-  const canSubmit = useMemo(() => !!nomeLoja && (!categoria || categoriaId !== null) && !isSubmitting && !isDeleting, [nomeLoja, categoria, categoriaId, isSubmitting, isDeleting]);
+  const canSubmit = useMemo(() => {
+    const categoriaOk = categoriaAlteradaPeloUsuario ? categoriaId !== null : true;
+    return !!nomeLoja && categoriaOk && !isSubmitting && !isDeleting;
+  }, [nomeLoja, categoriaAlteradaPeloUsuario, categoriaId, isSubmitting, isDeleting]);
 
-  // Tenta resolver categoriaId chamando GET /categorias/:nome
+  // Resolve categoriaId chamando GET /categorias/:nome
   useEffect(() => {
     let active = true;
     (async () => {
       if (!initialCategory) { setCategoriaId(null); return; }
+      // Ajusta valor exibido no select para corresponder às opções (normaliza enum -> label)
+      const normalizedNoAccent = initialCategory
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
+      const display =
+        normalizedNoAccent === 'mercado' ? 'Mercado' :
+        normalizedNoAccent === 'farmacia' ? 'Farmácia' :
+        normalizedNoAccent === 'moda' ? 'Moda' :
+        normalizedNoAccent === 'eletronicos' ? 'Eletrônicos' : initialCategory;
+      setCategoria(display);
       try {
-        const res = await api.get(`/categorias/${encodeURIComponent(initialCategory)}`);
+        const normalized = initialCategory
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase();
+        const nomeReq = normalized.charAt(0).toUpperCase() + normalized.slice(1);
+        const res = await api.get(`/categorias/${encodeURIComponent(nomeReq)}`);
         if (!active) return;
         setCategoriaId(res.data?.id ?? null);
       } catch {
@@ -93,19 +114,17 @@ export default function EditStoreModal({
     setIsSubmitting(true);
 
     try {
-      // Upload real ainda não implementado; não enviar URLs de imagem (backend exige URL válida via IsUrl)
       const perfilUrl = undefined;
       const logoSvgUrl = undefined;
       const bannerUrl = undefined;
 
       const payload: Record<string, any> = {};
       if (nomeLoja) payload.nome = nomeLoja;
-      // Envia categoriaId se disponível
-      if (categoriaId !== null) payload.categoriaId = categoriaId;
-      // if (categoriaId) payload.categoriaId = categoriaId;
-      // Imagens removidas do payload até termos upload/URL válida
+      // Envia categoriaId somente se o usuário alterou a categoria
+      if (categoriaAlteradaPeloUsuario && categoriaId !== null) payload.categoriaId = categoriaId;
+      
 
-      // PATCH /lojas/:id (backend usa PATCH e UpdateLojaDto)
+      
       await api.patch(`/lojas/${lojaId}`, payload);
 
       toast.success("Loja atualizada com sucesso!");
@@ -183,12 +202,21 @@ export default function EditStoreModal({
             onChange={async (e) => {
               const nome = e.target.value;
               setCategoria(nome);
+              setCategoriaAlteradaPeloUsuario(true);
               if (!nome) { setCategoriaId(null); return; }
+              setResolvendoCategoria(true);
               try {
-                const res = await api.get(`/categorias/${encodeURIComponent(nome)}`);
+                const normalized = nome
+                  .normalize('NFD')
+                  .replace(/[\u0300-\u036f]/g, '')
+                  .toLowerCase();
+                const nomeReq = normalized.charAt(0).toUpperCase() + normalized.slice(1);
+                const res = await api.get(`/categorias/${encodeURIComponent(nomeReq)}`);
                 setCategoriaId(res.data?.id ?? null);
               } catch {
                 setCategoriaId(null);
+              } finally {
+                setResolvendoCategoria(false);
               }
             }}
             className="w-full h-14 pl-6 pr-12 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#6A38F3]/50 text-gray-900"
@@ -213,7 +241,7 @@ export default function EditStoreModal({
               Deletar
             </button>
             <div className="flex-1" />
-            <Button type="submit" disabled={!canSubmit} fullWidth={false}>
+            <Button type="submit" disabled={!canSubmit || resolvendoCategoria} fullWidth={false}>
               Salvar
             </Button>
           </div>

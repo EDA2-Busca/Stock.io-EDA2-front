@@ -91,15 +91,12 @@ export default function StoreBanner({ id, storeName, category, description, bann
           initialName={storeName}
           initialCategory={category}
           initialImages={{ bannerUrl: bannerImageUrl }}
-          onUpdated={(updated) => {
-            // Atualização leve no banner após salvar
-            // Ideal: re-fetch da loja; por ora, apenas fechar modal e notificar
+          onUpdated={() => {
             setIsEditOpen(false);
             toast?.success?.("Loja atualizada");
             onStoreUpdated?.();
           }}
           onDeleted={() => {
-            // Ideal: redirecionar para feed ou página inicial
             setIsEditOpen(false);
             onStoreDeleted?.();
           }}
