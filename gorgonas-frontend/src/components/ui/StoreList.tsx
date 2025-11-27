@@ -124,8 +124,8 @@ export default function StoreList() {
 
         <h2 className="text-2xl font-bold text-black">Lojas</h2>
 
-        <div className="flex items-center gap-4">
-          <div className="w-[200px]">
+        <div className="flex items-center gap-6 relative">
+          <div className="w-auto">
             <StoresFilter onFilterChange={handleFilterChange} />
           </div>
 

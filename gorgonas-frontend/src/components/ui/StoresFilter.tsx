@@ -34,17 +34,11 @@ export default function StoresFilter({ onFilterChange }: StoresFilterProps) {
   const [selected, setSelected] = useState<string[]>([]);
 
   const toggleCategory = (cat: string) => {
-    let updated: string[];
-
-    if (selected.includes(cat)) {
-      updated = selected.filter((c) => c !== cat);
-    } else {
-      updated = [...selected, cat];
-    }
+    const updated = selected.includes(cat)
+      ? selected.filter((c) => c !== cat)
+      : [...selected, cat];
 
     setSelected(updated);
-
-    // 🔥 Envia para o StoreList
     onFilterChange?.(updated);
   };
 
@@ -63,12 +57,15 @@ export default function StoresFilter({ onFilterChange }: StoresFilterProps) {
         {open ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
       </button>
 
-      {/* DROPDOWN */}
+      {/* DROPDOWN (AGORA ABRE PARA CIMA) */}
       {open && (
         <div
           className="
-            absolute mt-3 w-[300px] bg-white rounded-3xl shadow-lg p-6 
-            border border-[#E6E6E6] animate-in fade-in slide-in-from-top-2
+            absolute right-0 bottom-[100%] mb-3
+            w-[280px] md:w-[300px]
+            bg-white rounded-3xl shadow-lg p-6 border border-[#E6E6E6]
+            z-50 max-h-[350px] overflow-y-auto
+            animate-in fade-in slide-in-from-bottom-2
           "
         >
           <div className="flex justify-between items-center mb-3">
@@ -78,29 +75,27 @@ export default function StoresFilter({ onFilterChange }: StoresFilterProps) {
             <ChevronUp size={20} className="text-[#6A38F3]" />
           </div>
 
-          <div className="space-y-4">
-            {categorias.map((item) => (
-              <label
-                key={item.label}
-                className="flex items-center gap-3 cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  checked={selected.includes(item.label)}
-                  onChange={() => toggleCategory(item.label)}
-                  className="
-                    h-[22px] w-[22px] rounded-md border-2 border-[#6A38F3]
-                    accent-[#6A38F3] cursor-pointer
-                  "
-                />
+          {categorias.map((item) => (
+            <label
+              key={item.label}
+              className="flex items-center gap-3 cursor-pointer mb-3"
+            >
+              <input
+                type="checkbox"
+                checked={selected.includes(item.label)}
+                onChange={() => toggleCategory(item.label)}
+                className="
+                  h-[22px] w-[22px] rounded-md border-2 border-[#6A38F3]
+                  accent-[#6A38F3] cursor-pointer
+                "
+              />
 
-                <span className="flex items-center gap-2 text-[18px] text-[#6A38F3] capitalize">
-                  {item.label}
-                  {item.icon}
-                </span>
-              </label>
-            ))}
-          </div>
+              <span className="flex items-center gap-2 text-[18px] text-[#6A38F3] capitalize">
+                {item.label}
+                {item.icon}
+              </span>
+            </label>
+          ))}
         </div>
       )}
     </div>
