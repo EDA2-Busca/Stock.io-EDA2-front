@@ -7,6 +7,7 @@ import api from "@/utilis/api";
 import SearchBar from '@/components/ui/SearchBar';
 import StoreList from "@/components/ui/StoreList";
 import { ProductRow } from "@/components/ProductRow";
+import SortDropdown, { SortOption } from "@/components/ui/SortDropdown"
 
 // Definição do Tipo de Dados
 type ProdutoParaCard = {
@@ -35,6 +36,8 @@ export default function CategoriaPage() {
   const [searchResults, setSearchResults] = useState<ProdutoParaCard[] | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+
+  const [currentSort, setCurrentSort] = useState<SortOption>('id');
 
   const clearSearch = () => {
     setSearchTerm('');
@@ -73,7 +76,7 @@ export default function CategoriaPage() {
       try {
         setIsLoading(true);
         const promisePrincipal = api.get(
-          `/produtos/categoria/eletronicos?page=${currentPage}&limit=${limit}`
+          `/produtos/categoria/eletronicos?page=${currentPage}&limit=${limit}&ordenar=${currentSort}`
         );
 
         // 2. Mais Avaliados
@@ -88,7 +91,7 @@ export default function CategoriaPage() {
         const [responsePrincipal, responseAvaliados, responseRecentes] = await Promise.all([
           promisePrincipal,
           promiseMaisAvaliados,
-          promiseRecentes 
+          promiseRecentes
         ]);
 
         const dadosPrincipal = responsePrincipal.data;
@@ -113,8 +116,8 @@ export default function CategoriaPage() {
         setMaisAvaliados(listaOrdenadaPorNota.slice(0, 10));
 
         const listaRecentes = Array.isArray(responseRecentes.data)
-            ? responseRecentes.data
-            : responseRecentes.data.produtos || [];
+          ? responseRecentes.data
+          : responseRecentes.data.produtos || [];
         setRecemAdicionados(listaRecentes);
 
       } catch (err) {
@@ -125,7 +128,7 @@ export default function CategoriaPage() {
     };
     buscarDadosDaPagina();
 
-  }, [searchResults, currentPage, limit]);
+  }, [searchResults, currentPage, limit, currentSort]);
 
   const dataToDisplay = searchResults || eletronicosProdutos;
   const isDisplayingSearch = searchResults !== null;
@@ -177,18 +180,28 @@ export default function CategoriaPage() {
             placeholder="Buscar em Eletrônicos..."
           />
         </section>
-        <section className="pb-12 pt-4">
+        <section className="pb-12 pt-0">
 
-          {isDisplayingSearch && (
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-[#171918]">
-                Resultados para: "{searchTerm}"
-              </h2>
-              <button onClick={clearSearch} className="text-sm text-[#6A38F3] hover:underline">
-                Limpar busca
-              </button>
-            </div>
-          )}
+          <div className="flex justify-between items-center mb-6">
+
+            {/* Esquerda: Título */}
+            <h2 className="text-2xl font-bold text-[#171918]">
+              {isDisplayingSearch ? `Resultados para: "${searchTerm}"` : title}
+            </h2>
+
+            {/* Direita: Dropdown de Ordenação */}
+            
+            {!isDisplayingSearch && (
+              <SortDropdown
+                currentSort={currentSort}
+                onSortChange={setCurrentSort}
+              />
+            )}
+
+            {isDisplayingSearch && (
+              <button onClick={clearSearch} className="text-sm text-[#6A38F3] hover:underline">Limpar busca</button>
+            )}
+          </div>
           {!isDisplayingSearch && (
             <h2 className="text-2xl font-bold text-gray-800 mb-6">
               {title}
@@ -240,8 +253,8 @@ export default function CategoriaPage() {
                 key={pageNumber}
                 onClick={() => setCurrentPage(pageNumber)}
                 className={`transition-all duration-200 font-light leading-none px-5 ${currentPage === pageNumber
-                  ? 'text-5xl text-black font-normal' 
-                  : 'text-3xl text-[#171918]/60 hover:text-[#171918]' 
+                  ? 'text-5xl text-black font-normal'
+                  : 'text-3xl text-[#171918]/60 hover:text-[#171918]'
                   }`}
               >
                 {pageNumber}
