@@ -12,7 +12,7 @@ type Loja = {
 };
 
 interface StoreListProps {
-  categoria?: string; // Opcional: se não passar, busca todas
+  categoria?: string;
 }
 
 export default function StoreList({ categoria }: StoreListProps) {
