@@ -8,7 +8,7 @@ import { ProductCard } from '@/components/ProductCard';
 import ProductScroll from '@/components/ProductScroll';
 import Pagination from '@/components/ui/Pagination';
 import StoreBanner from '@/components/ui/StoreBanner';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import api from '@/utilis/api';
 import { useAuth } from '@/contexts/AuthContext';
 // Importação corrigida (assumindo que está em 'ui/')
@@ -67,6 +67,7 @@ export default function StorePage() {
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const id = params.id as string;
+  const router = useRouter();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -95,6 +96,15 @@ export default function StorePage() {
       }
     })();
     return () => { active = false; };
+  }, [id]);
+
+  const refetchStore = useCallback(async () => {
+    try {
+      const res = await api.get(`/lojas/${id}`);
+      setStore(res.data);
+    } catch (e) {
+      console.error('Falha ao atualizar dados da loja após edição', e);
+    }
   }, [id]);
 
   // Fetch dos produtos da loja (Phase 2)
@@ -173,6 +183,12 @@ export default function StorePage() {
           ]);
           // Re-fetch silencioso (debounced) para garantir consistência
           setTimeout(() => { void fetchProducts(); }, 100);
+        }}
+        onStoreUpdated={() => {
+          void refetchStore();
+        }}
+        onStoreDeleted={() => {
+          router.push('/');
         }}
       />
 
