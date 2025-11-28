@@ -11,14 +11,21 @@ type Loja = {
   logo: string | null;
 };
 
-export default function StoreList() {
+interface StoreListProps {
+  categoria?: string;
+}
+
+export default function StoreList({ categoria }: StoreListProps) {
   const [stores, setStores] = useState<Loja[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStores = async () => {
       try {
-        const res = await api.get("/lojas");
+        const url = categoria 
+          ? `/lojas?categoria=${categoria}` 
+          : "/lojas";
+        const res = await api.get(url);
         setStores(res.data);
       } catch (e) {
         console.error("Erro ao carregar lojas", e);
@@ -28,7 +35,7 @@ export default function StoreList() {
     };
 
     fetchStores();
-  }, []);
+  }, [categoria]);
 
   return (
     <section className="mt-10">
