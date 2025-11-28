@@ -32,7 +32,7 @@ export default function AdicionarProdutoModal({
   const [subcategoriaId, setSubcategoriaId] = useState('');
   const [descricao, setDescricao] = useState('');
   const [preco, setPreco] = useState('');
-  const [quantidade, setQuantidade] = useState(1);
+  const [quantidade, setQuantidade] = useState(0);
 
   // Estado para a lista que vem do backend
   const [listaSubcategorias, setListaSubcategorias] = useState<Subcategoria[]>([]);
@@ -65,20 +65,29 @@ export default function AdicionarProdutoModal({
 
   // --- Handlers ---
   const handleQuantityChange = (amount: number) => {
-    setQuantidade((prev) => Math.max(1, prev + amount));
+    setQuantidade((prev) => Math.max(0, prev + amount));
   };
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  interface ProdutoResponse {
+  id: number;
+  nome: string;
+  preco: number;
+  estoque: number;
+  imagens?: any[];
+}
+
+// ...existing code...
+
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Prepara o objeto (sem as imagens por enquanto)
     const dadosProduto = {
       nome,
       descricao,
-      preco: parseFloat(preco.replace(',', '.')), // Converte "10,90" para 10.90
+      preco: parseFloat(preco.replace(',', '.')),
       estoque: quantidade,
       lojaId: lojaId,
       subcategoriaId: Number(subcategoriaId),
@@ -88,20 +97,20 @@ export default function AdicionarProdutoModal({
     setErrorMessage(null);
     setIsSubmitting(true);
     try {
-      const response = await api.post('/produtos', dadosProduto);
+      const response = await api.post<ProdutoResponse>('/produtos', dadosProduto);
       const created = response.data;
-      // Callback para atualização otimista
+      
       if (created && onCreated) {
         onCreated(created);
       }
-      // Limpa campos para próxima abertura
+      
       setNome('');
       setSubcategoriaId('');
       setDescricao('');
       setPreco('');
-      setQuantidade(1);
+      setQuantidade(0);
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao adicionar produto:', error);
       const status = error?.response?.status;
       if (status === 409) {
@@ -132,10 +141,10 @@ export default function AdicionarProdutoModal({
         <h2 className="text-3xl font-bold text-center mb-2 text-gray-900">
           Adicionar Produto
         </h2>
-        {/* Mostra contexto para o usuário (Opcional) */}
+        {/* Mostra contexto para o usuário (Opcional) 
         <p className="text-center text-sm text-gray-500 mb-6 uppercase tracking-wide">
           {categoriaLoja}
-        </p>
+        </p>*/}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           
