@@ -2,17 +2,17 @@ import Link from "next/link";
 import Image from "next/image";
 
 interface StoreCardProps {
+  id: number;
   name: string;
   category: string;
   imageUrl: string;
-  slug: string;
 }
 
-export function StoreCard({ name, category, imageUrl, slug }: StoreCardProps) {
+export function StoreCard({ id, name, category, imageUrl }: StoreCardProps) {
   return (
-    <Link href={`/lojas/${slug}`}>
+    <Link href={`/loja/${id}`}>
       <div className="group flex w-[161px] flex-col items-center text-center cursor-pointer">
-        
+
         {/* Círculo com o logo */}
         <div
           className="flex h-[135px] w-[135px] items-center justify-center
