@@ -63,7 +63,7 @@ export default function SubcategoryFilterBar({
   if (listaSubcategorias.length === 0) return null;
 
   return (
-    <div className="flex gap-10 overflow-x-auto px-2 py-2 no-scrollbar items-center">
+    <div className="flex flex-wrap gap-10 overflow-x-auto px-2 py-2 no-scrollbar items-center">
       {/* Botão "Todos" (Limpar Filtro) */}
       <button
         onClick={() => onSelect(null)}
