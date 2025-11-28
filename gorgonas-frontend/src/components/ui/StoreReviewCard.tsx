@@ -2,7 +2,7 @@
 import React from 'react';
 import { FaStar } from 'react-icons/fa'; 
 
-// Define os props que o review card espera
+// Props do card de review
 type ReviewCardProps = {
   review: {
     author: string;
@@ -12,10 +12,10 @@ type ReviewCardProps = {
   };
 };
 
-// Componente para um card de review individual
+// Card de review individual
 export default function StoreReviewCard({ review }: ReviewCardProps) {
   
-  // Função para renderizar as estrelas de rating
+  // Renderização de estrelas
   const renderStars = () => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
@@ -30,7 +30,7 @@ export default function StoreReviewCard({ review }: ReviewCardProps) {
   };
 
   return (
-    // Card principal com fundo branco
+    // Card principal
     <div className="w-full bg-white rounded-2xl shadow-md p-6 flex gap-4">
       
       {/* Avatar */}
@@ -38,13 +38,13 @@ export default function StoreReviewCard({ review }: ReviewCardProps) {
         src={review.avatarUrl} 
         alt={`Avatar de ${review.author}`}
         className="w-16 h-16 rounded-full object-cover shrink-0"
-        // Fallback para uma imagem que existe
+        // Fallback de imagem
         onError={(e) => { (e.target as HTMLImageElement).src = '/avatar-placeholder.png'; }} 
       />
       
-      {/* Conteúdo do Review */}
+      {/* Conteúdo */}
       <div className="flex flex-col w-full">
-        {/* Cabeçalho (Nome e Estrelas) */}
+        {/* Cabeçalho (nome + estrelas) */}
         <div className="flex justify-between items-center mb-2">
           <h3 className="text-lg font-semibold text-gray-900">{review.author}</h3>
           <div className="flex gap-1">
@@ -52,12 +52,12 @@ export default function StoreReviewCard({ review }: ReviewCardProps) {
           </div>
         </div>
         
-        {/* Texto do Review */}
+        {/* Texto */}
         <p className="text-gray-700 leading-relaxed">
           {review.text}
         </p>
 
-        {/* "ver mais" link */}
+        {/* Link ver mais */}
         <a href="#" className="text-sm text-[#6A38F3] hover:underline mt-2 self-end">
           ver mais
         </a>

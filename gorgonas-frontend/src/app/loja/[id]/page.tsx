@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 
-// Importa os componentes da página
+// Componentes principais da página da loja
 import { Navbar } from '@/components/Navbar';
 import { ProductCard } from '@/components/ProductCard';
 import ProductScroll from '@/components/ProductScroll';
@@ -14,14 +14,10 @@ import { useAuth } from '@/contexts/AuthContext';
 // Importação corrigida (assumindo que está em 'ui/')
 import StoreReviewSection from '@/components/ui/StoreReviewSection'; 
 
-// --- DADOS SIMULADOS (Mock Data) ---
-// (No futuro, estes dados virão da API usando o 'params.id')
-
-// Banner usa dados reais; demais blocos permanecem mock nesta fase.
+// Banner fallback caso loja não tenha imagem
 const FALLBACK_BANNER = '/banner-rare-beauty.jpg';
-const mockStoreStatic = { rating: 4.75 };
 
-// Produtos para o scroll horizontal "melhor avaliados"
+// Mock de produtos melhor avaliados (substituir por endpoint futuro)
 const mockBestProducts = [
   // IDs como 'number' e imagens de placeholder existentes
   { id: 1, name: "Bronzer", price: "254,99", isAvailable: true, imageUrl: "/avatar-placeholder.png" },
@@ -31,34 +27,11 @@ const mockBestProducts = [
   { id: 5, name: "Mini Blush", price: "99,99", isAvailable: false, imageUrl: "/avatar-placeholder.png" },
 ];
 
-// Grid de produtos será preenchida com dados reais nesta fase.
+// Grid de produtos com dados reais via API
 const FALLBACK_PRODUCT_IMAGE = '/avatar-placeholder.png';
 
-// Comentários para o scroll horizontal
-const mockReviews = [
-  { 
-    id: 'r1', 
-    author: "Sofia Figueiredo", 
-    text: "Adorei o produto, Funcionou muito na minha pele. Estou muito contente...",
-    avatarUrl: "/avatar-placeholder.png", // Usando o placeholder
-    rating: 5 
-  },
-  { 
-    id: 'r2', 
-    author: "João Silva", 
-    text: "A entrega foi rápida e o produto veio bem embalado...",
-    avatarUrl: "/avatar-placeholder.png", 
-    rating: 4
-  },
-  { 
-    id: 'r3', 
-    author: "Maria Clara", 
-    text: "O blush é lindo e tem uma pigmentação ótima...",
-    avatarUrl: "/avatar-placeholder.png", 
-    rating: 3
-  },
-];
-// --- Fim dos Dados Simulados ---
+// Reviews dinâmicos (resumo exibido em faixa horizontal)
+type StoreReview = { id: string; author: string; text: string; avatarUrl: string; rating: number };
 
 
 // --- Página da Loja Específica ---
@@ -74,12 +47,31 @@ export default function StorePage() {
   const [productsLoading, setProductsLoading] = useState(true);
   const [products, setProducts] = useState<Array<{ id: number; name: string; price: string; isAvailable: boolean; imageUrl: string }>>([]);
   const [store, setStore] = useState<{ nome: string; descricao: string; categoria: { nome: string } | null; banner: string | null } | null>(null);
-  // Estado de login derivado do contexto
+  const [reviews, setReviews] = useState<StoreReview[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState<boolean>(false);
+  const [averageRating, setAverageRating] = useState<number>(0);
+  const [reviewCount, setReviewCount] = useState<number>(0);
+  // Estado derivado do contexto de autenticação
   const [lastFetchTimestamp, setLastFetchTimestamp] = useState<number>(0);
   const isLoggedIn = !!user;
 
   useEffect(() => {
     let active = true;
+    const nomeQS = searchParams.get('nome');
+    const categoriaQS = searchParams.get('categoria');
+    const descricaoQS = searchParams.get('descricao');
+    const bannerQS = searchParams.get('banner');
+
+    // Preenchimento inicial via querystring (fallback resiliente)
+    if (nomeQS || categoriaQS || descricaoQS || bannerQS) {
+      setStore({
+        nome: nomeQS || 'Loja',
+        descricao: descricaoQS || '',
+        categoria: categoriaQS ? { nome: categoriaQS } : null,
+        banner: bannerQS || null,
+      } as any);
+    }
+
     (async () => {
       try {
         setLoading(true);
@@ -89,14 +81,23 @@ export default function StorePage() {
           setError(null);
         }
       } catch (e: any) {
-        console.error('Falha ao carregar loja', e);
-        if (active) setError('Não foi possível carregar a loja.');
+        // Se 404, mantém informações da querystring sem interromper a página
+        if (e?.response?.status !== 404) {
+          console.error('Falha ao carregar loja', e);
+        }
+        if (active) {
+          if (!(nomeQS || categoriaQS || descricaoQS || bannerQS)) {
+            setError('Não foi possível carregar a loja.');
+          } else {
+            setError(null);
+          }
+        }
       } finally {
         if (active) setLoading(false);
       }
     })();
     return () => { active = false; };
-  }, [id]);
+  }, [id, searchParams]);
 
   const refetchStore = useCallback(async () => {
     try {
@@ -107,7 +108,32 @@ export default function StorePage() {
     }
   }, [id]);
 
-  // Fetch dos produtos da loja (Phase 2)
+  // Fetch inicial dos reviews (limitado para exibição horizontal)
+  const fetchReviews = useCallback(async () => {
+    if (!id) return;
+    setReviewsLoading(true);
+    try {
+      const { data } = await api.get(`/lojas/${id}/avaliacoes`, { params: { page: 1, pageSize: 10 } });
+      const mapped: StoreReview[] = (data?.data || []).map((r: any) => ({
+        id: String(r.id),
+        author: r.usuario?.nome || 'Usuário',
+        text: r.conteudo,
+        avatarUrl: r.usuario?.fotoPerfil || '/avatar-placeholder.png',
+        rating: r.nota,
+      }));
+      setReviews(mapped);
+      setAverageRating(Number((data?.summary?.average ?? 0).toFixed(2)));
+      setReviewCount(data?.summary?.count ?? mapped.length);
+    } catch (e) {
+      setReviews([]);
+      setAverageRating(0);
+      setReviewCount(0);
+    } finally {
+      setReviewsLoading(false);
+    }
+  }, [id]);
+
+  // Fetch dos produtos da loja
   const fetchProducts = useCallback(async () => {
     if (!id) return;
     const now = Date.now();
@@ -140,25 +166,26 @@ export default function StorePage() {
 
   useEffect(() => {
     fetchProducts();
+    fetchReviews();
   }, [fetchProducts]);
 
   const storeName = store?.nome || (loading ? 'Carregando...' : 'Loja não encontrada');
-  // Mantém o nome original da categoria (sem lowerCase) para evitar falhas ao buscar subcategorias
+  // Nome original da categoria (evita erros em subcategorias)
   const storeCategory = store?.categoria?.nome || (loading ? '' : '');
   const storeDescription = store?.descricao || (loading ? '' : '');
   const bannerImageUrl = store?.banner || FALLBACK_BANNER;
 
-  // Lógica de proprietário (Phase 3)
+  // Lógica de proprietário (esconde ações para dono)
   const isOwnerBase = user && store && (user.id === (store as any).usuarioId || user.id === (store as any).usuario?.id);
   const testOverride = searchParams.get('testOwner') === '1' || (typeof window !== 'undefined' && localStorage.getItem('testOwner') === '1');
   const isOwner = !!(isOwnerBase || testOverride);
 
   return (
-    // Fundo bege principal (para a Secção 3)
+    // Layout principal
     <main className="bg-[#FDF9F2] min-h-screen">
       <Navbar />
 
-      {/* 1. Secção do Banner (Imagem Full-Width) */}
+      {/* Banner full-width */}
       <StoreBanner
         id={Number(id)}
         storeName={storeName}
@@ -168,7 +195,7 @@ export default function StorePage() {
         isLoggedIn={isLoggedIn}
         isOwner={isOwner}
         onProductCreated={(p) => {
-          // Otimista: adiciona item formatado à lista atual
+          // Atualização otimista dos produtos
           const numeric = typeof p.preco === 'number' ? p.preco : parseFloat(String(p.preco));
           const priceFormatted = numeric.toFixed(2).replace('.', ',');
           setProducts(prev => [
@@ -181,7 +208,7 @@ export default function StorePage() {
               imageUrl: p.imagens?.[0]?.urlImagem || FALLBACK_PRODUCT_IMAGE,
             }
           ]);
-          // Re-fetch silencioso (debounced) para garantir consistência
+          // Re-fetch rápido para garantir consistência
           setTimeout(() => { void fetchProducts(); }, 100);
         }}
         onStoreUpdated={() => {
@@ -192,27 +219,27 @@ export default function StorePage() {
         }}
       />
 
-      {/* 2. Secção de Reviews (PRETA E HORIZONTAL) */}
+      {/* Faixa preta de reviews */}
       <StoreReviewSection
-        rating={mockStoreStatic.rating}
-        reviewCount={mockReviews.length}
-        reviews={mockReviews} // Passa a lista de reviews
-        seeMoreLink={`/loja/${id}/reviews`}
+        rating={averageRating}
+        reviewCount={reviewCount}
+        reviews={reviews}
+        seeMoreLink={`/loja/${id}/reviews?nome=${encodeURIComponent(storeName)}&categoria=${encodeURIComponent(storeCategory)}&descricao=${encodeURIComponent(storeDescription)}&banner=${encodeURIComponent(bannerImageUrl)}`}
       />
 
-      {/* 3. Secção de Conteúdo Principal (Container bege) */}
+      {/* Conteúdo principal (produtos, lista) */}
       <div className="max-w-7xl mx-auto px-8 py-8">
         
-        {/* Produtos melhor avaliados (Scroll Horizontal) */}
+        {/* Produtos melhor avaliados (scroll horizontal) */}
         <ProductScroll 
           title="Produtos melhor avaliados"
           products={mockBestProducts}
           seeMoreLink={`/loja/${id}/produtos?sort=rating`}
         />
 
-        {/* A secção "Deixe o seu review" foi removida conforme solicitado */}
+        {/* Secção de criar review removida nesta versão */}
 
-        {/* Produtos da Loja (Grelha) */}
+        {/* Produtos da loja (grid) */}
         <section className="pb-12">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold text-[#171918]">Produtos de {storeName}</h2>
@@ -242,7 +269,7 @@ export default function StorePage() {
             ))}
           </div>
           
-          {/* Paginação */}
+          {/* Paginação (placeholder) */}
           <Pagination />
         </section>
 
