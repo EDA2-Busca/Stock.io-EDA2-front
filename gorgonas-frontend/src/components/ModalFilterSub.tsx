@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '@/utilis/api';
 
-// Tipo para a Subcategoria
 type Subcategoria = {
   id: number;
   nome: string;
@@ -11,7 +10,7 @@ type Subcategoria = {
 };
 
 interface FiltroSubcategoriaModal {
-  categoriaLoja: string; // ex: 'eletronicos'
+  categoriaLoja: string; 
   selectedId: number | null;
   onSelect: (id: number | null) => void;
 }
@@ -25,7 +24,6 @@ export default function SubcategoryFilterBar({
   const [listaSubcategorias, setListaSubcategorias] = useState<Subcategoria[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // --- Lógica de Busca (A mesma do seu Modal) ---
   useEffect(() => {
     if (categoriaLoja) {
       const fetchSubcategorias = async () => {
@@ -50,7 +48,6 @@ export default function SubcategoryFilterBar({
   }, [categoriaLoja]);
 
   if (isLoading) {
-    // Skeleton loading simples (opcional)
     return (
       <div className="flex gap-3 overflow-x-auto py-2 no-scrollbar">
         {[1, 2, 3].map(i => (
@@ -77,8 +74,6 @@ export default function SubcategoryFilterBar({
       >
         Todos
       </button>
-
-      {/* Lista de Subcategorias da API */}
       {listaSubcategorias.map((sub) => (
         <button
           key={sub.id}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { Navbar } from '@/components/Navbar';
 import { ProductCard } from '@/components/ProductCard';
 import api from "@/utilis/api";
@@ -21,7 +21,60 @@ type ProdutoParaCard = {
   avaliacoes?: { nota: number }[];
 };
 
-export default function CategoriaPage() {
+interface CategoriaPageProps {
+  params: Promise<{categoriaSlug: string;}>;
+}
+
+// Configuração de conteúdo do Header por categoria
+const headerContent: Record<string, { titleLine1: string; titleLine2: string; image: string }> = {
+  mercado: {
+    titleLine1: "Qualidade e frescor",
+    titleLine2: "para sua despensa",
+    image: "/mercado-mascote.png"
+  },
+  farmacia: {
+    titleLine1: "Saúde e cuidados",
+    titleLine2: "ao seu alcance",
+    image: "/farmacia-mascote.png"
+  },
+  beleza: {
+    titleLine1: "Realce sua beleza",
+    titleLine2: "com os melhores produtos",
+    image: "/beleza-mascote.png"
+  },
+  moda: {
+    titleLine1: "Seu estilo, suas regras",
+    titleLine2: "vista-se bem",
+    image: "/moda-mascote.png"
+  },
+  eletronicos: {
+    titleLine1: "O universo da tecnologia",
+    titleLine2: "em um só lugar",
+    image: "/eletronicos-mascote.png"
+  },
+  jogos: {
+    titleLine1: "Diversão garantida",
+    titleLine2: "para todos os players",
+    image: "/jogos-mascote.png"
+  },
+  brinquedos: {
+    titleLine1: "Imaginação e alegria",
+    titleLine2: "para os pequenos",
+    image: "/brinquedos-mascote.png"
+  },
+  casa: {
+    titleLine1: "Tudo para o seu lar",
+    titleLine2: "com conforto e estilo",
+    image: "/casa-mascote.png"
+  },
+};
+
+export default function CategoriaPage({ params }: CategoriaPageProps) {
+  const resolvedParams = use(params);
+  const categoriaAtual = resolvedParams.categoriaSlug;
+
+  const activeHeader = headerContent[categoriaAtual];
+
   const [maisAvaliados, setMaisAvaliados] = useState<ProdutoParaCard[]>([]);
   const [recemAdicionados, setRecemAdicionados] = useState<ProdutoParaCard[]>([]);
   const [eletronicosProdutos, setEletronicosProdutos] = useState<ProdutoParaCard[]>([]);
@@ -39,8 +92,6 @@ export default function CategoriaPage() {
 
   // Estados de Ordenação e Filtro
   const [currentSort, setCurrentSort] = useState<SortOption>('id');
-
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedSubcategory, setSelectedSubcategory] = useState<number | null>(null);
 
   const clearSearch = () => {
@@ -56,14 +107,14 @@ export default function CategoriaPage() {
       return;
     }
     
-    // Opcional: Limpa o filtro de subcategoria ao buscar
+    //Limpa o filtro de subcategoria ao buscar
     setSelectedSubcategory(null); 
 
     setIsSearching(true);
     setSearchResults([]);
 
     try {
-      const response = await api.get(`/produtos/buscar?q=${term}&categoria=eletronicos`);
+      const response = await api.get(`/produtos/buscar?q=${term}&categoria=${categoriaAtual}`);
       setSearchResults(response.data);
     } catch (err) {
       console.error("Erro ao buscar:", err);
@@ -92,7 +143,7 @@ export default function CategoriaPage() {
       try {
         setIsLoading(true);
 
-        let urlPrincipal = `/produtos/categoria/eletronicos?page=${currentPage}&limit=${limit}&ordenar=${currentSort}`;
+        let urlPrincipal = `/produtos/categoria/${categoriaAtual}?page=${currentPage}&limit=${limit}&ordenar=${currentSort}`;
 
         if (selectedSubcategory !== null) {
           urlPrincipal += `&subcategoriaId=${selectedSubcategory}`;
@@ -100,13 +151,9 @@ export default function CategoriaPage() {
 
         const promisePrincipal = api.get(urlPrincipal);
 
-        const promiseMaisAvaliados = api.get(
-          '/produtos/ver-mais/eletronicos?limit=50'
-        );
+        const promiseMaisAvaliados = api.get(`/produtos/ver-mais/${categoriaAtual}?limit=50`);
 
-        const promiseRecentes = api.get(
-          '/produtos/ver-mais/eletronicos?limit=10&ordenar=recentes'
-        );
+        const promiseRecentes = api.get(`/produtos/ver-mais/${categoriaAtual}?limit=10&ordenar=recentes`);
 
         const [responsePrincipal, responseAvaliados, responseRecentes] = await Promise.all([
           promisePrincipal,
@@ -145,7 +192,7 @@ export default function CategoriaPage() {
     };
     buscarDadosDaPagina();
 
-  }, [searchResults, currentPage, limit, currentSort, selectedSubcategory]);
+  }, [searchResults, currentPage, limit, currentSort, selectedSubcategory, categoriaAtual]);
 
   const dataToDisplay = searchResults || eletronicosProdutos;
   const isDisplayingSearch = searchResults !== null;
@@ -178,17 +225,16 @@ export default function CategoriaPage() {
           <div className="w-full max-w-7xl mx-auto px-8 flex items-center h-full">
             <div className="text-white ">
               <h1 className="text-7xl font-bold leading-tight">
-                O universo da tecnologia
+                {activeHeader.titleLine1}
               </h1>
               <h1 className="text-7xl font-bold leading-tight ml-70">
-                em um só lugar
+                {activeHeader.titleLine2}
               </h1>
             </div>
             <div className="absolute bottom-0 right-8 w-235 h-150 -mb-50">
-              {/* Use o path correto da sua imagem */}
               <img
-                src="/eletronicos-mascote.png"
-                alt="mascote pagina de categoria"
+                src={activeHeader.image}
+                alt={`Mascote ${categoriaAtual}`}
                 className="w-full h-full object-contain"
               />
             </div>
@@ -204,7 +250,7 @@ export default function CategoriaPage() {
           <div className="w-full md:w-auto flex-1 overflow-hidden">
              {/* 👇 MUDANÇA 2: Usando o componente correto */}
              <FiltroSubcategoriaModal
-                categoriaLoja="eletronicos"
+                categoriaLoja={categoriaAtual}
                 selectedId={selectedSubcategory}
                 onSelect={handleFilterChange}
              />
@@ -300,7 +346,7 @@ export default function CategoriaPage() {
         )}
       </div>
 
-      {/* RODAPÉ (Lojas, Melhores Avaliados, Recentes) */}
+      {/*Lojas, Melhores Avaliados, Recentes */}
       {!isDisplayingSearch && (
         <>
           <div className="w-full h-[430px] bg-black py-10 mt-auto">
@@ -310,7 +356,7 @@ export default function CategoriaPage() {
                   Principais Lojas
                 </h2>
               </div>
-              <StoreList categoria='ELETRONICOS' />
+              <StoreList categoria={categoriaAtual.toUpperCase()} />
             </div>
           </div>
           <section className="pb-0 max-w-[1440px] mx-auto px-8 py-12">
@@ -322,7 +368,7 @@ export default function CategoriaPage() {
             <ProductRow
               title=""
               products={maisAvaliados}
-              viewMoreHref="/ver-mais/eletronicos"
+              viewMoreHref={`/ver-mais/${categoriaAtual}`}
             />
           </section>
 
@@ -332,7 +378,7 @@ export default function CategoriaPage() {
                 <h2 className="text-4xl font-500 text-[#171918]">Recém adicionados</h2>
               </div>
             </div>
-            <ProductRow title="" products={recemAdicionados} viewMoreHref="/ver-mais/eletronicos?ordenar=createdAt" />
+            <ProductRow title="" products={recemAdicionados} viewMoreHref={`/ver-mais/${categoriaAtual}`} />
           </section>
         </>
       )}
