@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { IoClose } from 'react-icons/io5';
 
 export type AddReviewModalProps = {
@@ -8,13 +8,27 @@ export type AddReviewModalProps = {
   onClose: () => void;
   storeName?: string;
   onSubmit?: (data: { rating: number; text: string }) => void;
+  mode?: 'create' | 'edit';
+  existing?: { rating: number; text: string } | null;
+  onDelete?: () => void; // apenas no modo edição
 };
 
-export default function AddReviewModal({ isOpen, onClose, storeName, onSubmit }: AddReviewModalProps) {
-  const [rating, setRating] = useState<number>(0);
+export default function AddReviewModal({ isOpen, onClose, storeName, onSubmit, mode = 'create', existing, onDelete }: AddReviewModalProps) {
+  const [rating, setRating] = useState<number>(existing?.rating || 0);
   const [hover, setHover] = useState<number>(0);
-  const [text, setText] = useState<string>('');
+  const [text, setText] = useState<string>(existing?.text || '');
   const [submitting, setSubmitting] = useState(false);
+
+  // Atualiza estado ao abrir em modo edição caso props mudem
+  useEffect(() => {
+    if (isOpen && mode === 'edit' && existing) {
+      setRating(existing.rating);
+      setText(existing.text);
+    } else if (isOpen && mode === 'create') {
+      setRating(0);
+      setText('');
+    }
+  }, [isOpen, mode, existing]);
 
   const canSubmit = useMemo(() => rating > 0 && text.trim().length > 0, [rating, text]);
 
@@ -24,8 +38,10 @@ export default function AddReviewModal({ isOpen, onClose, storeName, onSubmit }:
     setSubmitting(true);
     try {
       onSubmit?.({ rating, text: text.trim() });
-      setRating(0);
-      setText('');
+      if (mode === 'create') {
+        setRating(0);
+        setText('');
+      }
       onClose();
     } finally {
       setSubmitting(false);
@@ -105,7 +121,11 @@ export default function AddReviewModal({ isOpen, onClose, storeName, onSubmit }:
         </button>
 
         <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
-          Você está avaliando <span className="text-gray-700">{storeName || 'esta loja'}</span>
+          {mode === 'create' ? (
+            <>Você está avaliando <span className="text-gray-700">{storeName || 'esta loja'}</span></>
+          ) : (
+            <>Editar sua avaliação</>
+          )}
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -123,13 +143,24 @@ export default function AddReviewModal({ isOpen, onClose, storeName, onSubmit }:
           />
 
           <div className="pt-2">
-            <button
-              type="submit"
-              disabled={!canSubmit || submitting}
-              className="w-full bg-[#6A38F3] disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl text-lg hover:bg-[#5a2ee0] transition-colors shadow-md"
-            >
-              {submitting ? 'Enviando...' : 'Avaliar'}
-            </button>
+            <div className="flex flex-col md:flex-row gap-3 md:gap-4">
+              <button
+                type="submit"
+                disabled={!canSubmit || submitting}
+                className="flex-1 bg-[#6A38F3] disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl text-lg hover:bg-[#5a2ee0] transition-colors shadow-md"
+              >
+                {submitting ? (mode === 'create' ? 'Enviando...' : 'Salvando...') : mode === 'create' ? 'Avaliar' : 'Salvar alterações'}
+              </button>
+              {mode === 'edit' && onDelete && (
+                <button
+                  type="button"
+                  onClick={onDelete}
+                  className="md:w-48 bg-red-600 text-white font-semibold py-4 rounded-xl text-lg hover:bg-red-700 transition-colors shadow-md"
+                >
+                  Excluir
+                </button>
+              )}
+            </div>
           </div>
         </form>
       </div>

@@ -3,14 +3,16 @@
 import React from "react";
 
 type ReviewCardProps = {
+  id?: number | string;
+  lojaId?: number | string;
   author: string;
   avatarUrl?: string;
-  rating: number; // 1-5
+  rating: number;
   text: string;
-  onSeeMore?: () => void;
+  onSeeMore?: () => void; // legado
 };
 
-export default function ReviewCard({ author, avatarUrl, rating, text, onSeeMore }: ReviewCardProps) {
+export default function ReviewCard({ id, lojaId, author, avatarUrl, rating, text, onSeeMore }: ReviewCardProps) {
   const stars = Array.from({ length: 5 }).map((_, i) => (
     <svg
       key={i}
@@ -36,13 +38,22 @@ export default function ReviewCard({ author, avatarUrl, rating, text, onSeeMore 
           <div className="flex items-center gap-1">{stars}</div>
         </div>
         <p className="text-sm text-[#4B4E57] leading-relaxed">{text}</p>
-        {onSeeMore && (
-          <button
-            onClick={onSeeMore}
-            className="mt-2 text-sm text-[#6A38F3] hover:underline"
+        {(id && lojaId) ? (
+          <a
+            href={`/loja/${lojaId}/reviews/${id}`}
+            className="mt-2 inline-block text-sm text-[#6A38F3] hover:underline"
           >
             ver mais
-          </button>
+          </a>
+        ) : (
+          onSeeMore && (
+            <button
+              onClick={onSeeMore}
+              className="mt-2 text-sm text-[#6A38F3] hover:underline"
+            >
+              ver mais
+            </button>
+          )
         )}
       </div>
     </div>

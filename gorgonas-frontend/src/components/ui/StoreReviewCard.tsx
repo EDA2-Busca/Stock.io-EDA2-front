@@ -5,6 +5,8 @@ import { FaStar } from 'react-icons/fa';
 // Props do card de review
 type ReviewCardProps = {
   review: {
+    id?: string | number;
+    lojaId?: string | number;
     author: string;
     text: string;
     avatarUrl: string; 
@@ -58,9 +60,14 @@ export default function StoreReviewCard({ review }: ReviewCardProps) {
         </p>
 
         {/* Link ver mais */}
-        <a href="#" className="text-sm text-[#6A38F3] hover:underline mt-2 self-end">
-          ver mais
-        </a>
+        {review.id && review.lojaId && (
+          <a
+            href={`/loja/${review.lojaId}/reviews/${review.id}`}
+            className="text-sm text-[#6A38F3] hover:underline mt-2 self-end"
+          >
+            ver mais
+          </a>
+        )}
       </div>
     </div>
   );

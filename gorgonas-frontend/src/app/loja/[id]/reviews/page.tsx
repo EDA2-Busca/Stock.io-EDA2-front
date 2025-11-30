@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { IoArrowBack } from "react-icons/io5";
 import { Navbar } from "@/components/Navbar";
 import ReviewCard from "@/components/ui/ReviewCard";
 import StoreBanner from "@/components/ui/StoreBanner";
@@ -20,6 +22,7 @@ type Review = {
 
 export default function StoreReviewsPage() {
   const params = useParams();
+  const router = useRouter();
   const lojaId = Array.isArray(params?.id) ? params.id[0] : (params?.id as string);
   const search = useSearchParams();
   const [isLoading, setIsLoading] = useState(true);
@@ -32,13 +35,14 @@ export default function StoreReviewsPage() {
   // Modal de edição removido (botão de teste eliminado)
   const [totalPages, setTotalPages] = useState<number>(1);
 
-  async function fetchReviews(targetPage = 1) {
+  const fetchReviews = useCallback(async function fetchReviews(targetPage = 1, force = false) {
     if (!lojaId) return;
     try {
       setIsLoading(true);
-      const { data } = await api.get(`/lojas/${lojaId}/avaliacoes`, { params: { page: targetPage, pageSize } });
+      const { data } = await api.get(`/lojas/${lojaId}/avaliacoes`, { params: { page: targetPage, pageSize, _ts: force ? Date.now() : undefined } });
       const items: Review[] = (data?.data || []).map((it: any) => ({
         id: it.id,
+        lojaId: it.lojaId,
         author: it.usuario?.nome || 'Usuário',
         avatarUrl: it.usuario?.fotoPerfil || '/Stock.io.png',
         rating: it.nota,
@@ -55,12 +59,33 @@ export default function StoreReviewsPage() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [lojaId]);
 
   useEffect(() => {
     fetchReviews(page);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lojaId, page]);
+  }, [fetchReviews, page]);
+
+  // Verifica flag de atualização após edição em página de detalhe
+  useEffect(() => {
+    const flagKey = `review-updated-${lojaId}`;
+    if (typeof window !== 'undefined') {
+      const flag = localStorage.getItem(flagKey);
+      if (flag) {
+        localStorage.removeItem(flagKey);
+        fetchReviews(page, true); // força cache busting
+      }
+    }
+  }, [fetchReviews, lojaId, page]);
+
+  // Ouve eventos globais de atualização de review (edição/exclusão)
+  useEffect(() => {
+    const handler = () => {
+      // Recarrega a página atual mantendo paginação
+      fetchReviews(page);
+    };
+    window.addEventListener('review-updated', handler);
+    return () => window.removeEventListener('review-updated', handler);
+  }, [fetchReviews, page]);
 
   useEffect(() => {
     // Primeiro tenta preencher via querystring (passada pelo link "ver mais")
@@ -112,6 +137,14 @@ export default function StoreReviewsPage() {
   return (
     <main className="bg-black min-h-screen">
       <Navbar />
+      <div className="max-w-7xl mx-auto px-8 pt-6">
+        <button
+          onClick={() => router.push(`/loja/${lojaId}`)}
+          className="inline-flex items-center gap-2 text-white/80 hover:text-white"
+        >
+          <IoArrowBack /> Voltar para a loja
+        </button>
+      </div>
       {store && (
         <StoreBanner
           id={Number(lojaId)}
@@ -159,11 +192,12 @@ export default function StoreReviewsPage() {
             {paginated.map((r) => (
               <ReviewCard
                 key={r.id}
+                id={r.id}
+                lojaId={lojaId}
                 author={r.author}
                 avatarUrl={r.avatarUrl}
                 rating={r.rating}
                 text={r.text}
-                onSeeMore={() => {}}
               />
             ))}
             </div>

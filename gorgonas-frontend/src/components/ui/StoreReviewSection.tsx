@@ -6,6 +6,7 @@ import StoreReviewCard from '@/components/ui/StoreReviewCard';
 // Tipos de dados locais
 type Review = {
   id: string;
+  lojaId?: string | number;
   author: string;
   text: string;
   avatarUrl: string;
