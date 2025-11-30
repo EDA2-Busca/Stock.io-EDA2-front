@@ -9,7 +9,6 @@ import api from "@/utilis/api";
 import type { Review, ReviewComment } from "@/types/review";
 import { IoArrowBack, IoPencil } from "react-icons/io5";
 
-// Página de detalhe de uma avaliação (highlight + comentários)
 export default function ReviewDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -33,12 +32,10 @@ export default function ReviewDetailPage() {
 
   const isAuthor = Boolean(user && review && user.id === review.usuarioId);
 
-  // Fetch review (ainda usando listagem; pode trocar para endpoint único depois)
   const fetchReview = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      // Tentativa rápida: pegar página 1 com um pageSize maior
       const { data } = await api.get(`/lojas/${lojaId}/avaliacoes`, { params: { page: 1, pageSize: 50 } });
       const item = (data?.data || []).find((r: any) => String(r.id) === String(reviewId));
       if (!item) {
@@ -64,7 +61,6 @@ export default function ReviewDetailPage() {
     }
   }, [lojaId, reviewId]);
 
-  // Fetch owner da loja para tag de "dona da loja" nos comentários
   useEffect(() => {
     let active = true;
     (async () => {
@@ -115,7 +111,6 @@ export default function ReviewDetailPage() {
     try {
       await api.post(`/lojas/${lojaId}/avaliacoes/${reviewId}/comentarios`, { conteudo: newComment.trim() });
       setNewComment("");
-      // Recarrega primeira página para ver comentário mais recente (decisão de UX simples)
       setCommentsPage(1);
       await fetchComments(1);
     } finally {
@@ -138,7 +133,6 @@ export default function ReviewDetailPage() {
   return (
     <main className="min-h-screen bg-[#E4E2DC] flex flex-col">
       <Navbar />
-      {/* Header preto destacado full-width */}
       <div className="w-full bg-black text-white px-8 md:px-12 py-8">
         <div className="flex items-center justify-between mb-6">
             <button
@@ -178,16 +172,13 @@ export default function ReviewDetailPage() {
             </div>
           )}
         </div>
-      {/* Thread de comentários full-width com barra fixa no rodapé */}
       <div className="flex-1 flex flex-col w-full bg-[#FDF9F2]">
         <div className="flex-1 px-8 md:px-12 py-8 space-y-6 overflow-y-auto">
           {comments.map(c => {
             const ownerMatch = storeOwnerId !== null && c.usuarioId != null && String(c.usuarioId) === String(storeOwnerId);
             const currentUserIsOwner = storeOwnerId !== null && user && String(user.id) === String(storeOwnerId);
-            // Fallback: if current user is owner and authored the comment (name match) treat as owner
             const nameMatchOwner = currentUserIsOwner && user && c.author === (user.nome || user.userName);
             const showOwner = c.isOwner || ownerMatch || nameMatchOwner;
-            // Permite edição se o ID do usuário bater (tratando tipo string/number) ou se o autor do comentário é o nome do usuário logado
             const canEdit = !!(user && (
               (c.usuarioId != null && String(c.usuarioId) === String(user.id)) ||
               c.author === (user.nome || user.userName)
@@ -282,7 +273,6 @@ export default function ReviewDetailPage() {
             try {
               await api.patch(`/lojas/${lojaId}/avaliacoes/${reviewId}`, { nota: rating, conteudo: text });
               setReview(prev => prev ? { ...prev, rating, text } : prev);
-              // Dispara evento global para páginas ouvintes atualizarem listagem
               window.dispatchEvent(new Event('review-updated'));
               if (typeof window !== 'undefined') {
                 localStorage.setItem(`review-updated-${lojaId}`, Date.now().toString());
@@ -300,7 +290,6 @@ export default function ReviewDetailPage() {
               }
               router.push(`/loja/${lojaId}/reviews`);
             } catch {
-              // poderia adicionar toast de erro
             } finally {
               setEditOpen(false);
             }
@@ -315,16 +304,13 @@ export default function ReviewDetailPage() {
           onSubmit={async (text) => {
             try {
               await api.patch(`/lojas/${lojaId}/avaliacoes/${reviewId}/comentarios/${editingComment.id}`, { conteudo: text });
-              // Refetch comments to reflect update
               await fetchComments(commentsPage);
             } catch (e) {
-              // TODO: adicionar toast de erro
             }
           }}
           onDelete={async () => {
             try {
               await api.delete(`/lojas/${lojaId}/avaliacoes/${reviewId}/comentarios/${editingComment.id}`);
-              // Se deletar última de uma página >1 e ficar vazia, ajusta página
               const newList = comments.filter(cc => cc.id !== editingComment.id);
               if (newList.length === 0 && commentsPage > 1) {
                 setCommentsPage(p => p - 1);
@@ -333,7 +319,6 @@ export default function ReviewDetailPage() {
                 await fetchComments(commentsPage);
               }
             } catch (e) {
-              // TODO: toast erro
             }
           }}
         />
@@ -342,7 +327,6 @@ export default function ReviewDetailPage() {
   );
 }
 
-// Utilitário simples de tempo relativo (segundos, minutos, horas, dias)
 function formatRelativeTime(dateString: string) {
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return "";

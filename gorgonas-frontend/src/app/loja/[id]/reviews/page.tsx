@@ -65,7 +65,6 @@ export default function StoreReviewsPage() {
     fetchReviews(page);
   }, [fetchReviews, page]);
 
-  // Verifica flag de atualização após edição em página de detalhe
   useEffect(() => {
     const flagKey = `review-updated-${lojaId}`;
     if (typeof window !== 'undefined') {
@@ -77,7 +76,6 @@ export default function StoreReviewsPage() {
     }
   }, [fetchReviews, lojaId, page]);
 
-  // Ouve eventos globais de atualização de review (edição/exclusão)
   useEffect(() => {
     const handler = () => {
       // Recarrega a página atual mantendo paginação
@@ -88,7 +86,6 @@ export default function StoreReviewsPage() {
   }, [fetchReviews, page]);
 
   useEffect(() => {
-    // Primeiro tenta preencher via querystring (passada pelo link "ver mais")
     const nome = search.get('nome');
     const categoria = search.get('categoria');
     const descricao = search.get('descricao');
@@ -97,7 +94,6 @@ export default function StoreReviewsPage() {
       setStore({ id: Number(lojaId), nome, categoria: categoria ? { nome: categoria } : null, descricao, banner });
       return;
     }
-    // Caso não venha pela URL, faz o fetch normal (integração real)
     async function fetchStore() {
       try {
         const res = await api.get(`/lojas/${lojaId}`);
@@ -111,9 +107,7 @@ export default function StoreReviewsPage() {
 
   const paginated = reviews; // backend já retorna página solicitada
   const { user } = useAuth();
-  // Dono não vê ações de criação/edição
   const isOwner = Boolean(user && store?.usuarioId && user.id === (store as any).usuarioId);
-  // Ações visíveis para usuário logado não-dono
   const showActions = Boolean(user) && !isOwner;
 
   const renderStars = (value: number) => {
@@ -160,7 +154,6 @@ export default function StoreReviewsPage() {
         />
       )}
 
-      {/* Header preto full-bleed */}
       <div className="w-full bg-black">
         <div className="max-w-7xl mx-auto px-8 py-10">
           <div className="text-white text-center">
