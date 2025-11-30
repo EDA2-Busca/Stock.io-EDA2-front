@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { Navbar } from '@/components/Navbar';
 import { ProductCard } from '@/components/ProductCard';
 import api from "@/utilis/api";
 import SearchBar from '@/components/ui/SearchBar';
 import StoreList from "@/components/ui/StoreList";
 import { ProductRow } from "@/components/ProductRow";
-import SortDropdown, { SortOption } from "@/components/ui/SortDropdown"
+import SortDropdown, { SortOption } from "@/components/ui/SortDropdown";
+import FiltroSubcategoriaModal from "../../../components/ModalFilterSub";
 
 // Definição do Tipo de Dados
 type ProdutoParaCard = {
@@ -20,8 +21,60 @@ type ProdutoParaCard = {
   avaliacoes?: { nota: number }[];
 };
 
+interface CategoriaPageProps {
+  params: Promise<{categoriaSlug: string;}>;
+}
 
-export default function CategoriaPage() {
+// Configuração de conteúdo do Header por categoria
+const headerContent: Record<string, { titleLine1: string; titleLine2: string; image: string }> = {
+  mercado: {
+    titleLine1: "Qualidade e frescor",
+    titleLine2: "para sua despensa",
+    image: "/mercado-mascote.png"
+  },
+  farmacia: {
+    titleLine1: "Saúde e cuidados",
+    titleLine2: "ao seu alcance",
+    image: "/farmacia-mascote.png"
+  },
+  beleza: {
+    titleLine1: "Realce sua beleza",
+    titleLine2: "com os melhores produtos",
+    image: "/beleza-mascote.png"
+  },
+  moda: {
+    titleLine1: "Seu estilo, suas regras",
+    titleLine2: "vista-se bem",
+    image: "/moda-mascote.png"
+  },
+  eletronicos: {
+    titleLine1: "O universo da tecnologia",
+    titleLine2: "em um só lugar",
+    image: "/eletronicos-mascote.png"
+  },
+  jogos: {
+    titleLine1: "Diversão garantida",
+    titleLine2: "para todos os players",
+    image: "/jogos-mascote.png"
+  },
+  brinquedos: {
+    titleLine1: "Imaginação e alegria",
+    titleLine2: "para os pequenos",
+    image: "/brinquedos-mascote.png"
+  },
+  casa: {
+    titleLine1: "Tudo para o seu lar",
+    titleLine2: "com conforto e estilo",
+    image: "/casa-mascote.png"
+  },
+};
+
+export default function CategoriaPage({ params }: CategoriaPageProps) {
+  const resolvedParams = use(params);
+  const categoriaAtual = resolvedParams.categoriaSlug;
+
+  const activeHeader = headerContent[categoriaAtual];
+
   const [maisAvaliados, setMaisAvaliados] = useState<ProdutoParaCard[]>([]);
   const [recemAdicionados, setRecemAdicionados] = useState<ProdutoParaCard[]>([]);
   const [eletronicosProdutos, setEletronicosProdutos] = useState<ProdutoParaCard[]>([]);
@@ -30,14 +83,16 @@ export default function CategoriaPage() {
   // Estados de Paginação
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [limit, setLimit] = useState(2);
+  const [limit, setLimit] = useState(1);
 
   // Estados de Busca
   const [searchResults, setSearchResults] = useState<ProdutoParaCard[] | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Estados de Ordenação e Filtro
   const [currentSort, setCurrentSort] = useState<SortOption>('id');
+  const [selectedSubcategory, setSelectedSubcategory] = useState<number | null>(null);
 
   const clearSearch = () => {
     setSearchTerm('');
@@ -51,18 +106,30 @@ export default function CategoriaPage() {
       clearSearch();
       return;
     }
+    
+    //Limpa o filtro de subcategoria ao buscar
+    setSelectedSubcategory(null); 
 
     setIsSearching(true);
     setSearchResults([]);
 
     try {
-      const response = await api.get(`/produtos/buscar?q=${term}&categoria=eletronicos`);
+      const response = await api.get(`/produtos/buscar?q=${term}&categoria=${categoriaAtual}`);
       setSearchResults(response.data);
     } catch (err) {
       console.error("Erro ao buscar:", err);
       setSearchResults([]);
     } finally {
       setIsSearching(false);
+    }
+  };
+
+  const handleFilterChange = (id: number | null) => {
+    setSelectedSubcategory(id);
+    setCurrentPage(1); 
+    
+    if (searchTerm || searchResults !== null) {
+      clearSearch();
     }
   };
 
@@ -75,18 +142,18 @@ export default function CategoriaPage() {
     const buscarDadosDaPagina = async () => {
       try {
         setIsLoading(true);
-        const promisePrincipal = api.get(
-          `/produtos/categoria/eletronicos?page=${currentPage}&limit=${limit}&ordenar=${currentSort}`
-        );
 
-        // 2. Mais Avaliados
-        const promiseMaisAvaliados = api.get(
-          '/produtos/ver-mais/eletronicos?limit=50'
-        );
+        let urlPrincipal = `/produtos/categoria/${categoriaAtual}?page=${currentPage}&limit=${limit}&ordenar=${currentSort}`;
 
-        const promiseRecentes = api.get(
-          '/produtos/ver-mais/eletronicos?limit=10&ordenar=recentes'
-        );
+        if (selectedSubcategory !== null) {
+          urlPrincipal += `&subcategoriaId=${selectedSubcategory}`;
+        }
+
+        const promisePrincipal = api.get(urlPrincipal);
+
+        const promiseMaisAvaliados = api.get(`/produtos/ver-mais/${categoriaAtual}?limit=50`);
+
+        const promiseRecentes = api.get(`/produtos/ver-mais/${categoriaAtual}?limit=10&ordenar=recentes`);
 
         const [responsePrincipal, responseAvaliados, responseRecentes] = await Promise.all([
           promisePrincipal,
@@ -102,17 +169,14 @@ export default function CategoriaPage() {
         setTotalPages(Math.ceil(total / limit));
 
         let candidatos = Array.isArray(responseAvaliados.data) ? responseAvaliados.data : responseAvaliados.data.produtos || [];
-
         const getMedia = (prod: ProdutoParaCard) => {
           if (!prod.avaliacoes || prod.avaliacoes.length === 0) return 0;
           const soma = prod.avaliacoes.reduce((acc, curr) => acc + curr.nota, 0);
           return soma / prod.avaliacoes.length;
         };
-
         const listaOrdenadaPorNota = candidatos.sort((a: ProdutoParaCard, b: ProdutoParaCard) => {
           return getMedia(b) - getMedia(a);
         });
-
         setMaisAvaliados(listaOrdenadaPorNota.slice(0, 10));
 
         const listaRecentes = Array.isArray(responseRecentes.data)
@@ -128,11 +192,17 @@ export default function CategoriaPage() {
     };
     buscarDadosDaPagina();
 
-  }, [searchResults, currentPage, limit, currentSort]);
+  }, [searchResults, currentPage, limit, currentSort, selectedSubcategory, categoriaAtual]);
 
   const dataToDisplay = searchResults || eletronicosProdutos;
   const isDisplayingSearch = searchResults !== null;
-  const title = isDisplayingSearch ? `Resultados da Busca` : "";
+
+  let title = "";
+  if (isDisplayingSearch) {
+    title = `Resultados da Busca`;
+  } else if (selectedSubcategory) {
+    title = "Produtos Filtrados";
+  }
 
   if (isLoading) {
     return (
@@ -155,16 +225,16 @@ export default function CategoriaPage() {
           <div className="w-full max-w-7xl mx-auto px-8 flex items-center h-full">
             <div className="text-white ">
               <h1 className="text-7xl font-bold leading-tight">
-                O universo da tecnologia
+                {activeHeader.titleLine1}
               </h1>
               <h1 className="text-7xl font-bold leading-tight ml-70">
-                em um só lugar
+                {activeHeader.titleLine2}
               </h1>
             </div>
             <div className="absolute bottom-0 right-8 w-235 h-150 -mb-50">
               <img
-                src="/eletronicos-mascote.png"
-                alt="mascote pagina de categoria"
+                src={activeHeader.image}
+                alt={`Mascote ${categoriaAtual}`}
                 className="w-full h-full object-contain"
               />
             </div>
@@ -172,24 +242,27 @@ export default function CategoriaPage() {
         </section>
       </header>
 
-      <div className="max-w-[1440px] mx-auto px-8 w-full grow">
-        <section className="py-6 flex justify-end">
-          <SearchBar
-            className="max-w-md"
-            onSearch={handleSearch}
-            placeholder="Buscar em Eletrônicos..."
-          />
-        </section>
-        <section className="pb-12 pt-0">
+      <div className="max-w-[1440px] mx-auto px-8 mb-15 w-full grow">
 
-          <div className="flex justify-between items-center mb-6">
+        <section className="py-8 flex flex-col md:flex-row justify-between items-center gap-6">
+          
+          {/* Lado Esquerdo: Barra de Filtros (Estilo "Pílula") */}
+          <div className="w-full md:w-auto flex-1 overflow-hidden">
+             {/* 👇 MUDANÇA 2: Usando o componente correto */}
+             <FiltroSubcategoriaModal
+                categoriaLoja={categoriaAtual}
+                selectedId={selectedSubcategory}
+                onSelect={handleFilterChange}
+             />
+          </div>
 
-            {/* Esquerda: Título */}
-            <h2 className="text-2xl font-bold text-[#171918]">
-              {isDisplayingSearch ? `Resultados para: "${searchTerm}"` : title}
-            </h2>
-
-            {/* Direita: Dropdown de Ordenação */}
+          {/* Lado Direito: Busca e Ordenação */}
+          <div className="flex items-center gap-4 w-full md:w-auto shrink-0">
+            <SearchBar
+              className="w-full md:w-80"
+              onSearch={handleSearch}
+              placeholder="Procurar por..."
+            />
             
             {!isDisplayingSearch && (
               <SortDropdown
@@ -197,15 +270,15 @@ export default function CategoriaPage() {
                 onSortChange={setCurrentSort}
               />
             )}
-
-            {isDisplayingSearch && (
-              <button onClick={clearSearch} className="text-sm text-[#6A38F3] hover:underline">Limpar busca</button>
-            )}
           </div>
-          {!isDisplayingSearch && (
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">
-              {title}
-            </h2>
+
+        </section>
+
+          {!isDisplayingSearch && title && (
+            title !== "" && title !== "Produtos Filtrados" && (
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">
+              </h2>
+            )
           )}
 
           {isSearching ? (
@@ -214,7 +287,6 @@ export default function CategoriaPage() {
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 md:gap-8 mb-0">
-
               {dataToDisplay.length > 0 ? (
                 dataToDisplay.map(produto => {
                   const temImagem = produto.imagens && produto.imagens.length > 0;
@@ -235,17 +307,27 @@ export default function CategoriaPage() {
                   );
                 })
               ) : (
-                <p className="col-span-full text-center text-gray-500 text-lg py-12">
-                  {isDisplayingSearch
-                    ? `Nenhum produto encontrado para "${searchTerm}" em Eletrônicos.`
-                    : 'Nenhum produto encontrado nesta categoria.'
-                  }
-                </p>
+                <div className="col-span-full py-12 flex flex-col items-center justify-center text-center">
+                  <p className="text-gray-500 text-lg mb-2">
+                    {isDisplayingSearch
+                      ? `Nenhum produto encontrado para "${searchTerm}".`
+                      : 'Nenhum produto encontrado com os filtros atuais.'
+                    }
+                  </p>
+                  {selectedSubcategory && (
+                    <button
+                      onClick={() => handleFilterChange(null)}
+                      className="text-[#6A38F3] font-medium hover:underline"
+                    >
+                      Limpar filtros
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           )}
-        </section>
 
+        {/* PAGINAÇÃO */}
         {!isDisplayingSearch && totalPages > 1 && (
           <section className="flex justify-center items-center space-x-2 py-2 mb-12">
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNumber => (
@@ -264,7 +346,7 @@ export default function CategoriaPage() {
         )}
       </div>
 
-      {/* RODAPÉ */}
+      {/*Lojas, Melhores Avaliados, Recentes */}
       {!isDisplayingSearch && (
         <>
           <div className="w-full h-[430px] bg-black py-10 mt-auto">
@@ -274,7 +356,7 @@ export default function CategoriaPage() {
                   Principais Lojas
                 </h2>
               </div>
-              <StoreList categoria='ELETRONICOS' />
+              <StoreList categoria={categoriaAtual.toUpperCase()} />
             </div>
           </div>
           <section className="pb-0 max-w-[1440px] mx-auto px-8 py-12">
@@ -286,7 +368,7 @@ export default function CategoriaPage() {
             <ProductRow
               title=""
               products={maisAvaliados}
-              viewMoreHref="/ver-mais/eletronicos"
+              viewMoreHref={`/ver-mais/${categoriaAtual}`}
             />
           </section>
 
@@ -296,7 +378,7 @@ export default function CategoriaPage() {
                 <h2 className="text-4xl font-500 text-[#171918]">Recém adicionados</h2>
               </div>
             </div>
-            <ProductRow title="" products={recemAdicionados} viewMoreHref="/ver-mais/eletronicos?ordenar=createdAt" />
+            <ProductRow title="" products={recemAdicionados} viewMoreHref={`/ver-mais/${categoriaAtual}`} />
           </section>
         </>
       )}
