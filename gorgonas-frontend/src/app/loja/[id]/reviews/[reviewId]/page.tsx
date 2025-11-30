@@ -118,17 +118,33 @@ export default function ReviewDetailPage() {
     }
   };
 
-  const stars = Array.from({ length: 5 }).map((_, i) => (
-    <svg
-      key={i}
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 20 20"
-      fill={review && i < review.rating ? "#F5C518" : "#D1D5DB"}
-      className="w-5 h-5"
-    >
-      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.84-.197-1.54-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81H7.03a1 1 0 00.95-.69l1.07-3.292z" />
-    </svg>
-  ));
+  const renderDecimalStars = (value: number) => {
+    const outline = "#D1D5DB";
+    const fill = "#F5C518";
+    return (
+      <div className="flex items-center gap-1">
+        {Array.from({ length: 5 }).map((_, idx) => {
+          const index = idx + 1;
+          const diff = value - idx; // e.g., 2.5 - 2 = 0.5
+          const full = diff >= 1;
+          const half = !full && diff >= 0.5;
+          const width = full ? "100%" : half ? "50%" : "0%";
+          return (
+            <div key={index} className="relative w-5 h-5">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill={outline} className="w-5 h-5">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.84-.197-1.54-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81H7.03a1 1 0 00.95-.69l1.07-3.292z" />
+              </svg>
+              <div className="absolute inset-0 overflow-hidden" style={{ width }}>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill={fill} className="w-5 h-5">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.84-.197-1.54-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81H7.03a1 1 0 00.95-.69l1.07-3.292z" />
+                </svg>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
 
   return (
     <main className="min-h-screen bg-[#E4E2DC] flex flex-col">
@@ -166,7 +182,7 @@ export default function ReviewDetailPage() {
               />
               <div className="flex-1">
                 <h2 className="text-xl font-semibold mb-2">{review.author}</h2>
-                <div className="flex items-center gap-2 mb-4">{stars}</div>
+                <div className="flex items-center gap-2 mb-4">{review ? renderDecimalStars(Number(review.rating)) : null}</div>
                 <p className="text-base leading-relaxed whitespace-pre-wrap">{review.text}</p>
               </div>
             </div>
