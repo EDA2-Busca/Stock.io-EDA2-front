@@ -1,132 +1,63 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import api from "@/utilis/api";
 import { StoreCard } from "./StoreCard";
 import StoresFilter from "@/components/ui/StoresFilter";
 
-const stores = [
-  {
-    id: 1,
-    slug: "cjr",
-    name: "CJR",
-    category: "mercado",
-    imageUrl: "/stores/cjr.png",
-  },
-  {
-    id: 2,
-    slug: "rare-beauty",
-    name: "Rare Beauty",
-    category: "beleza",
-    imageUrl: "/stores/rare-beauty.png",
-  },
-  {
-    id: 3,
-    slug: "the-croc-brew",
-    name: "The Croc Brew",
-    category: "mercado",
-    imageUrl: "/stores/croc-brew.png",
-  },
-  {
-    id: 4,
-    slug: "mini-reno",
-    name: "Mini Reno",
-    category: "casa",
-    imageUrl: "/stores/mini-reno.png",
-  },
-  {
-    id: 5,
-    slug: "amoca",
-    name: "amoca",
-    category: "moda",
-    imageUrl: "/stores/amoca.png",
-  },
-  {
-    id: 6,
-    slug: "repiit",
-    name: "Repiit",
-    category: "eletrônicos",
-    imageUrl: "/stores/repiit.png",
-  },
-  {
-    id: 7,
-    slug: "creamy-skincare",
-    name: "Creamy Skincare",
-    category: "beleza",
-    imageUrl: "/stores/creamy.png",
-  },
-  {
-    id: 8,
-    slug: "maumar",
-    name: "Maumar",
-    category: "mercado",
-    imageUrl: "/stores/maumar.png",
-  },
-  {
-    id: 9,
-    slug: "dcarts-baskets",
-    name: "d’carts & baskets",
-    category: "mercado",
-    imageUrl: "/stores/dcarts-baskets.png",
-  },
-  {
-    id: 10,
-    slug: "fluffy house",
-    name: "Fluffy House",
-    category: "casa",
-    imageUrl: "/stores/fluffy-house.png",
-  },
-  {
-    id: 11,
-    slug: "electree",
-    name: "electree",
-    category: "eletrônicos",
-    imageUrl: "/stores/electree.png",
-  },
-  {
-    id: 12,
-    slug: "roots",
-    name: "Roots",
-    category: "beleza",
-    imageUrl: "/stores/roots.png",
-  },
-  {
-    id: 13,
-    slug: "melina couture",
-    name: "Melina Couture",
-    category: "moda",
-    imageUrl: "/stores/melina-couture.png",
-  },
-  {
-    id: 14,
-    slug: "sneakerstore",
-    name: "SneakerStore",
-    category: "moda",
-    imageUrl: "/stores/sneakerstore.png",
-  },
-];
+type Loja = {
+  id: number;
+  nome: string;
+  categoria: { nome: string } | null;
+  logo: string | null;
+};
 
-export default function StoreList() {
+interface StoreListProps {
+  categoria?: string;
+}
+
+export default function StoreList({ categoria }: StoreListProps) {
+  const [stores, setStores] = useState<Loja[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
-  const handleFilterChange = (selected: string[]) => {
-    setSelectedCategories(selected);
-  };
+  // Carregar lojas da API
+  useEffect(() => {
+    const fetchStores = async () => {
+      try {
+        const url = categoria
+          ? `/lojas?categoria=${categoria}`
+          : "/lojas";
 
+        const res = await api.get(url);
+        setStores(res.data);
+      } catch (e) {
+        console.error("Erro ao carregar lojas", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStores();
+  }, [categoria]);
+
+  // Aplicar filtro
   const filteredStores =
     selectedCategories.length === 0
       ? stores
-      : stores.filter((s) => selectedCategories.includes(s.category));
+      : stores.filter((s) =>
+          selectedCategories.includes(s.categoria?.nome || "")
+        );
 
   return (
     <section className="mt-10">
       {/* TÍTULO + FILTRO + VER MAIS */}
       <div className="mb-4 flex items-center justify-between gap-4">
-
         <h2 className="text-2xl font-bold text-black">Lojas</h2>
 
         <div className="flex items-center gap-6 relative">
           <div className="w-auto">
-            <StoresFilter onFilterChange={handleFilterChange} />
+            <StoresFilter onFilterChange={setSelectedCategories} />
           </div>
 
           <a
@@ -138,17 +69,25 @@ export default function StoreList() {
         </div>
       </div>
 
-      {/* LISTA DE LOJAS (FILTRADA) */}
+      {/* LISTA DE LOJAS */}
       <div className="flex gap-[30px] overflow-x-auto pb-2">
-        {filteredStores.map((store) => (
-          <StoreCard
-            key={store.id}
-            name={store.name}
-            category={store.category}
-            imageUrl={store.imageUrl}
-            slug={store.slug}
-          />
-        ))}
+        {loading && <p className="text-gray-500">Carregando...</p>}
+
+        {!loading &&
+          filteredStores.length > 0 &&
+          filteredStores.map((store) => (
+            <StoreCard
+              key={store.id}
+              id={store.id}
+              name={store.nome}
+              category={store.categoria?.nome || "categoria"}
+              imageUrl={store.logo || "/StockIo.png"}
+            />
+          ))}
+
+        {!loading && filteredStores.length === 0 && (
+          <p className="text-gray-500">Nenhuma loja encontrada.</p>
+        )}
       </div>
     </section>
   );

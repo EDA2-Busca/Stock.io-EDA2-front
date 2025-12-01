@@ -1,6 +1,7 @@
     'use client';
 
     import { useEffect, useState } from "react";
+    import { useRouter } from 'next/navigation';
     import { Navbar } from '@/components/Navbar';
     import { ProductCard } from '@/components/ProductCard';
     import { useParams } from "next/navigation";
@@ -26,11 +27,12 @@
         
         subcategoria: { nome: string };
         imagens?: { ordem: number, urlImagem: string }[];
-        avaliacoes?: { rating: number }[];
+        avaliacoes?: { nota: number }[];
     }
 
 
     export default function ProductPage() {
+        const router = useRouter();
         const [products, setProducts] = useState<Products | null>(null);
         const { id } = useParams();
         const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
@@ -101,7 +103,7 @@
         });
 
         const avgRating = (products.avaliacoes && products.avaliacoes.length > 0)
-            ? (products.avaliacoes.reduce((acc, r) => acc + r.rating, 0) / products.avaliacoes.length).toFixed(1)
+            ? (products.avaliacoes.reduce((acc, r) => acc + r.nota, 0) / products.avaliacoes.length).toFixed(1)
             : "N/A";
 
         const totalReviews = products.avaliacoes?.length || 0;
@@ -111,10 +113,10 @@
                 <Navbar />
                 <div className="max-w-7xl mx-auto p-4 md:p-8">
 
-                    <a href="/" className="flex items-center gap-1 text-gray-600 hover:text-black mb-4 w-fit">
+                    <button onClick={() => router.back()} className="flex items-center gap-1 text-gray-600 hover:text-black mb-4 w-fit">
                         <BackArrowIcon />
                         <span className="font-medium">Voltar</span>
-                    </a>
+                    </button>
 
                     {/* --- 1. SEÇÃO PRINCIPAL */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-50">

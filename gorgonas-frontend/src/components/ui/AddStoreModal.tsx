@@ -28,8 +28,8 @@ export default function AddStoreModal({ isOpen, onClose }: Props) {
       return;
     }
     
-    // TODO: Substituir pela chamada real à API
-    console.log('Enviando dados da loja (simulação):', { nomeLoja, categoria });
+    // Integração real deve usar `api.post('/lojas', { nome: nomeLoja, categoriaId })`
+    // Removido console.debug de simulação
     toast.success('Loja adicionada com sucesso! (Simulação)');
     
     handleCloseModal(); // Limpa e fecha

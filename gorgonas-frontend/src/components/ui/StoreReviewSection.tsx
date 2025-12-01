@@ -3,7 +3,7 @@ import React from 'react';
 import { FaStar } from 'react-icons/fa';
 import StoreReviewCard from '@/components/ui/StoreReviewCard'; 
 
-// Tipos de dados
+// Tipos de dados locais
 type Review = {
   id: string;
   author: string;
@@ -19,14 +19,14 @@ type Props = {
   seeMoreLink: string;
 };
 
-// Componente para a secção preta de Reviews
+// Secção preta de reviews resumidos
 export default function StoreReviewSection({ rating, reviewCount, reviews, seeMoreLink }: Props) {
   return (
     <section className="w-full bg-black text-white py-8">
       {/* Container principal */}
       <div className="max-w-7xl mx-auto px-8">
         
-        {/* Conteúdo Centralizado (Título, Rating, Estrelas) */}
+        {/* Cabeçalho com título, média e estrelas */}
         <div className="flex flex-col items-center gap-2">
           <h2 className="text-3xl font-bold">Reviews e Comentários</h2>
           <span className="text-5xl font-bold">{rating.toFixed(2)}</span>
@@ -40,7 +40,7 @@ export default function StoreReviewSection({ rating, reviewCount, reviews, seeMo
           <span className="text-gray-400 text-sm">({reviewCount} reviews)</span>
         </div>
 
-        {/* "ver mais" link */}
+        {/* Link para página completa */}
         <div className="flex justify-end mt-4">
           <a 
             href={seeMoreLink} 
@@ -50,11 +50,11 @@ export default function StoreReviewSection({ rating, reviewCount, reviews, seeMo
           </a>
         </div>
 
-        {/* Lista Horizontal de Reviews (Scroll) */}
+        {/* Lista horizontal de reviews */}
         <div className="flex space-x-6 overflow-x-auto pt-6 pb-4">
           {reviews.map((review) => (
-            // Wrapper para o cartão (com largura fixa 'w-lg' equivalente a 32rem)
             <div key={review.id} className="w-lg shrink-0">
+              {/* Cartão com largura fixa */}
               <StoreReviewCard review={review} />
             </div>
           ))}

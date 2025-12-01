@@ -12,25 +12,19 @@ type ProdutoParaCard = {
 };
 
 interface ProductRowProps {
-    title: string;
+    title?: string;
     products: ProdutoParaCard[];
     viewMoreHref: string;
 }
 
 export function ProductRow({ title, products, viewMoreHref }: ProductRowProps) {
-
     return (
         <section className="pb-12">
-            <div className="flex justify-between items-center mb-4">
-                <div className="flex items-baseline gap-1">
-                    <h2 className="text-2xl font-bold text-[#171918]">Produtos</h2>
-                    <h2 className="text-sm text-[#6A38F3]">em {title}</h2>
-                </div>
+            <div className="flex justify-end mb-4">
                 <a href={viewMoreHref} className="text-sm text-[#6A38F3] hover:underline">
                     ver mais
                 </a>
             </div>
-
             <div className="overflow-x-auto pb-4">
                 <div className="flex flex-nowrap gap-6">
                     {products.length > 0 ? (
