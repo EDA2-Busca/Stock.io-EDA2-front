@@ -10,7 +10,7 @@ export interface ProfileHeaderProps {
     fotoPerfil: string;
   };
 
-export function ProfileHeader({ perfil }: { perfil: ProfileHeaderProps | null }) {
+export function ProfileHeader({ perfil, onEditProfile }: { perfil: ProfileHeaderProps | null, onEditProfile: () => void }) {
   const router = useRouter();
 
   const nome = perfil?.nome || 'Nome do Usuário';
@@ -69,6 +69,7 @@ export function ProfileHeader({ perfil }: { perfil: ProfileHeaderProps | null })
 
                 {/* Botão de Ação */}
                 <button 
+                    onClick={onEditProfile}
                     className="w-full md:w-auto bg-[#6A38F3] text-white hover:bg-[#FFFFFF] hover:text-[#6A38F3] font-bold py-3 px-8 rounded-full shadow-lg transition-all active:scale-95 font-lato"
                 >
                     Editar Perfil

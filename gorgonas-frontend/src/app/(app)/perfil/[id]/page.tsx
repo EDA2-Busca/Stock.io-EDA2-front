@@ -12,6 +12,7 @@ import { ProfileHeader } from "@/components/headPerfil";
 import { ProfileHeaderProps } from "@/components/headPerfil";
 import { StoreHeader, StoreHeaderProps } from "@/components/lojasList";
 import { StoreCardProps } from "@/components/ui/StoreCard";
+import { ModalEdicaoUsuario } from "@/components/ModalEdicaoUsuario";
 
 
 type ProdutoParaCard = {
@@ -32,6 +33,16 @@ export default function PerfilPage() {
   const [lojas, setLojas] = useState<StoreCardProps[] | null>(null);
 
   const [produtos, setProdutos] = useState<ProdutoParaCard[]>([]);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  }
+
+    const handleCloseModal = () => {
+      setIsModalOpen(false);
+    }
 
   useEffect (() => {
     
@@ -102,6 +113,7 @@ return (
                 <Navbar />
                 <ProfileHeader
                     perfil={perfil}
+                    onEditProfile={handleOpenModal}
                 />
         <div className="max-w-7xl mx-auto p-4 md:p-8">
         
@@ -116,6 +128,12 @@ return (
             lojas={lojas || []}
         />
         </div>
+
+        <ModalEdicaoUsuario
+            isOpen={isModalOpen}
+            onClose={handleCloseModal}
+            initialData={perfil || undefined}
+            />
     </main>
 );
 }
