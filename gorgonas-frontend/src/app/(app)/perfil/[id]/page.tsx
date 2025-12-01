@@ -13,6 +13,7 @@ import { ProfileHeaderProps } from "@/components/headPerfil";
 import { StoreHeader, StoreHeaderProps } from "@/components/lojasList";
 import { StoreCardProps } from "@/components/ui/StoreCard";
 import { ModalEdicaoUsuario } from "@/components/ModalEdicaoUsuario";
+import { ModalEditarSenha } from "@/components/ModalEditarSenha";
 
 
 type ProdutoParaCard = {
@@ -34,15 +35,23 @@ export default function PerfilPage() {
 
   const [produtos, setProdutos] = useState<ProdutoParaCard[]>([]);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalUsuarioOpen, setIsModalUsuarioOpen] = useState(false);
+  const [isModalEditarSenhaOpen, setIsModalEditarSenhaOpen] = useState(false);
 
-  const handleOpenModal = () => {
-    setIsModalOpen(true);
-  }
+const openPasswordFlow = () => {
+    setIsModalUsuarioOpen(false);      // Fecha o de usuário
+    setIsModalEditarSenhaOpen(true);   // Abre o de senha
+  };
 
-    const handleCloseModal = () => {
-      setIsModalOpen(false);
-    }
+  const backToUserFlow = () => {
+    setIsModalEditarSenhaOpen(false);  // Fecha o de senha
+    setIsModalUsuarioOpen(true);       // Reabre o de usuário
+  };
+
+  const closeAll = () => {
+    setIsModalUsuarioOpen(false);
+    setIsModalEditarSenhaOpen(false);
+  };
 
   useEffect (() => {
     
@@ -113,7 +122,7 @@ return (
                 <Navbar />
                 <ProfileHeader
                     perfil={perfil}
-                    onEditProfile={handleOpenModal}
+                    onEditProfile={() => setIsModalUsuarioOpen(true)}
                 />
         <div className="max-w-7xl mx-auto p-4 md:p-8">
         
@@ -130,10 +139,18 @@ return (
         </div>
 
         <ModalEdicaoUsuario
-            isOpen={isModalOpen}
-            onClose={handleCloseModal}
+            isOpen={isModalUsuarioOpen}
+            onClose={closeAll}
+            onEditPassword={openPasswordFlow}
             initialData={perfil || undefined}
             />
+        
+        <ModalEditarSenha 
+            isOpen={isModalEditarSenhaOpen}
+            onClose={closeAll}       
+            onBack={backToUserFlow}  
+        />
+
     </main>
 );
 }
