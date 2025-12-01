@@ -28,11 +28,11 @@ export default function LojasPage() {
 
   const [isLoading, setIsLoading] = useState(true);
 
-  // 🔥 FUNÇÃO DO FILTRO — ADICIONADA
+  
   const handleFilterChange = (selectedCategories: string[]) => {
     console.log("Categorias selecionadas:", selectedCategories);
 
-    // No próximo passo vamos filtrar de verdade.
+    
   };
 
   useEffect(() => {
@@ -150,7 +150,7 @@ export default function LojasPage() {
     );
   }
 
-  // QUANDO NÃO ESTÁ CARREGANDO, RENDER NORMAL
+  
   return (
     <main className="bg-[#FDF9F2] min-h-screen">
       {/* HEADER IGUAL AO DE PRODUTOS */}
@@ -167,7 +167,7 @@ export default function LojasPage() {
 
       <div className="max-w-7xl mx-auto px-8">
 
-        {/* 🔥 SEARCHBAR + FILTRO (ADICIONADO) */}
+        
         <section className="py-6 flex items-center justify-between gap-6">
           <div className="w-[150px]">
             <StoresFilter onFilterChange={handleFilterChange} />

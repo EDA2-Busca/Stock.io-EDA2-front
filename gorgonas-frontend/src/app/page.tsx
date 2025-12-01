@@ -142,7 +142,7 @@ export default function HomePage() {
           />
         </section>
 
-        {searchResults ? ( // Se 'searchResults' NÃO for nulo, mostre a busca
+        {searchResults ? ( 
 
           <section className="pb-12">
             <div className="flex justify-between items-center mb-4">
@@ -176,7 +176,7 @@ export default function HomePage() {
               )}
             </div>
           </section>
-        ) : ( // Se 'searchResults' for nulo, mostre a home normal
+        ) : ( 
           <>
             <section className="pb-6">
               <CategoryList />
