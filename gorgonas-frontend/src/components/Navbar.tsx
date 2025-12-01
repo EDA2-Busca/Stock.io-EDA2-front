@@ -56,7 +56,7 @@ export function Navbar() {
                   aria-label="Loja"
                 />
               </Link>
-              <Link href="/perfil">
+              <Link href={`/perfil/${user?.id}`}>
                 <div
                   className="h-9 w-9 bg-contain bg-no-repeat bg-center 
                              bg-[url('/avatar-placeholder.png')] 
