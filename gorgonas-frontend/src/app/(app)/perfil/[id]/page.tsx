@@ -10,6 +10,9 @@ import { toast } from "react-toastify";
 import { ProductRow } from "@/components/ProductRow";
 import { ProfileHeader } from "@/components/headPerfil";
 import { ProfileHeaderProps } from "@/components/headPerfil";
+import { StoreHeader, StoreHeaderProps } from "@/components/lojasList";
+import { StoreCardProps } from "@/components/ui/StoreCard";
+
 
 type ProdutoParaCard = {
     id: number;
@@ -26,6 +29,7 @@ export default function PerfilPage() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [perfil, setPerfil] = useState<ProfileHeaderProps | null>(null);
+  const [lojas, setLojas] = useState<StoreCardProps[] | null>(null);
 
   const [produtos, setProdutos] = useState<ProdutoParaCard[]>([]);
 
@@ -45,7 +49,7 @@ export default function PerfilPage() {
 
         } catch (error) {
 
-            toast.error("Erro ao listar produtos do usuário:");
+            toast.error("Erro ao listar produtos do usuário.");
             setIsLoading(false);
  
         } finally {
@@ -75,6 +79,24 @@ useEffect(() => {
     procurarPerfil();
 }, [idPerfil.id]);
 
+useEffect(() => {
+    
+    setIsLoading(true);
+
+    async function procurarLojas() {
+
+    try {
+        const response = await api.get(`/lojas/usuario/${idPerfil.id}`);
+        setLojas(response.data);
+    } catch (error) {
+        toast.error("Erro ao carregar Lojas do usuário.");
+    } finally {
+        setIsLoading(false);
+    }
+    }
+    procurarLojas();
+}, [idPerfil.id]);
+
 return (
     <main className="bg-[#FDF9F2] min-h-screen">
                 <Navbar />
@@ -87,6 +109,11 @@ return (
             title="Produtos"
             products={produtos}
             viewMoreHref="/ver-mais/produtos"
+        />
+
+        <StoreHeader
+            title="Lojas"
+            lojas={lojas || []}
         />
         </div>
     </main>

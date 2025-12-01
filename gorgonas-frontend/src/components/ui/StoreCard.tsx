@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 
-interface StoreCardProps {
+export interface StoreCardProps {
   id: number;
   name: string;
   category: string;
