@@ -3,8 +3,12 @@
 import { FiX, FiCamera } from 'react-icons/fi';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
+import api from '@/utilis/api';
+import { toast } from 'react-toastify';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ModalEdicaoUsuarioProps {
+  isUsuario: boolean;
   isOpen: boolean;
   onClose: () => void;
   onEditPassword: () => void;
@@ -18,12 +22,14 @@ interface ModalEdicaoUsuarioProps {
 
 export function ModalEdicaoUsuario({ isOpen, onClose, onEditPassword, initialData }: ModalEdicaoUsuarioProps) {
 
+  const { user, logout } = useAuth();
   const [nome, setNome] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [fotoPerfil, setFotoPerfil] = useState('');
 
-  // CORREÇÃO: Este useEffect atualiza os campos quando os dados chegam ou o modal abre
+  const [isLoading, setIsLoading] = useState(false);
+
   useEffect(() => {
     if (initialData) {
         setNome(initialData.nome || '');
@@ -43,7 +49,68 @@ export function ModalEdicaoUsuario({ isOpen, onClose, onEditPassword, initialDat
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen]);
+  }, [initialData, isOpen]);
+
+  async function handleSalvar() {
+    if (!user?.id) return;
+
+    // Validação básica
+    if (!nome || !username || !email) {
+        toast.warning("Nome, Username e Email são obrigatórios.");
+        return;
+    }
+
+    try {
+        setIsLoading(true);
+
+        const payload = {
+            nome,
+            userName: username,
+            email,
+            fotoPerfil,
+        };
+
+        // Chama a API (PATCH /usuario/:id)
+        await api.patch(`/usuario/${user.id}`, payload);
+
+        toast.success("Perfil atualizado com sucesso!");
+        
+        onClose();
+        window.location.reload();
+
+    } catch (error: any) {
+        console.error(error);
+        const msg = error.response?.data?.message || "Erro ao atualizar perfil.";
+        toast.error(msg);
+    } finally {
+        setIsLoading(false);
+    }
+  }
+
+  async function handleDeletarConta() {
+    if (!user?.id) return;
+
+    // Confirmação simples do navegador
+    const confirmacao = window.confirm("Tem certeza que deseja EXCLUIR sua conta? Essa ação é irreversível.");
+    
+    if (confirmacao) {
+        try {
+            setIsLoading(true);
+            await api.delete(`/usuario/${user.id}`);
+            
+            toast.success("Conta excluída. Sentiremos sua falta!");
+            onClose();
+            
+
+            logout();
+
+        } catch (error) {
+            console.error(error);
+            toast.error("Erro ao excluir conta.");
+            setIsLoading(false);
+        }
+    }
+  }
 
   if (!isOpen) return null;
 
@@ -108,7 +175,7 @@ export function ModalEdicaoUsuario({ isOpen, onClose, onEditPassword, initialDat
         </div>
 
         <div className="flex flex-col gap-3 mt-10">
-          <button className="w-full py-3.5 rounded-full border-2 border-[#B20000] text-[#B20000] font-semibold hover:bg-red-50 transition-colors font-lato">
+          <button onClick={handleDeletarConta} className="w-full py-3.5 rounded-full border-2 border-[#B20000] text-[#B20000] font-semibold hover:bg-red-50 transition-colors font-lato">
             Deletar conta
           </button>
 
@@ -119,7 +186,7 @@ export function ModalEdicaoUsuario({ isOpen, onClose, onEditPassword, initialDat
             Alterar senha
           </button>
 
-          <button className="w-full py-3.5 rounded-full bg-[#6A38F3] text-white font-semibold shadow-lg shadow-purple-200 hover:bg-[#5829d6] transition-all active:scale-[0.98] font-lato">
+          <button onClick={handleSalvar} className="w-full py-3.5 rounded-full bg-[#6A38F3] text-white font-semibold shadow-lg shadow-purple-200 hover:bg-[#5829d6] transition-all active:scale-[0.98] font-lato">
             Salvar
           </button>
         </div>

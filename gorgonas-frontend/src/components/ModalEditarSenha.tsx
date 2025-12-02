@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import api from '@/utilis/api';
 
 interface ModalEditarSenhaProps {
+  isUsuario: boolean;
   isOpen: boolean;
   onClose: () => void; // Fecha tudo
   onBack: () => void;  // Volta para o modal anterior
@@ -72,6 +73,7 @@ export function ModalEditarSenha({ isOpen, onClose, onBack }: ModalEditarSenhaPr
 
         toast.success("Senha alterada com sucesso!");
         onClose(); // Fecha o modal após o sucesso
+        window.location.reload();
 
     } catch (error: any) {
         console.error(error);

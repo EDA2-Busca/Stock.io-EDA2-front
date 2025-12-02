@@ -11,9 +11,9 @@ import { useEffect } from 'react';
 
 // Define os props do modal
 type Props = {
+  isUsuario: boolean;
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: () => void;
 };
 
 interface Categoria {
@@ -22,7 +22,7 @@ interface Categoria {
 }
 
 // Componente principal do Modal de Adicionar Loja
-export default function AddStoreModal({ isOpen, onClose, onSuccess }: Props) {
+export default function AddStoreModal({ isOpen, onClose}: Props) {
   // --- Estados do Formulário ---
   const [nomeLoja, setNomeLoja] = useState('');
   const [categoriaId, setCategoriaId] = useState('');
@@ -79,9 +79,6 @@ const handleSubmit = async (e: React.FormEvent) => {
       
       // Fecha o modal
       onClose();
-      
-      // Se houver função de sucesso (ex: recarregar lista na tela anterior), chama ela
-      if (onSuccess) onSuccess();
 
     } catch (error: any) {
       console.error(error);

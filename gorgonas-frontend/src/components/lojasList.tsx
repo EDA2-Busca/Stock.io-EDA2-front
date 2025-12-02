@@ -3,13 +3,18 @@ import Link from "next/link";
 import { StoreCard, StoreCardProps } from "./ui/cardLojaRetangular";
 
 export interface StoreHeaderProps {
+  isUsuario: boolean;
   title?: string;
   lojas: any[];
   onAddStore?: () => void;
 }
 
-export function StoreHeader({ title = "Lojas", lojas, onAddStore }: StoreHeaderProps) {
-  return (
+
+export function StoreHeader({ isUsuario, title = "Lojas", lojas, onAddStore }: StoreHeaderProps) {
+
+  if (isUsuario === true) {
+  
+    return (
     <section className="flex flex-col gap-4"> {/* 1. Container principal em coluna */}
       
       {/* 2. Header: Título e Botão (Alinhados horizontalmente) */}
@@ -28,12 +33,13 @@ export function StoreHeader({ title = "Lojas", lojas, onAddStore }: StoreHeaderP
       </div>
 
       {/* 3. Lista: Abaixo do Header */}
-      <div className="overflow-x-auto pb-4">
-          <div className="flex flex-nowrap gap-6">
+      <div className="pb-4">
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {lojas.length > 0 ? (
                   lojas.map(loja => (
-                      // Ajustei w-64 para w-auto ou w-[400px] pois seu card retangular é largo
-                      <div key={loja.id} className="shrink-0 w-[90vw] md:w-[400px]">
+
+                      <div key={loja.id} className="w-full">
                           <StoreCard
                               id={loja.id}
                               nome={loja.nome}
@@ -43,13 +49,56 @@ export function StoreHeader({ title = "Lojas", lojas, onAddStore }: StoreHeaderP
                       </div>
                   ))
               ) : (
-                  <p className="text-gray-500 text-lg font-lato">
-                      Nenhuma loja encontrada.
-                  </p>
+
+                  <div className="col-span-full">
+                      <p className="text-gray-500 text-lg font-lato">
+                          Nenhuma loja encontrada.
+                      </p>
+                  </div>
               )}
           </div>
       </div>
 
     </section>
   );
+} else {
+      return (
+    <section className="flex flex-col gap-4"> {/* 1. Container principal em coluna */}
+      
+      {/* 2. Header: Título e Botão (Alinhados horizontalmente) */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold font-merriweather text-black">
+          {title}
+        </h2>
+      </div>
+
+      {/* 3. Lista: Abaixo do Header */}
+      <div className="pb-4">
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {lojas.length > 0 ? (
+                  lojas.map(loja => (
+
+                      <div key={loja.id} className="w-full">
+                          <StoreCard
+                              id={loja.id}
+                              nome={loja.nome}
+                              categoria={{ nome: loja.categoria?.nome || "categoria" }}
+                              imagemUrl={loja.imagemUrl || '/Stock.io.png'}
+                          />
+                      </div>
+                  ))
+              ) : (
+
+                  <div className="col-span-full">
+                      <p className="text-gray-500 text-lg font-lato">
+                          Nenhuma loja encontrada.
+                      </p>
+                  </div>
+              )}
+          </div>
+      </div>
+
+    </section>
+  );}
 }

@@ -135,6 +135,7 @@ return (
         />
 
         <StoreHeader
+            isUsuario={user?.id === Number(idPerfil.id)}
             title="Lojas"
             lojas={lojas || []}
             onAddStore={() => setIsAddStoreModalOpen(true)}
@@ -142,6 +143,7 @@ return (
         </div>
 
         <ModalEdicaoUsuario
+            isUsuario={user?.id === Number(idPerfil.id)}
             isOpen={isModalUsuarioOpen}
             onClose={closeAll}
             onEditPassword={openPasswordFlow}
@@ -149,12 +151,14 @@ return (
             />
         
         <ModalEditarSenha 
+            isUsuario={user?.id === Number(idPerfil.id)}
             isOpen={isModalEditarSenhaOpen}
             onClose={closeAll}       
             onBack={backToUserFlow}  
         />
 
         <AddStoreModal 
+            isUsuario={user?.id === Number(idPerfil.id)}
             isOpen={isAddStoreModalOpen}
             onClose={() => setIsAddStoreModalOpen(false)}
         />
