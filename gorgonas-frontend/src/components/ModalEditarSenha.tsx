@@ -2,6 +2,9 @@
 
 import { FiX, FiChevronLeft, FiKey } from 'react-icons/fi';
 import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'react-toastify';
+import api from '@/utilis/api';
 
 interface ModalEditarSenhaProps {
   isOpen: boolean;
@@ -10,9 +13,12 @@ interface ModalEditarSenhaProps {
 }
 
 export function ModalEditarSenha({ isOpen, onClose, onBack }: ModalEditarSenhaProps) {
+  
+  const {user} = useAuth();
   const [senhaAntiga, setSenhaAntiga] = useState('');
   const [novaSenha, setNovaSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   // Bloqueia rolagem do fundo
   useEffect(() => {
@@ -25,6 +31,57 @@ export function ModalEditarSenha({ isOpen, onClose, onBack }: ModalEditarSenhaPr
       document.body.style.overflow = 'unset';
     };
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
+        setSenhaAntiga('');
+        setNovaSenha('');
+        setConfirmarSenha('');
+    }
+  }, [isOpen]);
+
+  const validarSenhaSegura = (senha: string) => {
+    const regex = /^(?=.*[a-zç])(?=.*[A-ZÇ])(?=.*\d)(?=.*[@$!%*?&.]).{8,}$/;
+    return regex.test(senha);
+  };
+
+  async function handleSalvarSenha() {
+
+    if (!senhaAntiga || !novaSenha || !confirmarSenha) {
+        toast.warning("Preencha todos os campos.");
+        return;
+    }
+
+    if (novaSenha !== confirmarSenha) {
+        toast.error("A nova senha e a confirmação não coincidem.");
+        return;
+    }
+
+    if (!validarSenhaSegura(novaSenha)) {
+      toast.error('Senha inválida. Deve ter 8+ caracteres, 1 maiúscula, 1 minúscula, 1 número e 1 caractere especial (ex: @$!%*?&.).', { toastId: 'err-segura' });
+      return;
+    }
+
+    try {
+        setIsLoading(true);
+
+        await api.patch(`/usuario/senha/${user?.id}`, {
+            senhaAntiga,
+            novaSenha
+        });
+
+        toast.success("Senha alterada com sucesso!");
+        onClose(); // Fecha o modal após o sucesso
+
+    } catch (error: any) {
+        console.error(error);
+        // Tenta pegar a mensagem de erro da API ou exibe uma genérica
+        const mensagemErro = error.response?.data?.message || "Erro ao alterar senha. Verifique sua senha antiga.";
+        toast.error(mensagemErro);
+    } finally {
+        setIsLoading(false);
+    }
+  }
 
   if (!isOpen) return null;
 
@@ -86,6 +143,8 @@ export function ModalEditarSenha({ isOpen, onClose, onBack }: ModalEditarSenhaPr
         {/* Botão Salvar */}
         <div className="mt-10">
           <button 
+            onClick={handleSalvarSenha}
+            disabled={isLoading}
             className="w-full py-3.5 rounded-full bg-[#6A38F3] text-white font-semibold text-lg shadow-lg shadow-purple-200 hover:bg-[#5829d6] transition-all active:scale-[0.98] font-lato"
           >
             Salvar Senha
