@@ -5,9 +5,10 @@ import { StoreCard, StoreCardProps } from "./ui/cardLojaRetangular";
 export interface StoreHeaderProps {
   title?: string;
   lojas: any[];
+  onAddStore?: () => void;
 }
 
-export function StoreHeader({ title = "Lojas", lojas }: StoreHeaderProps) {
+export function StoreHeader({ title = "Lojas", lojas, onAddStore }: StoreHeaderProps) {
   return (
     <section className="flex flex-col gap-4"> {/* 1. Container principal em coluna */}
       
@@ -18,6 +19,7 @@ export function StoreHeader({ title = "Lojas", lojas }: StoreHeaderProps) {
         </h2>
 
         <button
+          onClick={onAddStore}
           className="flex h-10 w-10 items-center justify-center rounded-full bg-[#6A38F3] text-white shadow-md transition-colors hover:bg-[#5829d6] active:scale-95"
           title="Adicionar nova loja"
         >

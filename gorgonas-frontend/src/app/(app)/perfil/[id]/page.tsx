@@ -14,6 +14,7 @@ import { StoreHeader, StoreHeaderProps } from "@/components/lojasList";
 import { StoreCardProps } from "@/components/ui/StoreCard";
 import { ModalEdicaoUsuario } from "@/components/ModalEdicaoUsuario";
 import { ModalEditarSenha } from "@/components/ModalEditarSenha";
+import  AddStoreModal from "@/components/ui/AddStoreModal";
 
 
 type ProdutoParaCard = {
@@ -37,6 +38,7 @@ export default function PerfilPage() {
 
   const [isModalUsuarioOpen, setIsModalUsuarioOpen] = useState(false);
   const [isModalEditarSenhaOpen, setIsModalEditarSenhaOpen] = useState(false);
+  const [isAddStoreModalOpen, setIsAddStoreModalOpen] = useState(false);
 
 const openPasswordFlow = () => {
     setIsModalUsuarioOpen(false);      // Fecha o de usuário
@@ -135,6 +137,7 @@ return (
         <StoreHeader
             title="Lojas"
             lojas={lojas || []}
+            onAddStore={() => setIsAddStoreModalOpen(true)}
         />
         </div>
 
@@ -149,6 +152,11 @@ return (
             isOpen={isModalEditarSenhaOpen}
             onClose={closeAll}       
             onBack={backToUserFlow}  
+        />
+
+        <AddStoreModal 
+            isOpen={isAddStoreModalOpen}
+            onClose={() => setIsAddStoreModalOpen(false)}
         />
 
     </main>
