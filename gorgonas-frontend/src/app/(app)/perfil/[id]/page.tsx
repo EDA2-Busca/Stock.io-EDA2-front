@@ -15,7 +15,7 @@ import { StoreCardProps } from "@/components/ui/StoreCard";
 import { ModalEdicaoUsuario } from "@/components/ModalEdicaoUsuario";
 import { ModalEditarSenha } from "@/components/ModalEditarSenha";
 import  AddStoreModal from "@/components/ui/AddStoreModal";
-
+import { ReviewSection, ReviewData } from "@/components/secaoAvaliacao";
 
 type ProdutoParaCard = {
     id: number;
@@ -26,15 +26,29 @@ type ProdutoParaCard = {
     imagens: { urlImagem: string }[];
 };
 
+const mockReviews = [
+    {
+      author: "Selena Gomez",
+      text: "Não é por nada não, mas essa garota arrasa. Os produtos são incríveis e chegaram super rápido!",
+      avatarUrl: "https://github.com/shadcn.png", // ou a url da foto dela
+      rating: 5
+    },
+    {
+      author: "Justin B.",
+      text: "Muito bom, recomendo a todos da plataforma!",
+      avatarUrl: "/avatar-placeholder.png",
+      rating: 4
+    }
+  ];
+
 export default function PerfilPage() {
   const idPerfil = useParams();
-  const router = useRouter();
   const { user } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
   const [perfil, setPerfil] = useState<ProfileHeaderProps | null>(null);
   const [lojas, setLojas] = useState<StoreCardProps[] | null>(null);
-
+  const [isLoading, setIsLoading] = useState(false);
   const [produtos, setProdutos] = useState<ProdutoParaCard[]>([]);
+  const [avaliacoes, setAvaliacoes] = useState<ReviewData[]>([]);
 
   const [isModalUsuarioOpen, setIsModalUsuarioOpen] = useState(false);
   const [isModalEditarSenhaOpen, setIsModalEditarSenhaOpen] = useState(false);
@@ -102,6 +116,45 @@ useEffect(() => {
 }, [idPerfil.id]);
 
 useEffect(() => {
+    setIsLoading(true);
+
+    async function procurarAvaliacoes() {
+        if (!idPerfil?.id) return;
+
+        try {
+            const response = await api.get(`/usuario/avaliacoes/${idPerfil.id}`);
+            
+            // A resposta é: { nome: "User", fotoPerfil: "...", avaliacoesLoja: [...] }
+            const { nome, fotoPerfil, avaliacoesLoja } = response.data;
+
+            // Se o usuário não tiver avaliações, avaliacoesLoja pode vir undefined ou vazio
+            if (!avaliacoesLoja) {
+                setAvaliacoes([]);
+                return;
+            }
+
+            // Mapeamos a lista de reviews usando os dados do usuário como Autor
+            const avaliacoesFormatadas = avaliacoesLoja.map((review: any) => ({
+                id: review.id,
+                author: nome, // O autor é o dono do perfil
+                avatarUrl: fotoPerfil || "/stores/cjr.png",
+                rating: review.nota,
+                text: review.conteudo || "Sem comentário."
+            }));
+
+            setAvaliacoes(avaliacoesFormatadas);
+
+        } catch (error) {
+            console.error("Erro ao buscar avaliações:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    }
+    
+    procurarAvaliacoes();
+  }, [idPerfil?.id]);
+
+useEffect(() => {
     
     setIsLoading(true);
 
@@ -140,6 +193,11 @@ return (
             lojas={lojas || []}
             onAddStore={() => setIsAddStoreModalOpen(true)}
         />
+
+
+        {avaliacoes.length > 0 && (
+            <ReviewSection reviews={avaliacoes} />
+        )}
         </div>
 
         <ModalEdicaoUsuario
@@ -163,6 +221,7 @@ return (
             onClose={() => setIsAddStoreModalOpen(false)}
         />
 
+        
     </main>
 );
 }
