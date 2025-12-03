@@ -2,18 +2,21 @@
 
 import { ProductCard } from './ProductCard';
 
-type ProdutoParaCard = {
+export type ProdutoParaCard = {
     id: number;
     nome: string;
-    preco: number;
+    preco: number | string;
     estoque: number;
-    loja: { logo: string | null } | null;
-    imagens: { urlImagem: string }[];
+    imagens?: { urlImagem: string }[]; 
+    loja?: {
+        logo?: string | null;
+    } | null;
+    unidade?: string;
 };
 
 interface ProductRowProps {
     title?: string;
-    products: ProdutoParaCard[];
+    products: ProdutoParaCard[]; 
     viewMoreHref: string;
 }
 
@@ -29,16 +32,9 @@ export function ProductRow({ title, products, viewMoreHref }: ProductRowProps) {
                 <div className="flex flex-nowrap gap-6">
                     {products.length > 0 ? (
                         products.map(produto => (
-                            <div key={produto.id} className="shrink-0 w-64">
-                                <ProductCard
-                                    id={produto.id}
-                                    name={produto.nome}
-                                    price={produto.preco.toString()}
-                                    isAvailable={produto.estoque > 0}
-                                    imageUrl={produto.imagens?.[0]?.urlImagem || '/Stock.io.png'}
-                                    badgeUrl={produto.loja?.logo || undefined}
-                                />
-                            </div>
+                             <div key={produto.id} className="shrink-0 w-64">
+                            <ProductCard key={produto.id} produto={produto} />
+                        </div>
                         ))
                     ) : (
                         <p className="text-center text-gray-500 text-lg">

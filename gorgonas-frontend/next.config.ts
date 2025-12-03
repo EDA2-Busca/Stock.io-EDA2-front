@@ -6,13 +6,15 @@ const nextConfig: NextConfig = {
   // --- ADICIONE ESTE BLOCO ---
   images: {
     remotePatterns: [
-      { protocol: 'https', hostname: 'www.infoescola.com' },
-      { protocol: 'https', hostname: 'via.placeholder.com' },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3001', 
+        pathname: '/uploads/**', 
+      },
     ],
-    // Evita falhas de otimização quando DNS externo oscila (usa a imagem direta)
     unoptimized: true,
   },
-  // -------------------------
 };
 
 export default nextConfig;
