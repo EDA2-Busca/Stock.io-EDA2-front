@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import TextInput from '@/components/ui/TextInput';
 import PasswordInput from '@/components/ui/PasswordInput';
 import Button from '@/components/ui/Button';
+import { isValidEmail } from '@/utilis/validators';
 
 import api from '../../../utilis/api';
 import axios from 'axios';
@@ -23,12 +24,6 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   
   const { user, setLoggedInUser, isLoading: isAuthLoading } = useAuth();
-
-  // --- Função de Validação ---
-  const validarEmail = (email: string) => {
-    const regexFormato = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    return regexFormato.test(email.trim());
-  };
 
   // --- Lógica de Redirecionamento se já estiver logado ---
   useEffect(() => {
@@ -85,6 +80,10 @@ export default function LoginPage() {
       }
     };
 
+  const handleForgotPassword = () => {
+    router.push('/recuperar-senha');
+  };
+
   // --- Função de Validação e Submissão ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,7 +95,7 @@ export default function LoginPage() {
     }
     
     // Validação: Formato do Email
-    if (!validarEmail(email)) {
+    if (!isValidEmail(email)) {
       toast.error('Por favor, insira um email válido.', { toastId: 'err-login-email' });
       return;
     }
@@ -142,15 +141,19 @@ export default function LoginPage() {
 
               {/* Link "Esqueceu sua senha?" */}
               <div className="text-right text-sm">
-                <a href="/recuperar-senha" className="text-[#9B7BFF] hover:underline">
-                  Esqueceu sua senha?
-                </a>
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-[#9B7BFF] font-semibold hover:underline transition"
+                >
+                  Esqueceu a senha?
+                </button>
               </div>
 
               {/* Botão de submissão */}
               <div className="pt-4">
-                <Button type="submit">
-                  ENTRAR
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? 'ENTRANDO...' : 'ENTRAR'}
                 </Button>
               </div>
             </form>

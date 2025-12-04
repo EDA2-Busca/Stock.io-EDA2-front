@@ -3,11 +3,13 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
+import axios from 'axios';
 
 import TextInput from '@/components/ui/TextInput';
 import Button from '@/components/ui/Button';
 
-import api from '../../../utilis/api';
+import { requestPasswordReset } from '@/utilis/passwordRecovery';
+import { isValidEmail } from '@/utilis/validators';
 
 export default function RecuperarSenhaPage() {
   const router = useRouter();
@@ -15,20 +17,15 @@ export default function RecuperarSenhaPage() {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const validarEmail = (email: string) => {
-    const regexFormato = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    return regexFormato.test(email.trim());
-  };
-
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!email) {
+    if (!email.trim()) {
       toast.error('Por favor, preencha o email.');
       return;
     }
 
-    if (!validarEmail(email)) {
+    if (!isValidEmail(email)) {
       toast.error('Por favor, insira um email válido.');
       return;
     }
@@ -36,24 +33,29 @@ export default function RecuperarSenhaPage() {
     try {
       setIsLoading(true);
 
-      const response = await api.post('/auth/forgot-password', { email });
+      const { data } = await requestPasswordReset(email.trim());
 
       toast.success(
         'Se o email existir, enviamos instruções para recuperar a senha.',
       );
 
-    
-      const token = response.data?.token;
+      const token = data?.token;
 
       if (token) {
         // Já redireciona o usuário para a tela de redefinir senha com o token na URL
         router.push(`/redefinir-senha?token=${token}`);
       }
+
+      setEmail('');
     } catch (error) {
       console.error(error);
-      toast.error(
-        'Não foi possível iniciar a recuperação de senha. Tente novamente.',
-      );
+      if (axios.isAxiosError(error) && error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error(
+          'Não foi possível iniciar a recuperação de senha. Tente novamente.',
+        );
+      }
     } finally {
       setIsLoading(false);
     }
@@ -119,8 +121,8 @@ export default function RecuperarSenhaPage() {
             {/* Boneco novo */}
             <div className="w-full flex justify-center">
               <img
-                src="/Stockles_RecuperarSenha.png"
-                alt="Mascote Stock.io Recuperar Senha"
+                src="/Stockles-Mascote2.png"
+                alt="Mascote Stock.io"
                 className="w-auto h-[420px] object-contain"
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.display = 'none';

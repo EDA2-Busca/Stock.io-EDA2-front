@@ -1,136 +1,113 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { toast } from 'react-toastify';
-
+import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 import PasswordInput from '@/components/ui/PasswordInput';
 import Button from '@/components/ui/Button';
-
-import api from '../../../utilis/api';
+import { resetPassword } from '@/utilis/passwordRecovery';
+import { MIN_PASSWORD_LENGTH, isValidPassword } from '@/utilis/validators';
+import { toast } from 'react-toastify';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function RedefinirSenhaPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const token = searchParams.get('token') ?? '';
 
-  const [novaSenha, setNovaSenha] = useState('');
+  const [senha, setSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: FormEvent) => {
+  useEffect(() => {
+    if (!token) {
+      toast.error('Link de redefinição inválido ou expirado. Solicite um novo email.');
+    }
+  }, [token]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!novaSenha || !confirmarSenha) {
-      toast.error('Preencha todos os campos de senha.');
-      return;
-    }
-
-    if (novaSenha.length < 6) {
-      toast.error('A nova senha deve ter pelo menos 6 caracteres.');
-      return;
-    }
-
-    if (novaSenha !== confirmarSenha) {
-      toast.error('A confirmação de senha não confere.');
-      return;
-    }
-
-    const token = searchParams.get('token');
-
     if (!token) {
-      toast.error('Token de recuperação inválido ou ausente.');
+      toast.error('Token de redefinição não encontrado.');
+      router.push('/recuperar-senha');
       return;
     }
+
+    if (!senha || !confirmarSenha) {
+      toast.error('Preencha todos os campos.');
+      return;
+    }
+
+    if (!isValidPassword(senha)) {
+      toast.error(`A senha deve ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres.`);
+      return;
+    }
+
+    if (senha !== confirmarSenha) {
+      toast.error('As senhas não coincidem.');
+      return;
+    }
+
+    setLoading(true);
 
     try {
-      setIsLoading(true);
+      await resetPassword(token, senha);
 
-      await api.post('/auth/reset-password', {
-        token,
-        novaSenha,
-      });
-
-      toast.success('Senha redefinida com sucesso! Faça login novamente.');
+      toast.success('Senha redefinida com sucesso!');
       router.push('/login');
-    } catch (error) {
-      console.error(error);
-      toast.error('Não foi possível redefinir a senha. Verifique o token.');
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao redefinir senha.');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen flex items-stretch bg-[#F6F3E4]">
       <div className="w-full max-w-[1300px] mx-auto flex flex-col md:flex-row-reverse items-stretch py-12 px-6 md:px-8">
-        {/* Card à direita */}
+        {/* FORM */}
         <div className="md:w-1/2 w-full flex items-stretch justify-center">
-          <div
-            className="w-full max-w-lg bg-[#171918] text-white p-8 md:p-12 shadow-xl flex flex-col justify-center h-full overflow-hidden rounded-[18px] md:rounded-[36px]"
-            style={{ boxSizing: 'border-box' }}
-          >
-            <h1 className="text-center text-2xl md:text-3xl font-extrabold tracking-wide text-white mb-4 mt-8">
+          <div className="w-full max-w-lg bg-[#171918] text-white p-10 md:p-12 shadow-xl flex flex-col justify-center h-full rounded-[36px]">
+            <h1 className="text-center text-2xl md:text-3xl font-extrabold tracking-wide mb-8">
               REDEFINIR SENHA
             </h1>
 
-            <p className="text-center text-sm text-[#d1cfcf] mb-8">
-              Defina uma nova senha para acessar sua conta.
-            </p>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {!token && (
+                <div className="rounded-md bg-red-500/10 px-3 py-2 text-center text-sm text-red-200">
+                  Link inválido ou expirado. Solicite uma nova recuperação.
+                </div>
+              )}
 
-            <form className="space-y-4" onSubmit={handleSubmit} noValidate>
               <PasswordInput
-                value={novaSenha}
-                onChange={(e) => setNovaSenha(e.target.value)}
                 placeholder="Nova senha"
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
               />
 
               <PasswordInput
+                placeholder="Confirmar nova senha"
                 value={confirmarSenha}
                 onChange={(e) => setConfirmarSenha(e.target.value)}
-                placeholder="Confirmar nova senha"
               />
 
-              <div className="pt-4">
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? 'SALVANDO...' : 'SALVAR NOVA SENHA'}
-                </Button>
-              </div>
+              <Button type="submit" disabled={loading || !token}>
+                {loading ? 'Salvando...' : 'Salvar Nova Senha'}
+              </Button>
             </form>
 
-            <div className="mt-6 text-sm text-[#d1cfcf] text-center">
-              Lembrou sua senha?{' '}
-              <a
-                href="/login"
-                className="text-[#9B7BFF] font-semibold hover:underline"
-              >
-                Voltar para o login
+            <div className="mt-6 text-center text-sm">
+              <a href="/login" className="text-[#9B7BFF] hover:underline">
+                Voltar ao login
               </a>
             </div>
           </div>
         </div>
 
-        
+        {/* IMAGEM */}
         <div className="hidden md:flex md:w-1/2 w-full items-center justify-center">
-          <div className="w-full max-w-lg px-8 py-6 flex flex-col items-center justify-center">
-            <div className="mb-10 w-full flex justify-start">
-              <img
-                src="/Stock.io.png"
-                alt="Logo Stock.io"
-                className="h-20 object-contain"
-              />
-            </div>
-
-            <div className="w-full flex justify-center">
-              <img
-                src="/Stockles_RecuperarSenha.png"
-                alt="Mascote Stock.io"
-                className="w-auto h-[420px] object-contain"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
-            </div>
-          </div>
+          <Image src="/Stockles-Mascote2.png" width={380} height={600} alt="Mascote Stock.io" />
         </div>
       </div>
     </div>
