@@ -47,7 +47,7 @@ export default function StorePage() {
   const [error, setError] = useState<string | null>(null);
   const [productsLoading, setProductsLoading] = useState(true);
   const [products, setProducts] = useState<Array<{ id: number; name: string; price: string; isAvailable: boolean; imageUrl: string }>>([]);
-  const [store, setStore] = useState<{ nome: string; descricao: string; categoria: { nome: string } | null; banner: string | null; logo: string | null } | null>(null);
+  const [store, setStore] = useState<{ nome: string; descricao: string; categoria: { nome: string } | null; banner: string | null; logo: string | null; sticker: string | null } | null>(null);
   const [reviews, setReviews] = useState<StoreReview[]>([]);
   const [reviewsLoading, setReviewsLoading] = useState<boolean>(false);
   const [averageRating, setAverageRating] = useState<number>(0);
@@ -183,6 +183,7 @@ export default function StorePage() {
   const bannerImageUrl = getImageUrl(store?.banner);
 
   const logoImageUrl =getImageUrl(store?.logo);
+  const stickerImageUrl =getImageUrl(store?.sticker);
 
   // Lógica de proprietário (esconde ações para dono)
   const isOwnerBase = user && store && (user.id === (store as any).usuarioId || user.id === (store as any).usuario?.id);
@@ -202,6 +203,7 @@ export default function StorePage() {
         description={storeDescription}
         bannerImageUrl={bannerImageUrl}
         logoImageUrl={logoImageUrl}
+        stickerImageUrl={stickerImageUrl}
         isLoggedIn={isLoggedIn}
         isOwner={isOwner}
         onProductCreated={(p) => {

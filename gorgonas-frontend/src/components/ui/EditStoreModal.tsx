@@ -7,6 +7,8 @@ import Button from "./Button";
 import ImageUploadDropzone from "./ImageUploadStore";
 import api from "@/utilis/api";
 
+const API_URL = "http://localhost:3001";
+
 type Props = {
   isOpen: boolean;
   onClose: () => void;
@@ -52,11 +54,12 @@ export default function EditStoreModal({
   const [isDeleting, setIsDeleting] = useState(false);
   const [categoriaAlteradaPeloUsuario, setCategoriaAlteradaPeloUsuario] = useState(false);
 
-  const canSubmit = useMemo(() => {
-    const categoriaOk = categoriaAlteradaPeloUsuario ? categoriaId !== null : true;
-    return !!nomeLoja && categoriaOk && !isSubmitting && !isDeleting;
-  }, [nomeLoja, categoriaAlteradaPeloUsuario, categoriaId, isSubmitting, isDeleting]);
-
+  const buildUrl = (path: string | null | undefined) => {
+    if (!path) return undefined; // Retorna undefined para o componente saber que não tem imagem
+    if (path.startsWith('http') || path.startsWith('/')) return path;
+    // Corrige barra invertida e adiciona domínio
+    return `${API_URL}/${path}`;
+  };
   // Resolve categoriaId chamando GET /categorias/:nome
   useEffect(() => {
     let active = true;
@@ -88,6 +91,17 @@ export default function EditStoreModal({
     })();
     return () => { active = false; };
   }, [initialCategory]);
+
+  const canSubmit = useMemo(() => {
+    const categoriaOk = categoriaAlteradaPeloUsuario ? categoriaId !== null : true;
+    const formMudou = nomeLoja !== initialName ||
+      categoria !== initialCategory ||
+      perfilFile !== null ||
+      logoSvgFile !== null ||
+      bannerFile !== null;
+
+    return !!nomeLoja && categoriaOk && !isSubmitting && !isDeleting && formMudou;
+  }, [nomeLoja, categoriaAlteradaPeloUsuario, categoriaId, isSubmitting, isDeleting, initialName, initialCategory, perfilFile, logoSvgFile, bannerFile]);
 
   const resetAndClose = useCallback(() => {
     setIsSubmitting(false);
@@ -126,7 +140,12 @@ export default function EditStoreModal({
       await api.patch(`/lojas/${lojaId}`, formData);
 
       toast.success("Loja atualizada com sucesso!");
-      onUpdated?.({ nome: nomeLoja, categoria });
+      onUpdated?.({
+        nome: nomeLoja, categoria,
+        perfilUrl: perfilFile ? URL.createObjectURL(perfilFile) : initialImages?.perfilUrl,
+        logoSvgUrl: logoSvgFile ? URL.createObjectURL(logoSvgFile) : initialImages?.logoSvgUrl,
+        bannerUrl: bannerFile ? URL.createObjectURL(bannerFile) : initialImages?.bannerUrl
+      });
       resetAndClose();
     } catch (err: any) {
       console.error(err);
@@ -215,7 +234,7 @@ export default function EditStoreModal({
                 setResolvendoCategoria(false);
               }
             }}
-            className="w-full h-14 pl-6 pr-12 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#6A38F3]/50 text-gray-900"
+            className="w-full h-14 pl-6 pr-12 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#6A38F3]/50 text-gray-900 cursor-pointer appearance-none"
           >
             <option value="" disabled>Categoria</option>
             {categoriasNomes.map((n) => (
@@ -223,10 +242,24 @@ export default function EditStoreModal({
             ))}
           </select>
 
-          <ImageUploadDropzone label="Anexe a foto de perfil da sua loja" onFileChange={(file) => setPerfilFile(file)} />
-          <ImageUploadDropzone label="Anexe a logo em SVG de sua loja" onFileChange={(file) => setLogoSvgFile(file)} />
-          <ImageUploadDropzone label="Anexe o banner de sua loja" onFileChange={(file) => setBannerFile(file)} />
+          <ImageUploadDropzone
+            label="Anexe a foto de perfil da sua loja"
+            onFileChange={setPerfilFile}
+            // Passa a URL do banco se não tiver arquivo novo selecionado
+            initialPreview={buildUrl(initialImages?.perfilUrl)}
+          />
 
+          <ImageUploadDropzone
+            label="Anexe a logo em SVG de sua loja"
+            onFileChange={setLogoSvgFile}
+            initialPreview={buildUrl(initialImages?.logoSvgUrl)}
+          />
+
+          <ImageUploadDropzone
+            label="Anexe o banner de sua loja"
+            onFileChange={setBannerFile}
+            initialPreview={buildUrl(initialImages?.bannerUrl)}
+          />
           <div className="pt-4 flex flex-col gap-3 sm:flex-row sm:justify-between">
             <button
               type="button"

@@ -14,6 +14,7 @@ type Props = {
   description: string;
   bannerImageUrl: string;
   logoImageUrl?: string;
+  stickerImageUrl?: string;
   isLoggedIn: boolean;
   isOwner: boolean;
   onProductCreated?: (p: { id: number; nome: string; preco: number; estoque: number; imagens?: any[] }) => void;
@@ -22,7 +23,7 @@ type Props = {
 };
 
 // Componente para o banner full-width
-export default function StoreBanner({ id, storeName, category, description, bannerImageUrl, logoImageUrl, isLoggedIn, isOwner, onProductCreated, onStoreUpdated, onStoreDeleted }: Props) {
+export default function StoreBanner({ id, storeName, category, description, bannerImageUrl, logoImageUrl, stickerImageUrl, isLoggedIn, isOwner, onProductCreated, onStoreUpdated, onStoreDeleted }: Props) {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -91,7 +92,7 @@ export default function StoreBanner({ id, storeName, category, description, bann
           lojaId={String(id)}
           initialName={storeName}
           initialCategory={category}
-          initialImages={{ bannerUrl: bannerImageUrl }}
+          initialImages={{ bannerUrl: bannerImageUrl,logoSvgUrl: logoImageUrl, perfilUrl: stickerImageUrl }}
           onUpdated={() => {
             setIsEditOpen(false);
             toast?.success?.("Loja atualizada");
