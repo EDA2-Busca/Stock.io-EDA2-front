@@ -4,41 +4,96 @@ import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import { IoClose } from 'react-icons/io5';
 import Button from './Button'; 
-import ImageUploadDropzone from './ImageUploadStore';
+import ImageUploadDropzone from './ImageUploadDropzone';
+import api from '@/utilis/api';
+import { useAuth } from '@/contexts/AuthContext';
+import { useEffect } from 'react';
 
 // Define os props do modal
 type Props = {
+  isUsuario: boolean;
   isOpen: boolean;
   onClose: () => void;
 };
 
+interface Categoria {
+  id: number;
+  nome: string;
+}
+
 // Componente principal do Modal de Adicionar Loja
-export default function AddStoreModal({ isOpen, onClose }: Props) {
+export default function AddStoreModal({ isOpen, onClose}: Props) {
   // --- Estados do Formulário ---
   const [nomeLoja, setNomeLoja] = useState('');
-  const [categoria, setCategoria] = useState('');
+  const [categoriaId, setCategoriaId] = useState('');
+
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+      if (isOpen) {
+        // Função para buscar categorias
+        const fetchCategorias = async () => {
+          try {
+            const response = await api.get('/categorias'); // Ajuste a rota se necessário
+            setCategorias(response.data);
+          } catch (error) {
+            console.error("Erro ao buscar categorias", error);
+            toast.error("Não foi possível carregar as categorias.");
+          }
+        };
+
+        fetchCategorias();
+      }
+    }, [isOpen]);
+
 
   // --- Lógica de Submissão ---
-  const handleSubmit = async (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validação client-side (apenas campos de texto)
-    if (!nomeLoja || !categoria) {
-      toast.error('Por favor, preencha o nome da loja e a categoria.', { toastId: 'err-loja-texto' });
+    // Validação
+    if (!nomeLoja || !categoriaId) {
+      toast.error('Por favor, preencha o nome da loja e selecione uma categoria.');
       return;
     }
-    
-    // Integração real deve usar `api.post('/lojas', { nome: nomeLoja, categoriaId })`
-    // Removido console.debug de simulação
-    toast.success('Loja adicionada com sucesso! (Simulação)');
-    
-    handleCloseModal(); // Limpa e fecha
+
+    try {
+      setIsLoading(true);
+
+      // Payload conforme esperado pelo seu DTO (CreateLojaDto)
+      const payload = {
+        nome: nomeLoja,
+        categoriaId: Number(categoriaId), // Converte string para number
+        // Fotos ignoradas por enquanto conforme solicitado
+      };
+
+      // Chamada para o Back-end
+      await api.post('/lojas', payload);
+
+      toast.success('Loja criada com sucesso!');
+      
+      // Limpa os campos
+      setNomeLoja('');
+      setCategoriaId('');
+      
+      // Fecha o modal
+      onClose();
+
+    } catch (error: any) {
+      console.error(error);
+      // Tratamento de erros específicos do seu Back (Conflict, NotFound)
+      const mensagem = error.response?.data?.message || 'Erro ao criar loja.';
+      toast.error(mensagem);
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   // Limpa o formulário e fecha o modal
   const handleCloseModal = () => {
     setNomeLoja('');
-    setCategoria('');
+    setCategoriaId('');
     onClose();
   }
 
@@ -77,16 +132,19 @@ export default function AddStoreModal({ isOpen, onClose }: Props) {
           
           {/* Select: Categoria (arredondado e com padding na seta) */}
           <select
-            value={categoria}
-            onChange={(e) => setCategoria(e.target.value)}
-            className="w-full h-14 pl-6 pr-12 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#6A38F3]/50 text-gray-900"
+            value={categoriaId}
+            onChange={(e) => setCategoriaId(e.target.value)}
+            disabled={isLoading}
+            className="w-full h-14 pl-6 pr-12 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#6A38F3]/50 text-gray-900 disabled:bg-gray-100 bg-white"
           >
-            <option value="" disabled>Categoria</option>
-            <option value="mercado">Mercado</option>
-            <option value="farmacia">Farmácia</option>
-            <option value="moda">Moda</option>
-            <option value="eletronicos">Eletrônicos</option>
-            {/* (Adicionar outras categorias conforme necessário) */}
+            <option value="" disabled>Selecione uma Categoria</option>
+            
+            {/* Mapeia as categorias vindas do banco */}
+            {categorias.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.nome}
+              </option>
+            ))}
           </select>
 
           {/* Inputs de Ficheiro (Opcionais) */}
@@ -96,8 +154,8 @@ export default function AddStoreModal({ isOpen, onClose }: Props) {
 
           {/* Botão Adicionar (Centralizado e sem largura total) */}
           <div className="pt-4 flex justify-center"> 
-            <Button type="submit" fullWidth={false}> 
-              Adicionar
+            <Button type="submit" fullWidth={false} disabled={isLoading}> 
+              {isLoading ? 'Criando...' : 'Adicionar'}
             </Button>
           </div>
         </form>

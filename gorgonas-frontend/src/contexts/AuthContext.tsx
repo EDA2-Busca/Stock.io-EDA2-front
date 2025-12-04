@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import api from '../utilis/api';
+import { useRouter } from 'next/navigation';
 
 // 1. Define a interface do Usuário
 interface User {
@@ -74,6 +75,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null); // Limpa o usuário do estado
     localStorage.removeItem('token'); // Limpa o token do "bolso"
     delete api.defaults.headers.common['Authorization'];
+    useRouter().push('/login'); // Redireciona para a página de login
   };
 
   // 7. Junta tudo que vamos fornecer para a aplicação
