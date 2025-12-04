@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { toast } from "react-toastify";
 import Button from "./Button";
-import ImageUploadDropzone from "./ImageUploadDropzone";
+import ImageUploadDropzone from "./ImageUploadStore";
 import api from "@/utilis/api";
 
 type Props = {
@@ -41,7 +41,7 @@ export default function EditStoreModal({
   const [nomeLoja, setNomeLoja] = useState(initialName || "");
   const [categoria, setCategoria] = useState(initialCategory || "");
   const [categoriaId, setCategoriaId] = useState<number | null>(null);
-  const categoriasNomes = ["Mercado", "Farmácia", "Moda", "Eletrônicos"]; 
+  const categoriasNomes = ["Mercado", "Farmácia", "Moda", "Eletrônicos"];
   const [resolvendoCategoria, setResolvendoCategoria] = useState(false);
 
   const [perfilFile, setPerfilFile] = useState<File | null>(null);
@@ -69,9 +69,9 @@ export default function EditStoreModal({
         .toLowerCase();
       const display =
         normalizedNoAccent === 'mercado' ? 'Mercado' :
-        normalizedNoAccent === 'farmacia' ? 'Farmácia' :
-        normalizedNoAccent === 'moda' ? 'Moda' :
-        normalizedNoAccent === 'eletronicos' ? 'Eletrônicos' : initialCategory;
+          normalizedNoAccent === 'farmacia' ? 'Farmácia' :
+            normalizedNoAccent === 'moda' ? 'Moda' :
+              normalizedNoAccent === 'eletronicos' ? 'Eletrônicos' : initialCategory;
       setCategoria(display);
       try {
         const normalized = initialCategory
@@ -114,35 +114,31 @@ export default function EditStoreModal({
     setIsSubmitting(true);
 
     try {
-      const perfilUrl = undefined;
-      const logoSvgUrl = undefined;
-      const bannerUrl = undefined;
+      const formData = new FormData();
+      if (nomeLoja) formData.append('nome', nomeLoja);
+      if (categoriaAlteradaPeloUsuario && categoriaId !== null) {
+        formData.append('categoriaId', String(categoriaId));
+      }
+      if (perfilFile) formData.append('perfil', perfilFile);
+      if (logoSvgFile) formData.append('logo', logoSvgFile);
+      if (bannerFile) formData.append('banner', bannerFile);
 
-      const payload: Record<string, any> = {};
-      if (nomeLoja) payload.nome = nomeLoja;
-      // Envia categoriaId somente se o usuário alterou a categoria
-      if (categoriaAlteradaPeloUsuario && categoriaId !== null) payload.categoriaId = categoriaId;
-      
-
-      
-      await api.patch(`/lojas/${lojaId}`, payload);
+      await api.patch(`/lojas/${lojaId}`, formData);
 
       toast.success("Loja atualizada com sucesso!");
       onUpdated?.({ nome: nomeLoja, categoria });
       resetAndClose();
     } catch (err: any) {
+      console.error(err);
       const status = err?.response?.status;
       const message: string | undefined = err?.response?.data?.message || err?.response?.data?.error;
+
       if (status === 409) {
-        toast.error(message || "Já existe outra loja com este nome.");
+        toast.error("Já existe outra loja com este nome.");
       } else if (status === 403) {
-        toast.error("Você não tem permissão para editar esta loja.");
-      } else if (status === 404) {
-        toast.error("Loja ou categoria não encontrada.");
-      } else if (status === 400) {
-        toast.error(message || "Dados inválidos. Verifique os campos informados.");
+        toast.error("Permissão negada.");
       } else {
-        toast.error(message || "Falha ao atualizar a loja. Tente novamente.");
+        toast.error(message || "Falha ao atualizar a loja.");
       }
     } finally {
       setIsSubmitting(false);

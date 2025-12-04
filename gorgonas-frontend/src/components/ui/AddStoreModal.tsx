@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import { IoClose } from 'react-icons/io5';
 import Button from './Button'; 
-import ImageUploadDropzone from './ImageUploadDropzone';
+import ImageUploadDropzone from './ImageUploadStore';
 
 // Define os props do modal
 type Props = {

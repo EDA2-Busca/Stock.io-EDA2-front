@@ -1,9 +1,10 @@
 import Image from 'next/image';
-import Link from 'next/link'
+import Link from 'next/link';
 import { useState, useEffect } from 'react';
+const API_URL = "http://localhost:3001";
 
 export function ProductCard(props: any) {
-  console.log("PROPS RECEBIDAS:", props);
+
   let produto = props.produto;
   if (!produto && props.name) {
     produto = {
@@ -11,54 +12,56 @@ export function ProductCard(props: any) {
       nome: props.name,
       preco: props.price,
       estoque: props.isAvailable ? 1 : 0,
-      imagens: [{ urlImagem: props.imageUrl || '/avatar-placeholder.png' }],
-      loja: { logo: props.badgeUrl || null },
+      imagens: [{ urlImagem: props.imageUrl || null }],
+      loja: { 
+        logo: props.badgeUrl || null, 
+        sticker: props.sticker || null 
+      },
       unidade: props.unit
     };
   }
-  const imageCover = produto.imagens && produto.imagens.length > 0
-    ? produto.imagens[0].urlImagem
-    : '/avatar-placeholder.png';
 
-  const [src, setSrc] = useState(imageCover);
-  const fallback = '/avatar-placeholder.png';
+  const buildUrl = (path: string | null | undefined) => {
+    if (!path) return null;
+    if (path.startsWith('http') || path.startsWith('/')) return path;
+    
+    return `${API_URL}/${path.replace(/\\/g, '/')}`;
+  };
+
+  const productFallback = '/avatar-placeholder.png';
+
+  const rawProductPath = produto.imagens?.[0]?.urlImagem;
+  const [productSrc, setProductSrc] = useState(buildUrl(rawProductPath) || productFallback);
+
+  const rawStickerPath = produto.loja?.sticker || produto.loja?.logo;
+  const [stickerSrc, setStickerSrc] = useState(buildUrl(rawStickerPath));
 
   useEffect(() => {
-    setSrc(imageCover);
-  }, [imageCover]);
+    setProductSrc(buildUrl(rawProductPath) || productFallback);
+  }, [rawProductPath]);
 
-  let precoFormatado = "0,00";
-  const valorPreco = produto.preco;
+  useEffect(() => {
+    setStickerSrc(buildUrl(rawStickerPath));
+  }, [rawStickerPath]);
 
-  if (valorPreco !== undefined && valorPreco !== null) {
-      if (typeof valorPreco === 'number') {
-          precoFormatado = valorPreco.toFixed(2).replace('.', ',');
-      } else if (typeof valorPreco === 'string') {
-          if (valorPreco.includes(',')) {
-              precoFormatado = valorPreco;
-          } else {
-              precoFormatado = Number(valorPreco).toFixed(2).replace('.', ',');
-          }
-      }
-  }
-  const isAvailable = produto.estoque > 0;
+  const preco = Number(produto.preco || 0).toFixed(2).replace('.', ',');
+  const isAvailable = (produto.estoque || 0) > 0;
 
   return (
     <Link href={`/produto/${produto.id}`} className="group">
       <div className="bg-white rounded-2xl shadow-sm p-4 flex flex-col transition-all duration-300 hover:shadow-md">
         <div className="relative w-full h-40 flex items-center justify-center mb-4">
           <Image
-            src={src}
+            src={productSrc}
             alt={produto.nome}
             fill
             className="object-contain p-2 group-hover:scale-105 transition-transform duration-300"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            onError={() => setSrc(fallback)}
           />
-          {produto.loja?.logo && (
+          {stickerSrc && (
             <div className="absolute top-2 right-2 h-10 w-10 bg-white rounded-full shadow-md overflow-hidden p-1">
               <Image
-                src={produto.loja.logo}
+                src={stickerSrc}
                 alt="Loja"
                 width={40}
                 height={40}
@@ -73,7 +76,7 @@ export function ProductCard(props: any) {
           </h3>
 
           <div className="flex items-end gap-1 mb-3">
-            <span className="text-xl font-bold text-gray-900">R${precoFormatado}</span>
+            <span className="text-xl font-bold text-gray-900">R${preco}</span>
             {produto.unidade && (
               <span className="text-sm text-[#6A38F3] pb-0.5">/{produto.unidade}</span>
             )}

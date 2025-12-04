@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { IoClose, IoCameraOutline, IoAdd, IoRemove } from 'react-icons/io5';
-import UploadImage from './UploadImage';
+import UploadImage from './UploadImageProduto';
 import api from '@/utilis/api';
 
 interface AdicionarProdutoModalProps {
