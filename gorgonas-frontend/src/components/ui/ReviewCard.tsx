@@ -26,7 +26,7 @@ export default function ReviewCard({ author, avatarUrl, rating, text, onSeeMore 
   return (
     <div className="rounded-2xl bg-white shadow-sm border border-[#eee] p-4 flex items-start gap-4">
       <img
-        src={avatarUrl || "/Stock.io.png"}
+        src={avatarUrl || "/stores/cjr.png"}
         alt={author}
         className="w-12 h-12 rounded-full object-cover"
       />

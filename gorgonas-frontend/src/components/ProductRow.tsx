@@ -20,6 +20,12 @@ interface ProductRowProps {
 export function ProductRow({ title, products, viewMoreHref }: ProductRowProps) {
     return (
         <section className="pb-12">
+            
+            {title && (
+            <h2 className="text-3xl font-bold text-black font-merriweather">
+                {title}
+            </h2>)}
+
             <div className="flex justify-end mb-4">
                 <a href={viewMoreHref} className="text-sm text-[#6A38F3] hover:underline">
                     ver mais
