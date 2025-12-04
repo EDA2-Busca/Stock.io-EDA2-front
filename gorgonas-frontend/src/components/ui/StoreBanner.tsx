@@ -13,6 +13,7 @@ type Props = {
   category: string;
   description: string;
   bannerImageUrl: string;
+  logoImageUrl?: string;
   isLoggedIn: boolean;
   isOwner: boolean;
   onProductCreated?: (p: { id: number; nome: string; preco: number; estoque: number; imagens?: any[] }) => void;
@@ -21,7 +22,7 @@ type Props = {
 };
 
 // Componente para o banner full-width
-export default function StoreBanner({ id, storeName, category, description, bannerImageUrl, isLoggedIn, isOwner, onProductCreated, onStoreUpdated, onStoreDeleted }: Props) {
+export default function StoreBanner({ id, storeName, category, description, bannerImageUrl, logoImageUrl, isLoggedIn, isOwner, onProductCreated, onStoreUpdated, onStoreDeleted }: Props) {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -40,7 +41,7 @@ export default function StoreBanner({ id, storeName, category, description, bann
 
       {/* Conteúdo Centralizado (Nome, Categoria, Descrição) */}
       <div className="relative z-10 flex flex-col items-center text-center px-4">
-        <h1 className="text-6xl font-bold">{storeName}</h1>
+        <img src={logoImageUrl} alt={`logo da ${storeName}`} className="text-6xl font-bold"  />
         <p className="text-2xl capitalize">{category}</p>
         <p className="text-lg mt-1">{description}</p>
       </div>
