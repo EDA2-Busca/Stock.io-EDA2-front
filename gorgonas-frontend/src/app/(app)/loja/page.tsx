@@ -11,7 +11,7 @@ import StoresFilter from "@/components/ui/StoresFilter";
 type Loja = {
   id: number;
   nome: string;
-  categoria: string; 
+  categoria: { nome: string }; 
   logo: string | null;
   slug?: string; 
 };
@@ -40,15 +40,13 @@ export default function LojasPage() {
       try {
         setIsLoading(true);
 
-        const promiseMercado = api.get("/lojas/ver-mais/mercado");
-        const promiseFarmacia = api.get("/lojas/ver-mais/farmacia");
-        const promiseBeleza = api.get("/lojas/ver-mais/beleza");
-        const promiseModa = api.get("/lojas/ver-mais/moda");
-        const promiseEletronicos = api.get("/lojas/ver-mais/eletronicos");
-        const promiseJogos = api.get("/lojas/ver-mais/jogos");
-        const promiseBrinquedos = api.get("/lojas/ver-mais/brinquedos");
-        const promiseCasa = api.get("/lojas/ver-mais/casa");
-
+        const fetchCategory = (categoria: string) => 
+          api.get(`/lojas?categoria=${categoria}`)
+             .then(res => res.data)
+             .catch(err => {
+                console.warn(`Categoria '${categoria}' não encontrada ou vazia.`);
+                return []; 
+             });
         const [
           respMercado,
           respFarmacia,
@@ -59,24 +57,24 @@ export default function LojasPage() {
           respBrinquedos,
           respCasa,
         ] = await Promise.all([
-          promiseMercado,
-          promiseFarmacia,
-          promiseBeleza,
-          promiseModa,
-          promiseEletronicos,
-          promiseJogos,
-          promiseBrinquedos,
-          promiseCasa,
+          fetchCategory("MERCADO"),   
+          fetchCategory("FARMACIA"),   
+          fetchCategory("BELEZA"),
+          fetchCategory("MODA"),
+          fetchCategory("ELETRONICOS"),
+          fetchCategory("JOGOS"),
+          fetchCategory("BRINQUEDOS"),
+          fetchCategory("CASA"),
         ]);
 
-        setMercadoLojas(respMercado.data);
-        setFarmaciaLojas(respFarmacia.data);
-        setBelezaLojas(respBeleza.data);
-        setModaLojas(respModa.data);
-        setEletronicosLojas(respEletronicos.data);
-        setJogosLojas(respJogos.data);
-        setBrinquedosLojas(respBrinquedos.data);
-        setCasaLojas(respCasa.data);
+        setMercadoLojas(respMercado);
+        setFarmaciaLojas(respFarmacia);
+        setBelezaLojas(respBeleza);
+        setModaLojas(respModa);
+        setEletronicosLojas(respEletronicos);
+        setJogosLojas(respJogos);
+        setBrinquedosLojas(respBrinquedos);
+        setCasaLojas(respCasa);
       } catch (err) {
         console.error("Erro ao carregar lojas:", err);
       } finally {
@@ -87,7 +85,9 @@ export default function LojasPage() {
     fetchStores();
   }, []);
 
-  const renderSecao = (titulo: string, link: string, lojas: Loja[]) => (
+  const renderSecao = (titulo: string, link: string, lojas: Loja[]) => {
+    const listaSegura = lojas || [];
+    return(
     <section className="pb-12">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold text-[#171918]">{titulo}</h2>
@@ -99,14 +99,14 @@ export default function LojasPage() {
 
       <div className="overflow-x-auto pb-4">
         <div className="flex flex-nowrap gap-6">
-          {lojas.length > 0 ? (
+          {listaSegura.length > 0 ? (
             lojas.map((loja) => (
               <div key={loja.id} className="shrink-0 w-64">
                 <StoreCard
+                  id={loja.id}
                   name={loja.nome}
-                  category={loja.categoria}
+                  category={loja.categoria?.nome || "Sem Categoria"}
                   imageUrl={loja.logo || "/StockIo.png"}
-                  slug={loja.slug ?? String(loja.id)} 
                 />
               </div>
             ))
@@ -118,7 +118,8 @@ export default function LojasPage() {
         </div>
       </div>
     </section>
-  );
+    )
+  };
 
   if (isLoading) {
     return (
