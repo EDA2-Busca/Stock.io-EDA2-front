@@ -108,14 +108,15 @@ export default function StorePage() {
     }
   }, [id]);
 
-  // Fetch inicial dos reviews (limitado para exibição horizontal)
-  const fetchReviews = useCallback(async () => {
+  // Fetch inicial dos reviews (limitado para exibição horizontal) com suporte a cache bust
+  const fetchReviews = useCallback(async (force = false) => {
     if (!id) return;
     setReviewsLoading(true);
     try {
-      const { data } = await api.get(`/lojas/${id}/avaliacoes`, { params: { page: 1, pageSize: 10 } });
+      const { data } = await api.get(`/lojas/${id}/avaliacoes`, { params: { page: 1, pageSize: 10, _ts: force ? Date.now() : undefined } });
       const mapped: StoreReview[] = (data?.data || []).map((r: any) => ({
         id: String(r.id),
+        lojaId: r.lojaId,
         author: r.usuario?.nome || 'Usuário',
         text: r.conteudo,
         avatarUrl: r.usuario?.fotoPerfil || '/avatar-placeholder.png',
@@ -167,7 +168,25 @@ export default function StorePage() {
   useEffect(() => {
     fetchProducts();
     fetchReviews();
-  }, [fetchProducts]);
+  }, [fetchProducts, fetchReviews]);
+
+  // Ouve atualização global de avaliações (edição/exclusão) para refetch
+  useEffect(() => {
+    const handler = () => { void fetchReviews(true); };
+    window.addEventListener('review-updated', handler);
+    return () => window.removeEventListener('review-updated', handler);
+  }, [fetchReviews]);
+
+  // Verifica flag de atualização ao montar (caso evento tenha sido disparado antes do listener existir)
+  useEffect(() => {
+    const key = `review-updated-${id}`;
+    if (typeof window !== 'undefined') {
+      if (localStorage.getItem(key)) {
+        localStorage.removeItem(key);
+        void fetchReviews(true);
+      }
+    }
+  }, [fetchReviews, id]);
 
   const storeName = store?.nome || (loading ? 'Carregando...' : 'Loja não encontrada');
   // Nome original da categoria (evita erros em subcategorias)
