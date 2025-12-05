@@ -1,71 +1,98 @@
-import Image from 'next/image'; 
-import Link from 'next/link'
-import { useState } from 'react';
-interface ProductCardProps {
-  id: number;
-  name: string;
-  price: string; 
-  unit?: string; 
-  imageUrl: string; 
-  badgeUrl?: string; 
-  isAvailable: boolean;
-}
+import Image from 'next/image';
+import Link from 'next/link';
+import { useState, useEffect } from 'react';
+const API_URL = "http://localhost:3001";
 
-export function ProductCard({
-  id,
-  name,
-  price,
-  unit,
-  imageUrl,
-  badgeUrl,
-  isAvailable,
-}: ProductCardProps) {
-  const [src, setSrc] = useState(imageUrl);
-  const fallback = '/avatar-placeholder.png';
+export function ProductCard(props: any) {
+
+  let produto = props.produto;
+  if (!produto && props.name) {
+    produto = {
+      id: props.id,
+      nome: props.name,
+      preco: props.price,
+      estoque: props.isAvailable ? 1 : 0,
+      imagens: [{ urlImagem: props.imageUrl || null }],
+      loja: { 
+        logo: props.badgeUrl || null, 
+        sticker: props.sticker || null 
+      },
+      unidade: props.unit
+    };
+  }
+
+  const buildUrl = (path: string | null | undefined) => {
+    if (!path) return null;
+    if (path.startsWith('http') || path.startsWith('/')) return path;
+    
+    return `${API_URL}/${path.replace(/\\/g, '/')}`;
+  };
+
+  const productFallback = '/avatar-placeholder.png';
+
+  const rawProductPath = produto.imagens?.[0]?.urlImagem;
+  const [productSrc, setProductSrc] = useState(buildUrl(rawProductPath) || productFallback);
+
+  const rawStickerPath = produto.loja?.sticker || produto.loja?.logo;
+  const [stickerSrc, setStickerSrc] = useState(buildUrl(rawStickerPath));
+
+  useEffect(() => {
+    setProductSrc(buildUrl(rawProductPath) || productFallback);
+  }, [rawProductPath]);
+
+  useEffect(() => {
+    setStickerSrc(buildUrl(rawStickerPath));
+  }, [rawStickerPath]);
+
+  const preco = Number(produto.preco || 0).toFixed(2).replace('.', ',');
+  const isAvailable = (produto.estoque || 0) > 0;
+
   return (
-    <Link href={`/produto/${id}`}>
-    <div className="bg-white rounded-2xl shadow-sm p-4 flex flex-col transition-all duration-300 hover:shadow-md">
-      <div className="relative w-full h-40 flex items-center justify-center mb-4">
-        <Image
-          src={src}
-          alt={name}
-          width={150}
-          height={150}
-          className="object-contain max-h-full"
-          onError={() => { if (src !== fallback) setSrc(fallback); }}
-        />
-        {badgeUrl && (
+    <Link href={`/produto/${produto.id}`} className="group">
+      <div className="bg-white rounded-2xl shadow-sm p-4 flex flex-col transition-all duration-300 hover:shadow-md">
+        <div className="relative w-full h-40 flex items-center justify-center mb-4">
           <Image
-            src={badgeUrl}
-            alt="Logo da marca"
-            width={48} 
-            height={48} 
-            className="absolute top-0 right-0 h-12 w-12 rounded-full"
+            src={productSrc}
+            alt={produto.nome}
+            fill
+            className="object-contain p-2 group-hover:scale-105 transition-transform duration-300"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
-        )}
-      </div>
-      <div className="flex flex-col">
-        <h3 className="text-lg font-semibold text-gray-800 mb-2 truncate">
-          {name}
-        </h3>
-
-        <div className="flex items-end gap-1 mb-3">
-          <span className="text-xl font-bold text-gray-900">R${price}</span>
-          {unit && (
-            <span className="text-sm text-[#6A38F3] pb-0.5">/{unit}</span>
+          {stickerSrc && (
+            <div className="absolute top-2 right-2 h-10 w-10 bg-white rounded-full shadow-md overflow-hidden p-1">
+              <Image
+                src={stickerSrc}
+                alt="Loja"
+                width={40}
+                height={40}
+                className="object-cover w-full h-full rounded-full"
+              />
+            </div>
           )}
         </div>
-        {isAvailable ? (
-          <span className="text-xs font-bold text-green-600 uppercase">
-            Disponível
-          </span>
-        ) : (
-          <span className="text-xs font-bold text-red-600 uppercase">
-            Indisponível
-          </span>
-        )}
+        <div className="flex flex-col">
+          <h3 className="text-lg font-semibold text-gray-800 mb-2 truncate">
+            {produto.nome}
+          </h3>
+
+          <div className="flex items-end gap-1 mb-3">
+            <span className="text-xl font-bold text-gray-900">R${preco}</span>
+            {produto.unidade && (
+              <span className="text-sm text-[#6A38F3] pb-0.5">/{produto.unidade}</span>
+            )}
+          </div>
+
+          {isAvailable ? (
+            <span className="text-xs font-bold text-green-600 uppercase">
+              Disponível
+            </span>
+          ) : (
+            <span className="text-xs font-bold text-red-600 uppercase">
+              Indisponível
+            </span>
+          )}
+        </div>
       </div>
-    </div>
     </Link>
   );
 }
