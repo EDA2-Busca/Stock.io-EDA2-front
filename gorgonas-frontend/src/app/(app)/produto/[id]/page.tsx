@@ -1,6 +1,6 @@
     'use client';
 
-    import { useEffect, useState } from "react";
+    import { useCallback, useEffect, useState } from "react";
     import { useRouter } from 'next/navigation';
     import { Navbar } from '@/components/Navbar';
     import { ProductCard } from '@/components/ProductCard';
@@ -11,8 +11,7 @@
     import BackArrowIcon from "@/components/ui/arrow";  
     import type { ProdutoCompleto } from "@/components/modals/EditarProdutoModal";
     import EditarProdutoModal from "@/components/modals/EditarProdutoModal";
-
-   
+    
 
     interface Products {
         id: number;
@@ -35,6 +34,8 @@
         avaliacoes?: { nota: number }[];
     }
 
+    const PLACEHOLDER_IMAGE = '/placeholder/default-product.png';
+
 
     export default function ProductPage() {
         const router = useRouter();
@@ -46,55 +47,67 @@
         const [modalOpen, setModalOpen] = useState(false);
         const [produtoSelecionado, setProdutoSelecionado] = useState<ProdutoCompleto | null>(null);
 
-
-     const openEditModal = () => {
-  if (!products) return;
-
-  setProdutoSelecionado({
-    id: products.id,
-    name: products.nome,
-    price: products.preco,
-    estoque: products.estoque,
-    descricao: products.descricao,
-    subcategoria: products.subcategoria,
-    imagens: products.imagens
-  });
-
-  setModalOpen(true);
-};
-
-
-    
-    const closeModal = () => {
-    setModalOpen(false);
-    setProdutoSelecionado(null);
-};
-        useEffect(() => {
-            if (!id) return;
-
-            async function fetchProduct() {
-                try {
-                    // --- CHAMADA DE API REAL ---
-                    const response = await api.get(`/produtos/${id}`);
-                    const product: Products = response.data;
-
-                    setProducts(product);
-
-                    if (product && product.imagens && product.imagens.length > 0) {
-                        const sortedImages = product.imagens.sort((a, b) => a.ordem - b.ordem);
-                        setSelectedImageUrl(sortedImages[0].urlImagem);
-                    } else {
-                        // Define um placeholder se não houver imagens
-                        setSelectedImageUrl('/placeholder/default-product.png');
-                    }
-
-                } catch (err) {
-                    console.error("Erro ao buscar produto:", err);
+        const loadProduct = useCallback(async () => {
+            if (!id) return null;
+            try {
+                const response = await api.get(`/produtos/${id}`);
+                const product: Products = response.data;
+                setProducts(product);
+                if (product && product.imagens && product.imagens.length > 0) {
+                    const sortedImages = [...product.imagens].sort((a, b) => a.ordem - b.ordem);
+                    setSelectedImageUrl(sortedImages[0].urlImagem);
+                } else {
+                    setSelectedImageUrl(PLACEHOLDER_IMAGE);
                 }
+                return product;
+            } catch (err) {
+                console.error("Erro ao buscar produto:", err);
+                return null;
             }
-
-            fetchProduct();
         }, [id]);
+
+        const openEditModal = () => {
+            if (!products) return;
+            setProdutoSelecionado({
+                id: products.id,
+                name: products.nome,
+                price: products.preco,
+                estoque: products.estoque,
+                descricao: products.descricao ?? '',
+                subcategoria: products.subcategoria
+                    ? { id: products.subcategoriaId, nome: products.subcategoria.nome }
+                    : null,
+                imagens: products.imagens?.map((img) => ({
+                    id: img?.ordem,
+                    urlImagem: img.urlImagem,
+                })) ?? [],
+            });
+            setModalOpen(true);
+        };
+
+        const closeModal = () => {
+            setModalOpen(false);
+            setProdutoSelecionado(null);
+        };
+
+        const handleModalUpdated = () => {
+            void loadProduct();
+            closeModal();
+        };
+
+        const handleModalDeleted = () => {
+            const lojaDestino = products?.lojaId;
+            closeModal();
+            if (lojaDestino) {
+                router.push(`/loja/${lojaDestino}`);
+            } else {
+                router.push('/');
+            }
+        };
+
+        useEffect(() => {
+            void loadProduct();
+        }, [loadProduct]);
 
         useEffect(() => {
             // Só rode se o produto principal já tiver sido carregado
@@ -243,12 +256,8 @@
                         isOpen={modalOpen}
                         onClose={closeModal}
                         produto={produtoSelecionado}
-                        onUpdated={() => {
-                            console.log("Produto atualizado!");
-                        }}
-                        onDeleted={() => {
-                            console.log("Produto deletado!");
-                        }}
+                        onUpdated={handleModalUpdated}
+                        onDeleted={handleModalDeleted}
                     />
                 )}
 

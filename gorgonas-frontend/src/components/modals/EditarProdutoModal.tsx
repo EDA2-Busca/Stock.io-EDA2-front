@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { IoAdd, IoCameraOutline, IoClose, IoRemove } from 'react-icons/io5';
+import api from '@/utilis/api';
 
 type Subcategoria = {
   id?: number;
@@ -41,6 +42,8 @@ export default function EditarProdutoModal({
   const [quantidade, setQuantidade] = useState(0);
   const [listaSubcategorias, setListaSubcategorias] = useState<Subcategoria[]>([]);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const normalizedPrice = useMemo(() => {
     if (typeof produto.price === 'number') {
@@ -84,15 +87,58 @@ export default function EditarProdutoModal({
     setQuantidade((prev) => Math.max(0, prev + amount));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onUpdated();
-    onClose();
+  const parsePriceToNumber = (value: string | number) => {
+    if (typeof value === 'number') return value;
+    const sanitized = value.replace(/[^\d,.-]/g, '').replace(/\./g, '').replace(',', '.');
+    const parsed = Number(sanitized);
+    return Number.isFinite(parsed) ? parsed : 0;
   };
 
-  const handleDelete = () => {
-    onDeleted();
-    onClose();
+  const buildImagesPayload = () => {
+    const current = previewImages.length
+      ? previewImages
+      : (produto.imagens
+          ?.map((img) => img?.urlImagem)
+          .filter((url): url is string => Boolean(url && url.trim().length > 0)) ?? []);
+    return current;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      const payload: Record<string, any> = {
+        nome,
+        descricao,
+        preco: parsePriceToNumber(preco),
+        estoque: quantidade,
+      };
+      if (subcategoriaId) payload.subcategoriaId = Number(subcategoriaId);
+      const imagensPayload = buildImagesPayload();
+      if (imagensPayload.length) payload.imagens = imagensPayload;
+      await api.patch(`/produtos/${produto.id}`, payload);
+      onUpdated();
+      onClose();
+    } catch (err) {
+      console.error('Falha ao atualizar produto', err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (isDeleting) return;
+    setIsDeleting(true);
+    try {
+      await api.delete(`/produtos/${produto.id}`);
+      onDeleted();
+      onClose();
+    } catch (err) {
+      console.error('Falha ao excluir produto', err);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -209,16 +255,18 @@ export default function EditarProdutoModal({
           <div className="pt-4 space-y-3">
             <button
               type="submit"
-              className="w-full bg-[#6A38F3] text-white font-bold py-4 rounded-xl text-lg hover:bg-[#5a2ee0] transition-colors shadow-md hover:shadow-lg transform active:scale-[0.99]"
+              disabled={isSubmitting}
+              className="w-full bg-[#6A38F3] text-white font-bold py-4 rounded-xl text-lg hover:bg-[#5a2ee0] transition-colors shadow-md hover:shadow-lg transform active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Salvar
+              {isSubmitting ? 'Salvando...' : 'Salvar'}
             </button>
             <button
               type="button"
               onClick={handleDelete}
-              className="w-full bg-red-500 text-white font-bold py-4 rounded-xl text-lg hover:bg-red-600 transition-colors shadow-md hover:shadow-lg transform active:scale-[0.99]"
+              disabled={isDeleting}
+              className="w-full bg-red-500 text-white font-bold py-4 rounded-xl text-lg hover:bg-red-600 transition-colors shadow-md hover:shadow-lg transform active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              DELETAR
+              {isDeleting ? 'Deletando...' : 'DELETAR'}
             </button>
           </div>
         </form>
