@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import { IoClose } from 'react-icons/io5';
 import Button from './Button'; 
-import ImageUploadDropzone from './ImageUploadStore';
+import ImageUploadDropzone from './ImageUploadDropzone';
 import api from '@/utilis/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect } from 'react';
@@ -23,9 +23,6 @@ interface Categoria {
 
 // Componente principal do Modal de Adicionar Loja
 export default function AddStoreModal({ isOpen, onClose}: Props) {
-  const [perfilFile, setPerfilFile] = useState<File | null>(null);
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [bannerFile, setBannerFile] = useState<File | null>(null);
   // --- Estados do Formulário ---
   const [nomeLoja, setNomeLoja] = useState('');
   const [categoriaId, setCategoriaId] = useState('');
@@ -38,7 +35,7 @@ export default function AddStoreModal({ isOpen, onClose}: Props) {
         // Função para buscar categorias
         const fetchCategorias = async () => {
           try {
-            const response = await api.get('/categorias');
+            const response = await api.get('/categorias'); // Ajuste a rota se necessário
             setCategorias(response.data);
           } catch (error) {
             console.error("Erro ao buscar categorias", error);
@@ -65,14 +62,14 @@ const handleSubmit = async (e: React.FormEvent) => {
       setIsLoading(true);
 
       // Payload conforme esperado pelo seu DTO (CreateLojaDto)
-      const formData = new FormData();
-      formData.append('nome', nomeLoja);
-      formData.append('categoriaId', categoriaId);
-      if (perfilFile) formData.append('logo', perfilFile); 
-      if (logoFile) formData.append('banner', logoFile);   
-      if (bannerFile) formData.append('sticker', bannerFile);
+      const payload = {
+        nome: nomeLoja,
+        categoriaId: Number(categoriaId), // Converte string para number
+        // Fotos ignoradas por enquanto conforme solicitado
+      };
+
       // Chamada para o Back-end
-      await api.post('/lojas', formData);
+      await api.post('/lojas', payload);
 
       toast.success('Loja criada com sucesso!');
       

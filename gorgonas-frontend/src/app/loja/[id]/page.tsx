@@ -12,10 +12,9 @@ import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import api from '@/utilis/api';
 import { useAuth } from '@/contexts/AuthContext';
 // Importação corrigida (assumindo que está em 'ui/')
-import StoreReviewSection from '@/components/ui/StoreReviewSection';
+import StoreReviewSection from '@/components/ui/StoreReviewSection'; 
 
 // Banner fallback caso loja não tenha imagem
-const API_URL = "http://localhost:3001";
 const FALLBACK_BANNER = '/banner-rare-beauty.jpg';
 
 // Mock de produtos melhor avaliados (substituir por endpoint futuro)
@@ -47,7 +46,7 @@ export default function StorePage() {
   const [error, setError] = useState<string | null>(null);
   const [productsLoading, setProductsLoading] = useState(true);
   const [products, setProducts] = useState<Array<{ id: number; name: string; price: string; isAvailable: boolean; imageUrl: string }>>([]);
-  const [store, setStore] = useState<{ nome: string; descricao: string; categoria: { nome: string } | null; banner: string | null; logo: string | null; sticker: string | null } | null>(null);
+  const [store, setStore] = useState<{ nome: string; descricao: string; categoria: { nome: string } | null; banner: string | null } | null>(null);
   const [reviews, setReviews] = useState<StoreReview[]>([]);
   const [reviewsLoading, setReviewsLoading] = useState<boolean>(false);
   const [averageRating, setAverageRating] = useState<number>(0);
@@ -170,20 +169,11 @@ export default function StorePage() {
     fetchReviews();
   }, [fetchProducts]);
 
-  const getImageUrl = (path: string | null | undefined) => {
-    if (!path) return FALLBACK_BANNER;
-    if (path.startsWith('http') || path.startsWith('/')) return path;
-    return `${API_URL}/${path}`;
-  };
-
   const storeName = store?.nome || (loading ? 'Carregando...' : 'Loja não encontrada');
   // Nome original da categoria (evita erros em subcategorias)
   const storeCategory = store?.categoria?.nome || (loading ? '' : '');
   const storeDescription = store?.descricao || (loading ? '' : '');
-  const bannerImageUrl = getImageUrl(store?.banner);
-
-  const logoImageUrl =getImageUrl(store?.logo);
-  const stickerImageUrl =getImageUrl(store?.sticker);
+  const bannerImageUrl = store?.banner || FALLBACK_BANNER;
 
   // Lógica de proprietário (esconde ações para dono)
   const isOwnerBase = user && store && (user.id === (store as any).usuarioId || user.id === (store as any).usuario?.id);
@@ -202,8 +192,6 @@ export default function StorePage() {
         category={storeCategory}
         description={storeDescription}
         bannerImageUrl={bannerImageUrl}
-        logoImageUrl={logoImageUrl}
-        stickerImageUrl={stickerImageUrl}
         isLoggedIn={isLoggedIn}
         isOwner={isOwner}
         onProductCreated={(p) => {
@@ -241,9 +229,9 @@ export default function StorePage() {
 
       {/* Conteúdo principal (produtos, lista) */}
       <div className="max-w-7xl mx-auto px-8 py-8">
-
+        
         {/* Produtos melhor avaliados (scroll horizontal) */}
-        <ProductScroll
+        <ProductScroll 
           title="Produtos melhor avaliados"
           products={mockBestProducts}
           seeMoreLink={`/loja/${id}/produtos?sort=rating`}
@@ -259,7 +247,7 @@ export default function StorePage() {
               ver mais
             </a>
           </div>
-
+          
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
             {productsLoading && products.length === 0 && (
               [...Array(5)].map((_, i) => (
@@ -280,7 +268,7 @@ export default function StorePage() {
               />
             ))}
           </div>
-
+          
           {/* Paginação (placeholder) */}
           <Pagination />
         </section>

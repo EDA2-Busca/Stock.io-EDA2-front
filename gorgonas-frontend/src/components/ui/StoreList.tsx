@@ -8,7 +8,7 @@ type Loja = {
   id: number;
   nome: string;
   categoria: { nome: string } | null;
-  sticker: string | null;
+  logo: string | null;
 };
 
 interface StoreListProps {
@@ -59,7 +59,7 @@ export default function StoreList({ categoria }: StoreListProps) {
             id={store.id}
             name={store.nome}
             category={store.categoria?.nome || "categoria"}
-            imageUrl={store.sticker || "/StockIo.png" }
+            imageUrl={store.logo || "/StockIo.png"}
           />
         ))}
 
