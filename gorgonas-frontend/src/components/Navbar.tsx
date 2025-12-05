@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
+import NotificationBell from './NotificationBell';
 
 export function Navbar() {
 
@@ -14,7 +15,7 @@ export function Navbar() {
     setIsMounted(true);
   }, []);
 
-  const baseClass = "h-9 w-9 bg-contain bg-no-repeat bg-center transition-all duration-200 cursor-pointer";
+  const baseClass = "h-9 w-9 bg-contain bg-no-repeat bg-center";
 
   return (
     <nav className="w-full h-23 bg-black flex items-center justify-between px-8 py-4">
@@ -28,8 +29,10 @@ export function Navbar() {
       {(!isMounted) ? (
         <div className="h-9 w-40" /> 
       ) : user ? (
+        
       
         <div className="flex items-center space-x-6">
+          <NotificationBell/>
           <Link href="/produtos">
             <div className={`${baseClass} ${
               pathname.startsWith('/produtos') 
@@ -57,7 +60,7 @@ export function Navbar() {
         </div>
 
       ) : (
-        <div className="flex items-center space-x-20 px-8">            
+        <div className="flex items-center space-x-15 px-8">
           <div className="flex items-center space-x-6">
             <Link href="/produtos">
               <div className={`${baseClass} ${
@@ -76,7 +79,7 @@ export function Navbar() {
             </Link>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-15">
             <Link href="/login" className="text-white font-medium hover:text-[#6A38F3]">
               LOGIN
             </Link>

@@ -45,7 +45,7 @@ export default function ReviewCard({ id, lojaId, author, avatarUrl, rating, text
   return (
     <div className="rounded-2xl bg-white shadow-sm border border-[#eee] p-4 flex items-start gap-4">
       <img
-        src={avatarUrl || "/stores/cjr.png"}
+        src={avatarUrl || "/Stock.io.png"}
         alt={author}
         className="w-12 h-12 rounded-full object-cover"
       />
