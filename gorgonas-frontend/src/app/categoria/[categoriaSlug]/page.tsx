@@ -54,7 +54,7 @@ const headerContent: Record<string, { titleLine1: string; titleLine2: string; im
   },
   jogos: {
     titleLine1: "Diversão garantida",
-    titleLine2: "para todos os players",
+    titleLine2: "para os players",
     image: "/jogos-mascote.png"
   },
   brinquedos: {
