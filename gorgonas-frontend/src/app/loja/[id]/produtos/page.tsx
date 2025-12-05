@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import api from '@/utilis/api';
 import { Navbar } from '@/components/Navbar';
 import { ProductCard } from '@/components/ProductCard';
 import { useAuth } from '@/contexts/AuthContext';
+import EditarProdutoModal, { ProdutoCompleto } from '@/components/modals/EditarProdutoModal';
 
 // Reuso do componente Pagination simples, embrulhando lógica mínima
 function Pager({ currentPage, totalPages, onPageChange }: { currentPage: number; totalPages: number; onPageChange: (p: number) => void }) {
@@ -24,9 +25,59 @@ function Pager({ currentPage, totalPages, onPageChange }: { currentPage: number;
 const FALLBACK_PRODUCT_IMAGE = '/avatar-placeholder.png';
 const PAGE_SIZE = 20;
 
-type NormalizedProduct = {
-  id: number; name: string; price: string; isAvailable: boolean; imageUrl: string; subcategoria?: string;
+type ProdutoImagem = {
+  id?: number;
+  urlImagem?: string | null;
 };
+
+type NormalizedProduct = {
+  id: number;
+  name: string;
+  price: string;
+  rawPrice: number;
+  estoque: number;
+  isAvailable: boolean;
+  imageUrl: string;
+  descricao: string;
+  subcategoria?: { id?: number; nome?: string; categoriaId?: number } | null;
+  subcategoriaNome?: string;
+  imagens?: ProdutoImagem[];
+};
+
+const normalizeProducts = (list: any[]): NormalizedProduct[] => {
+  return (list || []).map((p: any) => {
+    const rawNumber =
+      typeof p.preco === 'number'
+        ? p.preco
+        : parseFloat(String(p.preco ?? '0').replace(/\./g, '').replace(',', '.')) || 0;
+    const safeNumber = Number.isFinite(rawNumber) ? rawNumber : 0;
+    const priceFormatted = safeNumber.toFixed(2).replace('.', ',');
+    const imagens: ProdutoImagem[] = Array.isArray(p.imagens) ? p.imagens : [];
+    const firstImage = imagens[0]?.urlImagem;
+    return {
+      id: p.id,
+      name: p.nome,
+      price: priceFormatted,
+      rawPrice: safeNumber,
+      estoque: p.estoque ?? 0,
+      isAvailable: (p.estoque ?? 0) > 0,
+      imageUrl: firstImage || p.loja?.logo || FALLBACK_PRODUCT_IMAGE,
+      descricao: p.descricao ?? '',
+      subcategoria: p.subcategoria ?? null,
+      subcategoriaNome: p.subcategoria?.nome || '',
+      imagens,
+    };
+  });
+};
+
+const buildSubcategoryList = (list: NormalizedProduct[]) =>
+  Array.from(
+    new Set(
+      list
+        .map((p) => p.subcategoriaNome)
+        .filter((s): s is string => typeof s === 'string' && s.trim().length > 0),
+    ),
+  );
 
 export default function LojaProdutosPage() {
   const params = useParams();
@@ -39,11 +90,20 @@ export default function LojaProdutosPage() {
   const [error, setError] = useState<string | null>(null);
   const [allProducts, setAllProducts] = useState<NormalizedProduct[]>([]);
   const [subcategories, setSubcategories] = useState<string[]>([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [produtoSelecionado, setProdutoSelecionado] = useState<ProdutoCompleto | null>(null);
 
   const pageParam = parseInt(searchParams.get('page') || '1', 10) || 1;
   const sortParam = searchParams.get('sort') || 'recent';
   const subParam = searchParams.get('sub') || '';
   const statusParam = searchParams.get('status') || '';
+
+  const lojaUsuarioId =
+    user?.loja?.id ??
+    (user as any)?.lojaId ??
+    (user as any)?.idLoja ??
+    (user as any)?.loja_id;
+  const isOwner = lojaUsuarioId ? String(lojaUsuarioId) === String(lojaId) : false;
 
   const updateQuery = (patch: Record<string, string | number | undefined>) => {
     const q = new URLSearchParams(searchParams.toString());
@@ -51,56 +111,122 @@ export default function LojaProdutosPage() {
     router.push(`/loja/${lojaId}/produtos?${q.toString()}`);
   };
 
+  const fetchProductsData = useCallback(async () => {
+    const res = await api.get(`/produtos/loja/${lojaId}`);
+    return normalizeProducts(res.data || []);
+  }, [lojaId]);
+
+  const applyProducts = useCallback((list: NormalizedProduct[]) => {
+    setAllProducts(list);
+    setSubcategories(buildSubcategoryList(list));
+  }, []);
+
+  const refreshProducts = useCallback(async () => {
+    try {
+      const produtos = await fetchProductsData();
+      applyProducts(produtos);
+      setError(null);
+    } catch (e: any) {
+      console.error('Falha ao atualizar lista de produtos', e);
+      setError('Não foi possível atualizar os produtos.');
+    }
+  }, [fetchProductsData, applyProducts]);
+
+  const parsePriceToNumber = (value: string | number) => {
+    if (typeof value === 'number') return value;
+    const normalized = value.replace(/\./g, '').replace(',', '.');
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    setProdutoSelecionado(null);
+  };
+
+  const openModalForProduct = (product: NormalizedProduct) => {
+    setProdutoSelecionado({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      estoque: typeof product.estoque === 'number' ? product.estoque : (product.isAvailable ? 1 : 0),
+      descricao: product.descricao ?? '',
+      subcategoria: product.subcategoria ?? null,
+      imagens: product.imagens ?? [],
+    });
+    setModalOpen(true);
+  };
+
+  const handleEditClick = (product: NormalizedProduct) => {
+    openModalForProduct(product);
+  };
+
+  const handleDeleteClick = (product: NormalizedProduct) => {
+    openModalForProduct(product);
+  };
+
+  const handleUpdate = useCallback(async () => {
+    if (!produtoSelecionado) return;
+    const current = produtoSelecionado;
+    try {
+      await api.put(`/produtos/${current.id}`, {
+        nome: current.name,
+        preco: parsePriceToNumber(current.price),
+        estoque: current.estoque,
+        descricao: current.descricao ?? '',
+        subcategoriaId: current.subcategoria?.id,
+      });
+      await refreshProducts();
+    } catch (e: any) {
+      console.error('Falha ao atualizar produto', e);
+    }
+  }, [produtoSelecionado, refreshProducts]);
+
+  const handleDelete = useCallback(async () => {
+    if (!produtoSelecionado) return;
+    const currentId = produtoSelecionado.id;
+    try {
+      await api.delete(`/produtos/${currentId}`);
+      setAllProducts(prev => {
+        const updated = prev.filter(prod => prod.id !== currentId);
+        setSubcategories(buildSubcategoryList(updated));
+        return updated;
+      });
+    } catch (e: any) {
+      console.error('Falha ao excluir produto', e);
+    }
+  }, [produtoSelecionado]);
+
   useEffect(() => {
     let active = true;
     (async () => {
       try {
         setLoading(true);
-        const res = await api.get(`/produtos/loja/${lojaId}`);
+        const produtos = await fetchProductsData();
         if (!active) return;
-        const norm: NormalizedProduct[] = (res.data || []).map((p: any) => {
-          const rawPrice = typeof p.preco === 'string' ? p.preco : p.preco?.toString() || '0';
-          const numeric = parseFloat(rawPrice);
-          const priceFormatted = numeric.toFixed(2).replace('.', ',');
-          const firstImage = p.imagens?.[0]?.urlImagem;
-          const img = firstImage || p.loja?.logo || FALLBACK_PRODUCT_IMAGE;
-          return {
-            id: p.id,
-            name: p.nome,
-            price: priceFormatted,
-            isAvailable: (p.estoque ?? 0) > 0,
-            imageUrl: img,
-            subcategoria: p.subcategoria?.nome || '',
-          };
-        });
-        setAllProducts(norm);
-        const subs = Array.from(
-          new Set(
-            norm
-              .map(p => p.subcategoria)
-              .filter((s): s is string => typeof s === 'string' && s.length > 0)
-          )
-        );
-        setSubcategories(subs);
+        applyProducts(produtos);
         setError(null);
       } catch (e: any) {
+        if (!active) return;
         console.error('Falha ao carregar produtos completos', e);
         setError('Não foi possível carregar os produtos.');
-      } finally { if (active) setLoading(false); }
+      } finally {
+        if (active) setLoading(false);
+      }
     })();
     return () => { active = false; };
-  }, [lojaId]);
+  }, [fetchProductsData, applyProducts]);
 
   const filteredSorted = useMemo(() => {
     let list = [...allProducts];
-    if (subParam) list = list.filter(p => p.subcategoria === subParam);
+    if (subParam) list = list.filter(p => p.subcategoriaNome === subParam);
     if (statusParam === 'disponivel') list = list.filter(p => p.isAvailable);
     if (statusParam === 'indisponivel') list = list.filter(p => !p.isAvailable);
     switch (sortParam) {
       case 'nome_asc': list.sort((a,b)=>a.name.localeCompare(b.name)); break;
       case 'nome_desc': list.sort((a,b)=>b.name.localeCompare(a.name)); break;
-      case 'preco_asc': list.sort((a,b)=>parseFloat(a.price.replace(',','.'))-parseFloat(b.price.replace(',','.'))); break;
-      case 'preco_desc': list.sort((a,b)=>parseFloat(b.price.replace(',','.'))-parseFloat(a.price.replace(',','.'))); break;
+      case 'preco_asc': list.sort((a,b)=>a.rawPrice - b.rawPrice); break;
+      case 'preco_desc': list.sort((a,b)=>b.rawPrice - a.rawPrice); break;
       case 'disponivel': list.sort((a,b)=>Number(b.isAvailable)-Number(a.isAvailable)); break;
       case 'recent': default: list.sort((a,b)=>b.id - a.id);
     }
@@ -162,11 +288,40 @@ export default function LojaProdutosPage() {
         )}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-8">
           {pageSlice.map(p => (
-            <ProductCard key={p.id} id={p.id} name={p.name} price={p.price} isAvailable={p.isAvailable} imageUrl={p.imageUrl} />
+            <div key={p.id} className="flex flex-col">
+              <ProductCard id={p.id} name={p.name} price={p.price} isAvailable={p.isAvailable} imageUrl={p.imageUrl} />
+              {isOwner && (
+                <div className="flex items-center justify-between mt-2 px-1">
+                  <button
+                    type="button"
+                    onClick={() => handleEditClick(p)}
+                    className="text-sm text-[#6A38F3] font-semibold hover:underline"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteClick(p)}
+                    className="text-sm text-red-500 font-semibold hover:underline"
+                  >
+                    Excluir
+                  </button>
+                </div>
+              )}
+            </div>
           ))}
         </div>
         {totalPages > 1 && <Pager currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />}
       </div>
+      {modalOpen && produtoSelecionado && (
+        <EditarProdutoModal
+          isOpen={modalOpen}
+          onClose={closeModal}
+          produto={produtoSelecionado}
+          onUpdated={handleUpdate}
+          onDeleted={handleDelete}
+        />
+      )}
     </main>
   );
 }

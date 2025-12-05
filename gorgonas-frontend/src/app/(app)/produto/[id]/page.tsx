@@ -8,7 +8,12 @@
     import api from '@/utilis/api';
     import { useAuth } from "@/contexts/AuthContext";
     import PencilIcon from "@/components/ui/pencil";
-    import BackArrowIcon from "@/components/ui/arrow";
+    import BackArrowIcon from "@/components/ui/arrow";  
+    import type { ProdutoCompleto } from "@/components/modals/EditarProdutoModal";
+    import EditarProdutoModal from "@/components/modals/EditarProdutoModal";
+
+   
+
     interface Products {
         id: number;
         lojaId: number;
@@ -38,6 +43,32 @@
         const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
         const { user } = useAuth();
         const [relatedProducts, setRelatedProducts] = useState<Products[]>([]);
+        const [modalOpen, setModalOpen] = useState(false);
+        const [produtoSelecionado, setProdutoSelecionado] = useState<ProdutoCompleto | null>(null);
+
+
+     const openEditModal = () => {
+  if (!products) return;
+
+  setProdutoSelecionado({
+    id: products.id,
+    name: products.nome,
+    price: products.preco,
+    estoque: products.estoque,
+    descricao: products.descricao,
+    subcategoria: products.subcategoria,
+    imagens: products.imagens
+  });
+
+  setModalOpen(true);
+};
+
+
+    
+    const closeModal = () => {
+    setModalOpen(false);
+    setProdutoSelecionado(null);
+};
         useEffect(() => {
             if (!id) return;
 
@@ -151,10 +182,13 @@
                             <div className="flex justify-between items-start">
                                 <h1 className="text-3xl font-bold text-gray-900 wrap-break-word">{products.nome}</h1>
                                 {isOwner && (
-                                    <button className="text-purple-600 hover:text-purple-800 ml-2">
+                                    <button 
+                                        onClick={openEditModal}
+                                        className="text-purple-600 hover:text-purple-800 ml-2">
                                         <PencilIcon />
                                     </button>
                                 )}
+
                             </div>
 
                             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500">
@@ -204,6 +238,21 @@
                         </div>
                     </div>
                 </div> 
+                {modalOpen && produtoSelecionado && (
+                    <EditarProdutoModal
+                        isOpen={modalOpen}
+                        onClose={closeModal}
+                        produto={produtoSelecionado}
+                        onUpdated={() => {
+                            console.log("Produto atualizado!");
+                        }}
+                        onDeleted={() => {
+                            console.log("Produto deletado!");
+                        }}
+                    />
+                )}
+
+
             </main>
         );
     }
