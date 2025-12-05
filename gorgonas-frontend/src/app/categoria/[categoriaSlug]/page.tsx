@@ -169,13 +169,22 @@ export default function CategoriaPage({ params }: CategoriaPageProps) {
         setTotalPages(Math.ceil(total / limit));
 
         let candidatos = Array.isArray(responseAvaliados.data) ? responseAvaliados.data : responseAvaliados.data.produtos || [];
-        const getMedia = (prod: ProdutoParaCard) => {
-          if (!prod.avaliacoes || prod.avaliacoes.length === 0) return 0;
-          const soma = prod.avaliacoes.reduce((acc, curr) => acc + curr.nota, 0);
-          return soma / prod.avaliacoes.length;
+
+        const mediaEContagem = (prod: ProdutoParaCard) => {
+          const avals = prod.avaliacoes || [];
+          const count = avals.length;
+          if (count === 0) return { media: 0, count: 0 };
+          const soma = avals.reduce((acc, curr) => acc + (curr.nota || 0), 0);
+          return { media: soma / count, count };
         };
-        const listaOrdenadaPorNota = candidatos.sort((a: ProdutoParaCard, b: ProdutoParaCard) => {
-          return getMedia(b) - getMedia(a);
+
+        const somenteAvaliados = candidatos.filter((p: ProdutoParaCard) => (p.avaliacoes?.length || 0) > 0);
+        const listaOrdenadaPorNota = somenteAvaliados.sort((a: ProdutoParaCard, b: ProdutoParaCard) => {
+          const ma = mediaEContagem(a);
+          const mb = mediaEContagem(b);
+          if (mb.media !== ma.media) return mb.media - ma.media; // média desc
+          if (mb.count !== ma.count) return mb.count - ma.count; // mais avaliações primeiro
+          return a.nome.localeCompare(b.nome); // nome como desempate
         });
         setMaisAvaliados(listaOrdenadaPorNota.slice(0, 10));
 

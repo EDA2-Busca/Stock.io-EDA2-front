@@ -39,11 +39,16 @@ export function ProductRow({ title, products, viewMoreHref }: ProductRowProps) {
             <div className="overflow-x-auto pb-4">
                 <div className="flex flex-nowrap gap-6">
                     {products.length > 0 ? (
-                        products.map(produto => (
-                             <div key={produto.id} className="shrink-0 w-64">
-                            <ProductCard key={produto.id} produto={produto}  />
-                        </div>
-                        ))
+                        products.map(produto => {
+                            const avaliacoes: { nota: number }[] = (produto as any).avaliacoes || [];
+                            const count = avaliacoes.length;
+                            const rating = count > 0 ? avaliacoes.reduce((acc, a) => acc + (a.nota || 0), 0) / count : undefined;
+                            return (
+                                <div key={produto.id} className="shrink-0 w-64">
+                                    <ProductCard key={produto.id} produto={produto} rating={rating} />
+                                </div>
+                            );
+                        })
                     ) : (
                         <p className="text-center text-gray-500 text-lg">
                             Ops! Nenhum produto foi encontrado nesta categoria.
