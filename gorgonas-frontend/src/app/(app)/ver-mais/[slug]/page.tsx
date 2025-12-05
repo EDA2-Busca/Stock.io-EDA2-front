@@ -12,7 +12,7 @@ type ProdutoParaCard = {
   nome: string;
   preco: number;
   estoque: number;
-  loja: { logo: string | null } | null;
+  loja: { sticker: string | null } | null;
   imagens: { urlImagem: string }[];
 };
 
@@ -83,7 +83,7 @@ export default function VerMaisPage() {
                 ? produto.imagens[0].urlImagem 
                 : '/Stock.io.png';
               
-              const badgeUrl = produto.loja?.logo || undefined;
+              const badgeUrl = produto.loja?.sticker || undefined;
               
               return (
                 <ProductCard

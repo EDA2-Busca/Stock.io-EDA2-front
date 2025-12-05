@@ -52,10 +52,16 @@ export default function StoreReviewCard({ review }: ReviewCardProps) {
       {/* Avatar */}
       <img 
         src={review.avatarUrl} 
-        alt={`Avatar de ${review.author}`}
-        className="w-16 h-16 rounded-full object-cover shrink-0"
-        // Fallback de imagem
-        onError={(e) => { (e.target as HTMLImageElement).src = '/avatar-placeholder.png'; }} 
+  // ...
+  onError={(e) => { 
+    const target = e.target as HTMLImageElement;
+    const fallback = '/avatar-placeholder.png';
+    if (target.src.includes(fallback)) {
+       return; 
+    }
+    
+    target.src = fallback;
+  }} 
       />
       
       {/* Conteúdo */}
