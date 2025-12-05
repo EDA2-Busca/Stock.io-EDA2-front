@@ -196,7 +196,6 @@ export default function HomePage() {
                     </div>
                   </div>
                   <ProductRow
-                    title="Mercado"
                     products={mercadoProdutos}
                     viewMoreHref="/ver-mais/mercado"
                   />
@@ -210,7 +209,6 @@ export default function HomePage() {
                     </div>
                   </div>
                   <ProductRow
-                    title="Beleza"
                     products={belezaProdutos}
                     viewMoreHref="/ver-mais/beleza"
                   />
@@ -223,7 +221,6 @@ export default function HomePage() {
                     </div>
                   </div>
                   <ProductRow
-                    title="Moda"
                     products={modaProdutos}
                     viewMoreHref="/ver-mais/moda"
                   />
@@ -236,7 +233,6 @@ export default function HomePage() {
                     </div>
                   </div>
                   <ProductRow
-                    title="Eletrônicos"
                     products={eletronicosProdutos}
                     viewMoreHref="/ver-mais/eletronicos"
                   />
