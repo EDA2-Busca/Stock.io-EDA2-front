@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { IoArrowBack } from "react-icons/io5";
 import { Navbar } from "@/components/Navbar";
 import ReviewCard from "@/components/ui/ReviewCard";
 import StoreBanner from "@/components/ui/StoreBanner";
@@ -20,6 +22,7 @@ type Review = {
 
 export default function StoreReviewsPage() {
   const params = useParams();
+  const router = useRouter();
   const lojaId = Array.isArray(params?.id) ? params.id[0] : (params?.id as string);
   const search = useSearchParams();
   const [isLoading, setIsLoading] = useState(true);
@@ -32,13 +35,14 @@ export default function StoreReviewsPage() {
   // Modal de edição removido (botão de teste eliminado)
   const [totalPages, setTotalPages] = useState<number>(1);
 
-  async function fetchReviews(targetPage = 1) {
+  const fetchReviews = useCallback(async function fetchReviews(targetPage = 1, force = false) {
     if (!lojaId) return;
     try {
       setIsLoading(true);
-      const { data } = await api.get(`/lojas/${lojaId}/avaliacoes`, { params: { page: targetPage, pageSize } });
+      const { data } = await api.get(`/lojas/${lojaId}/avaliacoes`, { params: { page: targetPage, pageSize, _ts: force ? Date.now() : undefined } });
       const items: Review[] = (data?.data || []).map((it: any) => ({
         id: it.id,
+        lojaId: it.lojaId,
         author: it.usuario?.nome || 'Usuário',
         avatarUrl: it.usuario?.fotoPerfil || '/Stock.io.png',
         rating: it.nota,
@@ -55,15 +59,33 @@ export default function StoreReviewsPage() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [lojaId]);
 
   useEffect(() => {
     fetchReviews(page);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lojaId, page]);
+  }, [fetchReviews, page]);
 
   useEffect(() => {
-    // Primeiro tenta preencher via querystring (passada pelo link "ver mais")
+    const flagKey = `review-updated-${lojaId}`;
+    if (typeof window !== 'undefined') {
+      const flag = localStorage.getItem(flagKey);
+      if (flag) {
+        localStorage.removeItem(flagKey);
+        fetchReviews(page, true); // força cache busting
+      }
+    }
+  }, [fetchReviews, lojaId, page]);
+
+  useEffect(() => {
+    const handler = () => {
+      // Recarrega a página atual mantendo paginação
+      fetchReviews(page);
+    };
+    window.addEventListener('review-updated', handler);
+    return () => window.removeEventListener('review-updated', handler);
+  }, [fetchReviews, page]);
+
+  useEffect(() => {
     const nome = search.get('nome');
     const categoria = search.get('categoria');
     const descricao = search.get('descricao');
@@ -72,7 +94,6 @@ export default function StoreReviewsPage() {
       setStore({ id: Number(lojaId), nome, categoria: categoria ? { nome: categoria } : null, descricao, banner });
       return;
     }
-    // Caso não venha pela URL, faz o fetch normal (integração real)
     async function fetchStore() {
       try {
         const res = await api.get(`/lojas/${lojaId}`);
@@ -86,25 +107,32 @@ export default function StoreReviewsPage() {
 
   const paginated = reviews; // backend já retorna página solicitada
   const { user } = useAuth();
-  // Dono não vê ações de criação/edição
   const isOwner = Boolean(user && store?.usuarioId && user.id === (store as any).usuarioId);
-  // Ações visíveis para usuário logado não-dono
   const showActions = Boolean(user) && !isOwner;
 
   const renderStars = (value: number) => {
+    const outline = "#D1D5DB";
+    const fill = "#F5C518";
     return (
       <div className="flex items-center gap-1">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <svg
-            key={i}
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill={i < Math.round(value) ? "#F5C518" : "#D1D5DB"}
-            className="w-5 h-5"
-          >
-            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.84-.197-1.54-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81H7.03a1 1 0 00.95-.69l1.07-3.292z" />
-          </svg>
-        ))}
+        {Array.from({ length: 5 }).map((_, idx) => {
+          const diff = value - idx;
+          const full = diff >= 1;
+          const half = !full && diff >= 0.5;
+          const width = full ? "100%" : half ? "50%" : "0%";
+          return (
+            <div key={idx} className="relative w-5 h-5">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill={outline} className="w-5 h-5">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.84-.197-1.54-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81H7.03a1 1 0 00.95-.69l1.07-3.292z" />
+              </svg>
+              <div className="absolute inset-0 overflow-hidden" style={{ width }}>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill={fill} className="w-5 h-5">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.84-.197-1.54-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81H7.03a1 1 0 00.95-.69l1.07-3.292z" />
+                </svg>
+              </div>
+            </div>
+          );
+        })}
       </div>
     );
   };
@@ -112,6 +140,14 @@ export default function StoreReviewsPage() {
   return (
     <main className="bg-black min-h-screen">
       <Navbar />
+      <div className="max-w-7xl mx-auto px-8 pt-6">
+        <button
+          onClick={() => router.push(`/loja/${lojaId}`)}
+          className="inline-flex items-center gap-2 text-white/80 hover:text-white"
+        >
+          <IoArrowBack /> Voltar para a loja
+        </button>
+      </div>
       {store && (
         <StoreBanner
           id={Number(lojaId)}
@@ -127,7 +163,6 @@ export default function StoreReviewsPage() {
         />
       )}
 
-      {/* Header preto full-bleed */}
       <div className="w-full bg-black">
         <div className="max-w-7xl mx-auto px-8 py-10">
           <div className="text-white text-center">
@@ -159,11 +194,12 @@ export default function StoreReviewsPage() {
             {paginated.map((r) => (
               <ReviewCard
                 key={r.id}
+                id={r.id}
+                lojaId={lojaId}
                 author={r.author}
                 avatarUrl={r.avatarUrl}
                 rating={r.rating}
                 text={r.text}
-                onSeeMore={() => {}}
               />
             ))}
             </div>

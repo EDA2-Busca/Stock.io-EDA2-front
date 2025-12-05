@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import Image from 'next/image';
 import { FaPlus } from 'react-icons/fa';
 import { FiEdit2 } from 'react-icons/fi';
 import { useState } from 'react';
@@ -28,12 +29,17 @@ export default function StoreBanner({ id, storeName, category, description, bann
 
   return (
     <section className="w-full h-[50vh] relative flex items-center justify-center text-white">
-      {/* Imagem de Fundo */}
-      <img
-        src={bannerImageUrl}
+      {/* Imagem de Fundo com prioridade para carregamento mais rápido */}
+      <Image
+        src={bannerImageUrl || '/banner-rare-beauty.jpg'}
         alt={`Banner da ${storeName}`}
-        className="absolute inset-0 w-full h-full object-cover"
-        onError={(e) => { (e.target as HTMLImageElement).style.backgroundColor = '#555'; (e.target as HTMLImageElement).src = ''; }}
+        fill
+        priority
+        sizes="100vw"
+        className="absolute inset-0 object-cover"
+        placeholder="blur"
+        blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMTAyNCcgaGVpZ2h0PSc0MDAnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zyc+PHJlY3Qgd2lkdGg9JzEwMjQnIGhlaWdodD0nNDAwJyBmaWxsPScjMTExMTExJy8+PC9zdmc+"
+        onError={() => { /* Next/Image não expõe target, fallback via src padrão acima */ }}
       />
       {/* Overlay Escuro para legibilidade */}
       <div className="absolute inset-0 w-full h-full bg-black/50" />
