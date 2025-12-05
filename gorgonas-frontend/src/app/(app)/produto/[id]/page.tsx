@@ -21,7 +21,7 @@
         loja: {
             id: number,
             nome: string,
-            sticker?: string,
+            banner_url?: string,
             usuarioId?: number
         };
         
@@ -187,7 +187,7 @@
                                 const priceString = (related.preco || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 }).replace('R$', '');
                                 const isAvailable = (related.estoque || 0) > 0;
                                 const imageUrl = related.imagens?.[0]?.urlImagem || '/placeholder/default-product.png';
-                                const badgeUrl = related.loja?.sticker;
+                                const badgeUrl = related.loja?.banner_url;
 
                                 return (
                                     <ProductCard

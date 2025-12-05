@@ -4,10 +4,8 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { toast } from "react-toastify";
 import Button from "./Button";
-import ImageUploadDropzone from "./ImageUploadStore";
+import ImageUploadDropzone from "./ImageUploadDropzone";
 import api from "@/utilis/api";
-
-const API_URL = "http://localhost:3001";
 
 type Props = {
   isOpen: boolean;
@@ -43,7 +41,7 @@ export default function EditStoreModal({
   const [nomeLoja, setNomeLoja] = useState(initialName || "");
   const [categoria, setCategoria] = useState(initialCategory || "");
   const [categoriaId, setCategoriaId] = useState<number | null>(null);
-  const categoriasNomes = ["Mercado", "Farmácia", "Moda", "Eletrônicos"];
+  const categoriasNomes = ["Mercado", "Farmácia", "Moda", "Eletrônicos"]; 
   const [resolvendoCategoria, setResolvendoCategoria] = useState(false);
 
   const [perfilFile, setPerfilFile] = useState<File | null>(null);
@@ -54,12 +52,11 @@ export default function EditStoreModal({
   const [isDeleting, setIsDeleting] = useState(false);
   const [categoriaAlteradaPeloUsuario, setCategoriaAlteradaPeloUsuario] = useState(false);
 
-  const buildUrl = (path: string | null | undefined) => {
-    if (!path) return undefined; // Retorna undefined para o componente saber que não tem imagem
-    if (path.startsWith('http') || path.startsWith('/')) return path;
-    // Corrige barra invertida e adiciona domínio
-    return `${API_URL}/${path}`;
-  };
+  const canSubmit = useMemo(() => {
+    const categoriaOk = categoriaAlteradaPeloUsuario ? categoriaId !== null : true;
+    return !!nomeLoja && categoriaOk && !isSubmitting && !isDeleting;
+  }, [nomeLoja, categoriaAlteradaPeloUsuario, categoriaId, isSubmitting, isDeleting]);
+
   // Resolve categoriaId chamando GET /categorias/:nome
   useEffect(() => {
     let active = true;
@@ -72,9 +69,9 @@ export default function EditStoreModal({
         .toLowerCase();
       const display =
         normalizedNoAccent === 'mercado' ? 'Mercado' :
-          normalizedNoAccent === 'farmacia' ? 'Farmácia' :
-            normalizedNoAccent === 'moda' ? 'Moda' :
-              normalizedNoAccent === 'eletronicos' ? 'Eletrônicos' : initialCategory;
+        normalizedNoAccent === 'farmacia' ? 'Farmácia' :
+        normalizedNoAccent === 'moda' ? 'Moda' :
+        normalizedNoAccent === 'eletronicos' ? 'Eletrônicos' : initialCategory;
       setCategoria(display);
       try {
         const normalized = initialCategory
@@ -91,17 +88,6 @@ export default function EditStoreModal({
     })();
     return () => { active = false; };
   }, [initialCategory]);
-
-  const canSubmit = useMemo(() => {
-    const categoriaOk = categoriaAlteradaPeloUsuario ? categoriaId !== null : true;
-    const formMudou = nomeLoja !== initialName ||
-      categoria !== initialCategory ||
-      perfilFile !== null ||
-      logoSvgFile !== null ||
-      bannerFile !== null;
-
-    return !!nomeLoja && categoriaOk && !isSubmitting && !isDeleting && formMudou;
-  }, [nomeLoja, categoriaAlteradaPeloUsuario, categoriaId, isSubmitting, isDeleting, initialName, initialCategory, perfilFile, logoSvgFile, bannerFile]);
 
   const resetAndClose = useCallback(() => {
     setIsSubmitting(false);
@@ -128,36 +114,35 @@ export default function EditStoreModal({
     setIsSubmitting(true);
 
     try {
-      const formData = new FormData();
-      if (nomeLoja) formData.append('nome', nomeLoja);
-      if (categoriaAlteradaPeloUsuario && categoriaId !== null) {
-        formData.append('categoriaId', String(categoriaId));
-      }
-      if (perfilFile) formData.append('perfil', perfilFile);
-      if (logoSvgFile) formData.append('logo', logoSvgFile);
-      if (bannerFile) formData.append('banner', bannerFile);
+      const perfilUrl = undefined;
+      const logoSvgUrl = undefined;
+      const bannerUrl = undefined;
 
-      await api.patch(`/lojas/${lojaId}`, formData);
+      const payload: Record<string, any> = {};
+      if (nomeLoja) payload.nome = nomeLoja;
+      // Envia categoriaId somente se o usuário alterou a categoria
+      if (categoriaAlteradaPeloUsuario && categoriaId !== null) payload.categoriaId = categoriaId;
+      
+
+      
+      await api.patch(`/lojas/${lojaId}`, payload);
 
       toast.success("Loja atualizada com sucesso!");
-      onUpdated?.({
-        nome: nomeLoja, categoria,
-        perfilUrl: perfilFile ? URL.createObjectURL(perfilFile) : initialImages?.perfilUrl,
-        logoSvgUrl: logoSvgFile ? URL.createObjectURL(logoSvgFile) : initialImages?.logoSvgUrl,
-        bannerUrl: bannerFile ? URL.createObjectURL(bannerFile) : initialImages?.bannerUrl
-      });
+      onUpdated?.({ nome: nomeLoja, categoria });
       resetAndClose();
     } catch (err: any) {
-      console.error(err);
       const status = err?.response?.status;
       const message: string | undefined = err?.response?.data?.message || err?.response?.data?.error;
-
       if (status === 409) {
-        toast.error("Já existe outra loja com este nome.");
+        toast.error(message || "Já existe outra loja com este nome.");
       } else if (status === 403) {
-        toast.error("Permissão negada.");
+        toast.error("Você não tem permissão para editar esta loja.");
+      } else if (status === 404) {
+        toast.error("Loja ou categoria não encontrada.");
+      } else if (status === 400) {
+        toast.error(message || "Dados inválidos. Verifique os campos informados.");
       } else {
-        toast.error(message || "Falha ao atualizar a loja.");
+        toast.error(message || "Falha ao atualizar a loja. Tente novamente.");
       }
     } finally {
       setIsSubmitting(false);
@@ -234,7 +219,7 @@ export default function EditStoreModal({
                 setResolvendoCategoria(false);
               }
             }}
-            className="w-full h-14 pl-6 pr-12 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#6A38F3]/50 text-gray-900 cursor-pointer appearance-none"
+            className="w-full h-14 pl-6 pr-12 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#6A38F3]/50 text-gray-900"
           >
             <option value="" disabled>Categoria</option>
             {categoriasNomes.map((n) => (
@@ -242,24 +227,10 @@ export default function EditStoreModal({
             ))}
           </select>
 
-          <ImageUploadDropzone
-            label="Anexe a foto de perfil da sua loja"
-            onFileChange={setPerfilFile}
-            // Passa a URL do banco se não tiver arquivo novo selecionado
-            initialPreview={buildUrl(initialImages?.perfilUrl)}
-          />
+          <ImageUploadDropzone label="Anexe a foto de perfil da sua loja" onFileChange={(file) => setPerfilFile(file)} />
+          <ImageUploadDropzone label="Anexe a logo em SVG de sua loja" onFileChange={(file) => setLogoSvgFile(file)} />
+          <ImageUploadDropzone label="Anexe o banner de sua loja" onFileChange={(file) => setBannerFile(file)} />
 
-          <ImageUploadDropzone
-            label="Anexe a logo em SVG de sua loja"
-            onFileChange={setLogoSvgFile}
-            initialPreview={buildUrl(initialImages?.logoSvgUrl)}
-          />
-
-          <ImageUploadDropzone
-            label="Anexe o banner de sua loja"
-            onFileChange={setBannerFile}
-            initialPreview={buildUrl(initialImages?.bannerUrl)}
-          />
           <div className="pt-4 flex flex-col gap-3 sm:flex-row sm:justify-between">
             <button
               type="button"

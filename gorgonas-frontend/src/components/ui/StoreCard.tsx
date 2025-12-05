@@ -7,10 +7,8 @@ export interface StoreCardProps {
   category: string;
   imageUrl: string;
 }
-const API_URL = "http://localhost:3001";
 
 export function StoreCard({ id, name, category, imageUrl }: StoreCardProps) {
-  const imageSrc = imageUrl? `${API_URL}/${imageUrl}`: "/placeholder-loja.png";
   return (
     <Link href={`/loja/${id}`}>
       <div className="group flex w-[161px] flex-col items-center text-center cursor-pointer">
@@ -22,7 +20,7 @@ export function StoreCard({ id, name, category, imageUrl }: StoreCardProps) {
           transition-all duration-200 group-hover:scale-[1.04] group-hover:shadow-md"
         >
           <Image
-            src={imageSrc}
+            src={imageUrl}
             alt={name}
             width={115}
             height={115}

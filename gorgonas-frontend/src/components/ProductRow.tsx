@@ -1,24 +1,19 @@
 'use client';
 
 import { ProductCard } from './ProductCard';
-import Link from 'next/link';
 
-export type ProdutoParaCard = {
+type ProdutoParaCard = {
     id: number;
     nome: string;
-    preco: number | string;
+    preco: number;
     estoque: number;
-    imagens?: { urlImagem: string }[]; 
-    loja?: {
-        logo?: string | null
-        sticker?: string | null;
-    } | null;
-    unidade?: string;
+    loja: { logo: string | null } | null;
+    imagens: { urlImagem: string }[];
 };
 
 interface ProductRowProps {
     title?: string;
-    products: ProdutoParaCard[]; 
+    products: ProdutoParaCard[];
     viewMoreHref: string;
 }
 
@@ -32,17 +27,24 @@ export function ProductRow({ title, products, viewMoreHref }: ProductRowProps) {
             </h2>)}
 
             <div className="flex justify-end mb-4">
-                <Link href={viewMoreHref} className="text-sm text-[#6A38F3] hover:underline">
+                <a href={viewMoreHref} className="text-sm text-[#6A38F3] hover:underline">
                     ver mais
-                </Link>
+                </a>
             </div>
             <div className="overflow-x-auto pb-4">
                 <div className="flex flex-nowrap gap-6">
                     {products.length > 0 ? (
                         products.map(produto => (
-                             <div key={produto.id} className="shrink-0 w-64">
-                            <ProductCard key={produto.id} produto={produto}  />
-                        </div>
+                            <div key={produto.id} className="shrink-0 w-64">
+                                <ProductCard
+                                    id={produto.id}
+                                    name={produto.nome}
+                                    price={produto.preco.toString()}
+                                    isAvailable={produto.estoque > 0}
+                                    imageUrl={produto.imagens?.[0]?.urlImagem || '/Stock.io.png'}
+                                    badgeUrl={produto.loja?.logo || undefined}
+                                />
+                            </div>
                         ))
                     ) : (
                         <p className="text-center text-gray-500 text-lg">
