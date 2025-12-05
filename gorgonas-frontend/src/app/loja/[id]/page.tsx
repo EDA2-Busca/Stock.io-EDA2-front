@@ -18,15 +18,8 @@ import StoreReviewSection from '@/components/ui/StoreReviewSection';
 const API_URL = "http://localhost:3001";
 const FALLBACK_BANNER = '/banner-rare-beauty.jpg';
 
-// Mock de produtos melhor avaliados (substituir por endpoint futuro)
-const mockBestProducts = [
-  // IDs como 'number' e imagens de placeholder existentes
-  { id: 1, name: "Bronzer", price: "254,99", isAvailable: true, imageUrl: "/avatar-placeholder.png" },
-  { id: 2, name: "Blush", price: "199,99", isAvailable: false, imageUrl: "/avatar-placeholder.png" },
-  { id: 3, name: "Perfume Rare", price: "599,90", isAvailable: true, imageUrl: "/avatar-placeholder.png" },
-  { id: 4, name: "Iluminador", price: "249,90", isAvailable: true, imageUrl: "/avatar-placeholder.png" },
-  { id: 5, name: "Mini Blush", price: "99,99", isAvailable: false, imageUrl: "/avatar-placeholder.png" },
-];
+// Lista dinâmica de produtos melhor avaliados
+type BasicProduct = { id: number; name: string; price: string; isAvailable: boolean; imageUrl: string; rating?: number };
 
 // Grid de produtos com dados reais via API
 const FALLBACK_PRODUCT_IMAGE = '/avatar-placeholder.png';
@@ -46,7 +39,8 @@ export default function StorePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [productsLoading, setProductsLoading] = useState(true);
-  const [products, setProducts] = useState<Array<{ id: number; name: string; price: string; isAvailable: boolean; imageUrl: string }>>([]);
+  const [products, setProducts] = useState<Array<BasicProduct>>([]);
+  const [bestProducts, setBestProducts] = useState<Array<BasicProduct>>([]);
   const [store, setStore] = useState<{ nome: string; descricao: string; categoria: { nome: string } | null; banner: string | null; logo: string | null; sticker: string | null } | null>(null);
   const [reviews, setReviews] = useState<StoreReview[]>([]);
   const [reviewsLoading, setReviewsLoading] = useState<boolean>(false);
@@ -143,21 +137,52 @@ export default function StorePage() {
     setProductsLoading(true);
     try {
       const res = await api.get(`/produtos/loja/${id}`);
-      const normalized = (res.data || []).map((p: any) => {
+      const raw = (res.data || []);
+      const normalized: Array<BasicProduct & { _avg?: number }> = raw.map((p: any) => {
         const rawPrice = typeof p.preco === 'string' ? p.preco : p.preco?.toString() || '0';
         const numeric = parseFloat(rawPrice);
         const priceFormatted = numeric.toFixed(2).replace('.', ',');
         const firstImage = p.imagens?.[0]?.urlImagem;
         const img = firstImage || p.loja?.logo || FALLBACK_PRODUCT_IMAGE;
+        // calcula média de avaliações inteiras 1..5 se disponível
+        const notas: number[] = Array.isArray(p.avaliacoes) ? p.avaliacoes.map((a: any) => Number(a.nota) || 0) : [];
+        const avg = notas.length > 0 ? (notas.reduce((acc, n) => acc + n, 0) / notas.length) : 0;
         return {
           id: p.id,
           name: p.nome,
           price: priceFormatted,
           isAvailable: (p.estoque ?? 0) > 0,
           imageUrl: img,
+          _avg: avg,
         };
       });
       setProducts(normalized);
+      // Caso o endpoint não traga avaliacoes, busca detalhes por produto para calcular médias
+      const detailed = await Promise.all(
+        normalized.map(async (bp) => {
+          try {
+            const pd = await api.get(`/produtos/${bp.id}`);
+            const avals: any[] = Array.isArray(pd.data?.avaliacoes) ? pd.data.avaliacoes : [];
+            const notas: number[] = avals.map((a: any) => Number(a.nota) || 0);
+            const avg = notas.length > 0 ? (notas.reduce((acc, n) => acc + n, 0) / notas.length) : 0;
+            return { ...bp, _avg: avg, _count: notas.length } as (BasicProduct & { _avg: number; _count: number });
+          } catch {
+            return { ...bp, _avg: 0, _count: 0 } as (BasicProduct & { _avg: number; _count: number });
+          }
+        })
+      );
+      const top = detailed
+        .filter(p => (p._avg ?? 0) > 0)
+        .sort((a, b) => {
+          const diff = (b._avg ?? 0) - (a._avg ?? 0);
+          if (diff !== 0) return diff;
+          const cDiff = (b._count ?? 0) - (a._count ?? 0);
+          if (cDiff !== 0) return cDiff;
+          return String(a.name).localeCompare(String(b.name));
+        })
+        .slice(0, 10)
+        .map(({ _avg, _count, ...rest }) => ({ ...rest, rating: Number((_avg ?? 0).toFixed(1)) }));
+      setBestProducts(top);
     } catch (e) {
       console.error('Falha ao carregar produtos da loja', e);
     } finally {
@@ -243,11 +268,13 @@ export default function StorePage() {
       <div className="max-w-7xl mx-auto px-8 py-8">
 
         {/* Produtos melhor avaliados (scroll horizontal) */}
-        <ProductScroll
-          title="Produtos melhor avaliados"
-          products={mockBestProducts}
-          seeMoreLink={`/loja/${id}/produtos?sort=rating`}
-        />
+        {bestProducts.length > 0 && (
+          <ProductScroll
+            title="Produtos melhor avaliados"
+            products={bestProducts}
+            seeMoreLink={`/loja/${id}/produtos?sort=rating`}
+          />
+        )}
 
         {/* Secção de criar review removida nesta versão */}
 

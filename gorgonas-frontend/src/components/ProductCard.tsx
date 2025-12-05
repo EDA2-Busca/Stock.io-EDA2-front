@@ -57,6 +57,11 @@ export function ProductCard(props: any) {
             className="object-contain p-2 group-hover:scale-105 transition-transform duration-300"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
+          {typeof props.rating === 'number' && (
+            <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-white/90 shadow text-xs font-medium text-gray-800">
+              ⭐ {props.rating.toFixed(1)}
+            </div>
+          )}
           {stickerSrc && (
             <div className="absolute top-2 right-2 h-10 w-10 bg-white rounded-full shadow-md overflow-hidden p-1">
               <Image

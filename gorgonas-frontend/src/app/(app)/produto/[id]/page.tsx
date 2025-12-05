@@ -9,6 +9,7 @@
     import { useAuth } from "@/contexts/AuthContext";
     import PencilIcon from "@/components/ui/pencil";
     import BackArrowIcon from "@/components/ui/arrow";
+    import { toast } from "react-toastify";
     interface Products {
         id: number;
         lojaId: number;
@@ -38,6 +39,36 @@
         const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
         const { user } = useAuth();
         const [relatedProducts, setRelatedProducts] = useState<Products[]>([]);
+        const [isRatingOpen, setIsRatingOpen] = useState(false);
+        const [rating, setRating] = useState<number>(0);
+        const [hoverRating, setHoverRating] = useState<number | null>(null);
+
+        function openRating() {
+            if (!user) {
+                toast.warn("Entre para avaliar o produto.");
+                return;
+            }
+            setIsRatingOpen(true);
+        }
+
+        async function submitRating() {
+            if (!products || !id) return;
+            // Arredonda para inteiro 1..5 para alinhar ao backend
+            const rounded = Math.max(1, Math.min(5, Math.round(rating)));
+            try {
+                await api.post(`/avaliacoes-produto`, {
+                    produtoId: products.id,
+                    nota: rounded,
+                });
+                toast.success("Avaliação registrada!");
+                setIsRatingOpen(false);
+                const response = await api.get(`/produtos/${id}`);
+                setProducts(response.data);
+            } catch (err) {
+                console.error("Erro ao salvar avaliação:", err);
+                toast.error("Não foi possível salvar sua avaliação.");
+            }
+        }
         useEffect(() => {
             if (!id) return;
 
@@ -157,8 +188,15 @@
                                 )}
                             </div>
 
-                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500">
-                                <span>⭐ {avgRating} | {totalReviews} reviews</span>
+                                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500">
+                                                                <span>⭐ {avgRating} | {totalReviews} reviews</span>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={openRating}
+                                                                    className="px-3 py-1 rounded-md bg-purple-600 text-white hover:bg-purple-700"
+                                                                >
+                                                                    Avaliar
+                                                                </button>
                                 <span className="text-purple-600 font-medium">{products.subcategoria.nome}</span>
                                 <span className="text-blue-500 font-medium">{products.estoque} disponíveis</span>
                             </div>
@@ -204,6 +242,55 @@
                         </div>
                     </div>
                 </div> 
+
+                                {/* Modal de Avaliação */}
+                                {isRatingOpen && (
+                                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                                        <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+                                            <h3 className="text-xl font-semibold text-gray-900 mb-4">Avaliar produto</h3>
+                                            <div className="flex items-center justify-center gap-3 mb-6">
+                                                {[1,2,3,4,5].map((i) => {
+                                                    const active = (hoverRating ?? rating) >= i;
+                                                    return (
+                                                        <button
+                                                            key={i}
+                                                            type="button"
+                                                            onMouseEnter={() => setHoverRating(i)}
+                                                            onMouseLeave={() => setHoverRating(null)}
+                                                            onClick={() => setRating(i)}
+                                                            aria-label={`Selecionar ${i} estrela(s)`}
+                                                            className="p-1"
+                                                        >
+                                                            <svg width={32} height={32} viewBox="0 0 24 24">
+                                                                <path
+                                                                    d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.787 1.402 8.168L12 18.897l-7.336 3.969 1.402-8.168L.132 9.211l8.2-1.193z"
+                                                                    fill={active ? '#fbbf24' : '#e5e7eb'}
+                                                                />
+                                                            </svg>
+                                                        </button>
+                                                    );
+                                                })}
+                                                <span className="ml-2 text-sm text-gray-700">{(hoverRating ?? rating) || 0}/5</span>
+                                            </div>
+                                            <div className="flex justify-end gap-3">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => { setIsRatingOpen(false); setHoverRating(null); }}
+                                                    className="px-4 py-2 rounded-md border border-gray-300 text-gray-800 hover:bg-gray-50"
+                                                >
+                                                    Cancelar
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={submitRating}
+                                                    className="px-4 py-2 rounded-md bg-purple-600 text-white hover:bg-purple-700"
+                                                >
+                                                    Salvar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
             </main>
         );
     }
