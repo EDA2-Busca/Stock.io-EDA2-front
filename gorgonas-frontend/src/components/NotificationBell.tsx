@@ -90,7 +90,9 @@ export default function NotificationBell() {
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="relative p-2 px-0.5 top-1 text-white hover:text-[#C6E700] transition-colors"
+                className={`relative p-2 px-0.5 top-1 transition-colors
+                    ${isOpen ? 'text-[#C6E700]' : 'text-white hover:text-[#C6E700]'}
+                    `}
             >
                 <FaBell size={36} />
                 {unreadCount > 0 && (
