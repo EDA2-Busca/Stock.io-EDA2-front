@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Navbar } from '@/components/Navbar';
 import { ProductCard } from '@/components/ProductCard';
 import api from "@/utilis/api";
-import SearchBar from '@/components/ui/SearchBar';
+import SearchBar, { SuggestionItem } from '@/components/ui/SearchBar';
 import CategoryList from '@/components/CategoryList';
 import StoreList from "@/components/ui/StoreList";
 import { ProductRow } from '../components/ProductRow';
@@ -17,7 +17,7 @@ type ProdutoParaCard = {
   loja: { logo: string | null } | null;
   imagens: { urlImagem: string }[];
 };
-
+const API_URL = "http://localhost:3001";
 
 export default function HomePage() {
   const [mercadoProdutos, setMercadoProdutos] = useState<ProdutoParaCard[]>([]);
@@ -100,6 +100,29 @@ export default function HomePage() {
       setIsSearching(false);
     }
   };
+  const handleFetchSuggestions = async (term: string): Promise<SuggestionItem[]> => {
+    try {
+      const response = await api.get(`/produtos/buscar?q=${term}`);
+      const topResults = response.data.slice(0, 5);
+      return topResults.map((prod: any) => {
+        const rawPath = prod.imagens?.[0]?.urlImagem;
+        const fullUrl = rawPath
+          ? `${API_URL}/${rawPath.replace(/\\/g, '/')}`
+          : undefined;
+
+        return {
+          id: prod.id,
+          nome: prod.nome,
+          imagem: fullUrl,
+          tipo: 'produto'
+        };
+      });
+    } catch (error) {
+      console.error("Erro no autocomplete:", error);
+      return [];
+    }
+  };
+
   const clearSearch = () => {
     setSearchTerm('');
     setSearchResults(null);
@@ -139,6 +162,7 @@ export default function HomePage() {
           <SearchBar
             className="max-w-md ml-auto"
             onSearch={handleSearch}
+            fetchSuggestions={handleFetchSuggestions}
           />
         </section>
 
