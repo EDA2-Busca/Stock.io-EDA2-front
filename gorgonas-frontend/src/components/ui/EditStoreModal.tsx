@@ -49,6 +49,9 @@ export default function EditStoreModal({
   const [perfilFile, setPerfilFile] = useState<File | null>(null);
   const [logoSvgFile, setLogoSvgFile] = useState<File | null>(null);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [deletarPerfil, setDeletarPerfil] = useState(false);
+  const [deletarLogo, setDeletarLogo] = useState(false);
+  const [deletarBanner, setDeletarBanner] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -133,10 +136,20 @@ export default function EditStoreModal({
       if (categoriaAlteradaPeloUsuario && categoriaId !== null) {
         formData.append('categoriaId', String(categoriaId));
       }
-      if (perfilFile) formData.append('perfil', perfilFile);
-      if (logoSvgFile) formData.append('logo', logoSvgFile);
-      if (bannerFile) formData.append('banner', bannerFile);
-
+      if (perfilFile) {
+        formData.append('perfil', perfilFile);
+      } else if (deletarPerfil) {
+        formData.append('removerPerfil', 'true');
+      }
+      if (logoSvgFile){ formData.append('logo', logoSvgFile)}
+        else if (deletarLogo) {
+        formData.append('removerLogo', 'true');
+      }
+      if (bannerFile) {
+        formData.append('banner', bannerFile);
+      } else if (deletarBanner) {
+        formData.append('removerBanner', 'true');
+      }
       await api.patch(`/lojas/${lojaId}`, formData);
 
       toast.success("Loja atualizada com sucesso!");
@@ -244,21 +257,30 @@ export default function EditStoreModal({
 
           <ImageUploadDropzone
             label="Anexe a foto de perfil da sua loja"
-            onFileChange={setPerfilFile}
             // Passa a URL do banco se não tiver arquivo novo selecionado
             initialPreview={buildUrl(initialImages?.perfilUrl)}
+            onFileChange={(file) => {
+             setPerfilFile(file);
+             setDeletarPerfil(file === null);
+            }}
           />
 
           <ImageUploadDropzone
             label="Anexe a logo em SVG de sua loja"
-            onFileChange={setLogoSvgFile}
             initialPreview={buildUrl(initialImages?.logoSvgUrl)}
+            onFileChange={(file) => {
+             setLogoSvgFile(file);
+             setDeletarLogo(file === null);
+            }}
           />
 
           <ImageUploadDropzone
             label="Anexe o banner de sua loja"
-            onFileChange={setBannerFile}
             initialPreview={buildUrl(initialImages?.bannerUrl)}
+            onFileChange={(file) => {
+             setBannerFile(file);
+             setDeletarBanner(file === null);
+            }}
           />
           <div className="pt-4 flex flex-col gap-3 sm:flex-row sm:justify-between">
             <button

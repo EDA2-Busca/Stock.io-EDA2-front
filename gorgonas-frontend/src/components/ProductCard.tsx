@@ -44,7 +44,6 @@ export function ProductCard(props: any) {
     setStickerSrc(buildUrl(rawStickerPath));
   }, [rawStickerPath]);
 
-  const preco = Number(produto.preco || 0).toFixed(2).replace('.', ',');
   const isAvailable = (produto.estoque || 0) > 0;
 
   return (
@@ -76,7 +75,7 @@ export function ProductCard(props: any) {
           </h3>
 
           <div className="flex items-end gap-1 mb-3">
-            <span className="text-xl font-bold text-gray-900">R${preco}</span>
+            <span className="text-xl font-bold text-gray-900">R${produto.preco}</span>
             {produto.unidade && (
               <span className="text-sm text-[#6A38F3] pb-0.5">/{produto.unidade}</span>
             )}
