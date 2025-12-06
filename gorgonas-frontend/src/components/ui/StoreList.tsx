@@ -79,7 +79,7 @@ export default function StoreList({ categoria }: StoreListProps) {
       id={store.id}
       name={store.nome}
       category={store.categoria?.nome || "categoria"}
-      imageUrl={store.logo || "/StockIo.png"}
+      imageUrl={store.sticker || "/StockIo.png"}
     />
   ))
 }
@@ -88,3 +88,6 @@ export default function StoreList({ categoria }: StoreListProps) {
   <p className="text-gray-500">Nenhuma loja encontrada.</p>
 )}
 </div>
+    </section>
+  );
+}

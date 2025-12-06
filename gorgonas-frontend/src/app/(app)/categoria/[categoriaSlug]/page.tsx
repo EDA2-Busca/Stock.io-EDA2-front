@@ -8,7 +8,7 @@ import SearchBar from '@/components/ui/SearchBar';
 import StoreList from "@/components/ui/StoreList";
 import { ProductRow } from "@/components/ProductRow";
 import SortDropdown, { SortOption } from "@/components/ui/SortDropdown";
-import FiltroSubcategoriaModal from "../../../components/ModalFilterSub";
+import FiltroSubcategoriaModal from "../../../../components/ModalFilterSub";
 
 // Definição do Tipo de Dados
 type ProdutoParaCard = {

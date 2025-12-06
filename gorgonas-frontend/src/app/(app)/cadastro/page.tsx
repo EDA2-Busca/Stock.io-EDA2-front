@@ -112,7 +112,7 @@ export default function CadastroPage() {
   
   // --- Renderização do Componente (JSX) ---
   return (
-    <div className="min-h-screen flex items-stretch bg-[#F6F3E4]">
+    <div className="min-h-screen flex items-stretch bg-background">
       
       {/* Container principal (layout responsivo) */}
       <div className="w-full max-w-[1300px] mx-auto flex flex-col md:flex-row items-stretch py-12 px-6 md:px-8">
