@@ -64,12 +64,12 @@ export default function RedefinirSenhaPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-stretch bg-[#F6F3E4]">
-      <div className="w-full max-w-[1300px] mx-auto flex flex-col md:flex-row-reverse items-stretch py-12 px-6 md:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-[#F6F3E4]">
+      <div className="w-full max-w-[1200px] mx-auto flex flex-col md:flex-row-reverse items-center gap-10 px-6 py-10">
         {/* FORM */}
-        <div className="md:w-1/2 w-full flex items-stretch justify-center">
-          <div className="w-full max-w-lg bg-[#171918] text-white p-10 md:p-12 shadow-xl flex flex-col justify-center h-full rounded-[36px]">
-            <h1 className="text-center text-2xl md:text-3xl font-extrabold tracking-wide mb-8">
+        <div className="md:w-1/2 w-full flex justify-center">
+          <div className="w-full max-w-xl bg-[#171918] text-white p-12 md:p-16 shadow-xl flex flex-col justify-center h-full rounded-[36px]">
+            <h1 className="text-center text-2xl md:text-3xl font-extrabold tracking-wide mb-6">
               REDEFINIR SENHA
             </h1>
 
@@ -107,7 +107,13 @@ export default function RedefinirSenhaPage() {
 
         {/* IMAGEM */}
         <div className="hidden md:flex md:w-1/2 w-full items-center justify-center">
-          <Image src="/Stockles-Mascote2.png" width={380} height={600} alt="Mascote Stock.io" />
+          <Image
+            src="/Stockles-Mascote2.png"
+            width={260}
+            height={420}
+            alt="Mascote Stock.io"
+            className="object-contain"
+          />
         </div>
       </div>
     </div>
