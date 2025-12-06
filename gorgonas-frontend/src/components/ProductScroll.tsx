@@ -10,6 +10,7 @@ type Product = {
   isAvailable: boolean;
   imageUrl: string;
   unit?: string;
+  rating?: number; // opcional: média de avaliações
 };
 
 type ProductScrollProps = {
@@ -20,6 +21,7 @@ type ProductScrollProps = {
 
 // Componente para uma secção com scroll horizontal de produtos
 export default function ProductScroll({ title, products, seeMoreLink }: ProductScrollProps) {
+  if (!products || products.length === 0) return null;
   return (
     <section className="w-full mb-12">
       {/* Título da Secção e "ver mais" */}
@@ -46,6 +48,7 @@ export default function ProductScroll({ title, products, seeMoreLink }: ProductS
               isAvailable={product.isAvailable}
               imageUrl={product.imageUrl}
               unit={product.unit}
+              rating={product.rating}
             />
           </div>
         ))}

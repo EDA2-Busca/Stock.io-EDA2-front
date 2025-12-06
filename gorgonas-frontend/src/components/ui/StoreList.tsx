@@ -9,7 +9,7 @@ type Loja = {
   id: number;
   nome: string;
   categoria: { nome: string } | null;
-  logo: string | null;
+  sticker: string | null;
 };
 
 interface StoreListProps {
@@ -72,23 +72,19 @@ export default function StoreList({ categoria }: StoreListProps) {
       {/* LISTA DE LOJAS */}
       <div className="flex gap-[30px] overflow-x-auto pb-2">
         {loading && <p className="text-gray-500">Carregando...</p>}
-
-        {!loading &&
-          filteredStores.length > 0 &&
-          filteredStores.map((store) => (
-            <StoreCard
-              key={store.id}
-              id={store.id}
-              name={store.nome}
-              category={store.categoria?.nome || "categoria"}
-              imageUrl={store.logo || "/StockIo.png"}
-            />
-          ))}
-
-        {!loading && filteredStores.length === 0 && (
-          <p className="text-gray-500">Nenhuma loja encontrada.</p>
-        )}
-      </div>
-    </section>
-  );
+{!loading && filteredStores.length > 0 &&
+  filteredStores.map((store) => (
+    <StoreCard
+      key={store.id}
+      id={store.id}
+      name={store.nome}
+      category={store.categoria?.nome || "categoria"}
+      imageUrl={store.logo || "/StockIo.png"}
+    />
+  ))
 }
+
+{!loading && filteredStores.length === 0 && (
+  <p className="text-gray-500">Nenhuma loja encontrada.</p>
+)}
+</div>

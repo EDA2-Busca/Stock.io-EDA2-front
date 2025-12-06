@@ -12,20 +12,14 @@ import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import api from '@/utilis/api';
 import { useAuth } from '@/contexts/AuthContext';
 // Importação corrigida (assumindo que está em 'ui/')
-import StoreReviewSection from '@/components/ui/StoreReviewSection'; 
+import StoreReviewSection from '@/components/ui/StoreReviewSection';
 
 // Banner fallback caso loja não tenha imagem
+const API_URL = "http://localhost:3001";
 const FALLBACK_BANNER = '/banner-rare-beauty.jpg';
 
-// Mock de produtos melhor avaliados (substituir por endpoint futuro)
-const mockBestProducts = [
-  // IDs como 'number' e imagens de placeholder existentes
-  { id: 1, name: "Bronzer", price: "254,99", isAvailable: true, imageUrl: "/avatar-placeholder.png" },
-  { id: 2, name: "Blush", price: "199,99", isAvailable: false, imageUrl: "/avatar-placeholder.png" },
-  { id: 3, name: "Perfume Rare", price: "599,90", isAvailable: true, imageUrl: "/avatar-placeholder.png" },
-  { id: 4, name: "Iluminador", price: "249,90", isAvailable: true, imageUrl: "/avatar-placeholder.png" },
-  { id: 5, name: "Mini Blush", price: "99,99", isAvailable: false, imageUrl: "/avatar-placeholder.png" },
-];
+// Lista dinâmica de produtos melhor avaliados
+type BasicProduct = { id: number; name: string; price: string; isAvailable: boolean; imageUrl: string; rating?: number };
 
 // Grid de produtos com dados reais via API
 const FALLBACK_PRODUCT_IMAGE = '/avatar-placeholder.png';
@@ -45,8 +39,9 @@ export default function StorePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [productsLoading, setProductsLoading] = useState(true);
-  const [products, setProducts] = useState<Array<{ id: number; name: string; price: string; isAvailable: boolean; imageUrl: string }>>([]);
-  const [store, setStore] = useState<{ nome: string; descricao: string; categoria: { nome: string } | null; banner: string | null } | null>(null);
+  const [products, setProducts] = useState<Array<BasicProduct>>([]);
+  const [bestProducts, setBestProducts] = useState<Array<BasicProduct>>([]);
+  const [store, setStore] = useState<{ nome: string; descricao: string; categoria: { nome: string } | null; banner: string | null; logo: string | null; sticker: string | null } | null>(null);
   const [reviews, setReviews] = useState<StoreReview[]>([]);
   const [reviewsLoading, setReviewsLoading] = useState<boolean>(false);
   const [averageRating, setAverageRating] = useState<number>(0);
@@ -142,21 +137,52 @@ export default function StorePage() {
     setProductsLoading(true);
     try {
       const res = await api.get(`/produtos/loja/${id}`);
-      const normalized = (res.data || []).map((p: any) => {
+      const raw = (res.data || []);
+      const normalized: Array<BasicProduct & { _avg?: number }> = raw.map((p: any) => {
         const rawPrice = typeof p.preco === 'string' ? p.preco : p.preco?.toString() || '0';
         const numeric = parseFloat(rawPrice);
         const priceFormatted = numeric.toFixed(2).replace('.', ',');
         const firstImage = p.imagens?.[0]?.urlImagem;
         const img = firstImage || p.loja?.logo || FALLBACK_PRODUCT_IMAGE;
+        // calcula média de avaliações inteiras 1..5 se disponível
+        const notas: number[] = Array.isArray(p.avaliacoes) ? p.avaliacoes.map((a: any) => Number(a.nota) || 0) : [];
+        const avg = notas.length > 0 ? (notas.reduce((acc, n) => acc + n, 0) / notas.length) : 0;
         return {
           id: p.id,
           name: p.nome,
           price: priceFormatted,
           isAvailable: (p.estoque ?? 0) > 0,
           imageUrl: img,
+          _avg: avg,
         };
       });
       setProducts(normalized);
+      // Caso o endpoint não traga avaliacoes, busca detalhes por produto para calcular médias
+      const detailed = await Promise.all(
+        normalized.map(async (bp) => {
+          try {
+            const pd = await api.get(`/produtos/${bp.id}`);
+            const avals: any[] = Array.isArray(pd.data?.avaliacoes) ? pd.data.avaliacoes : [];
+            const notas: number[] = avals.map((a: any) => Number(a.nota) || 0);
+            const avg = notas.length > 0 ? (notas.reduce((acc, n) => acc + n, 0) / notas.length) : 0;
+            return { ...bp, _avg: avg, _count: notas.length } as (BasicProduct & { _avg: number; _count: number });
+          } catch {
+            return { ...bp, _avg: 0, _count: 0 } as (BasicProduct & { _avg: number; _count: number });
+          }
+        })
+      );
+      const top = detailed
+        .filter(p => (p._avg ?? 0) > 0)
+        .sort((a, b) => {
+          const diff = (b._avg ?? 0) - (a._avg ?? 0);
+          if (diff !== 0) return diff;
+          const cDiff = (b._count ?? 0) - (a._count ?? 0);
+          if (cDiff !== 0) return cDiff;
+          return String(a.name).localeCompare(String(b.name));
+        })
+        .slice(0, 10)
+        .map(({ _avg, _count, ...rest }) => ({ ...rest, rating: Number((_avg ?? 0).toFixed(1)) }));
+      setBestProducts(top);
     } catch (e) {
       console.error('Falha ao carregar produtos da loja', e);
     } finally {
@@ -169,11 +195,20 @@ export default function StorePage() {
     fetchReviews();
   }, [fetchProducts]);
 
+  const getImageUrl = (path: string | null | undefined) => {
+    if (!path) return FALLBACK_BANNER;
+    if (path.startsWith('http') || path.startsWith('/')) return path;
+    return `${API_URL}/${path}`;
+  };
+
   const storeName = store?.nome || (loading ? 'Carregando...' : 'Loja não encontrada');
   // Nome original da categoria (evita erros em subcategorias)
   const storeCategory = store?.categoria?.nome || (loading ? '' : '');
   const storeDescription = store?.descricao || (loading ? '' : '');
-  const bannerImageUrl = store?.banner || FALLBACK_BANNER;
+  const bannerImageUrl = getImageUrl(store?.banner);
+
+  const logoImageUrl =getImageUrl(store?.logo);
+  const stickerImageUrl =getImageUrl(store?.sticker);
 
   // Lógica de proprietário (esconde ações para dono)
   const isOwnerBase = user && store && (user.id === (store as any).usuarioId || user.id === (store as any).usuario?.id);
@@ -192,6 +227,8 @@ export default function StorePage() {
         category={storeCategory}
         description={storeDescription}
         bannerImageUrl={bannerImageUrl}
+        logoImageUrl={logoImageUrl}
+        stickerImageUrl={stickerImageUrl}
         isLoggedIn={isLoggedIn}
         isOwner={isOwner}
         onProductCreated={(p) => {
@@ -229,13 +266,15 @@ export default function StorePage() {
 
       {/* Conteúdo principal (produtos, lista) */}
       <div className="max-w-7xl mx-auto px-8 py-8">
-        
+
         {/* Produtos melhor avaliados (scroll horizontal) */}
-        <ProductScroll 
-          title="Produtos melhor avaliados"
-          products={mockBestProducts}
-          seeMoreLink={`/loja/${id}/produtos?sort=rating`}
-        />
+        {bestProducts.length > 0 && (
+          <ProductScroll
+            title="Produtos melhor avaliados"
+            products={bestProducts}
+            seeMoreLink={`/loja/${id}/produtos?sort=rating`}
+          />
+        )}
 
         {/* Secção de criar review removida nesta versão */}
 
@@ -247,7 +286,7 @@ export default function StorePage() {
               ver mais
             </a>
           </div>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
             {productsLoading && products.length === 0 && (
               [...Array(5)].map((_, i) => (
@@ -268,7 +307,7 @@ export default function StorePage() {
               />
             ))}
           </div>
-          
+
           {/* Paginação (placeholder) */}
           <Pagination />
         </section>
