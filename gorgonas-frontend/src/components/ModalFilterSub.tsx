@@ -67,7 +67,7 @@ export default function SubcategoryFilterBar({
         className={`
           whitespace-nowrap px-10 py-3 rounded-full font-400 text-sm transition-all duration-200 shadow-sm
           ${selectedId === null
-            ? 'bg-[#6A38F3] text-white shadow-md text-[20px] transform scale-105' // Ativo (Roxo)
+            ? 'bg-primary text-white shadow-md text-[20px] transform scale-105' // Ativo (Roxo)
             : 'bg-white text-purple-400 text-[20px] hover:bg-purple-50' // Inativo (Branco)
           }
         `}
@@ -81,7 +81,7 @@ export default function SubcategoryFilterBar({
           className={`
             whitespace-nowrap px-10 py-3 rounded-full font-400 text-sm transition-all duration-200 shadow-sm
             ${selectedId === sub.id
-              ? 'bg-[#6A38F3] text-white shadow-md text-[20px] transform scale-105' // Ativo
+              ? 'bg-primary text-white shadow-md text-[20px] transform scale-105' // Ativo
               : 'bg-white text-purple-400 text-[20px] hover:bg-purple-50' // Inativo
             }
           `}

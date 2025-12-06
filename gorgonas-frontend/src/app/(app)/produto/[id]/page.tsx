@@ -119,7 +119,7 @@
 
         if (!products || !selectedImageUrl) {
             return (
-                <main className="bg-[#FDF9F2] min-h-screen">
+                <main className="bg-background min-h-screen">
                     <Navbar />
                     <div className="flex h-96 items-center justify-center text-gray-500">
                         Carregando produto...
@@ -140,7 +140,7 @@
         const totalReviews = products.avaliacoes?.length || 0;
         const isOwner = user && products.loja && user.id === products.loja.usuarioId;
         return (
-            <main className="bg-[#FDF9F2] min-h-screen">
+            <main className="bg-background min-h-screen">
                 <Navbar />
                 <div className="max-w-7xl mx-auto p-4 md:p-8">
 

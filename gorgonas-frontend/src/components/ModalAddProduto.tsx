@@ -234,13 +234,13 @@ export default function AdicionarProdutoModal({
 
           {/* Quantidade */}
           <div className="flex items-center justify-center space-x-8 pt-2">
-            <button type="button" onClick={() => handleQuantityChange(-1)} className="w-12 h-12 rounded-full border-2 border-[#6A38F3] text-[#6A38F3] text-3xl flex items-center justify-center transition-transform active:scale-90 hover:bg-purple-50 cursor-pointer"><IoRemove /></button>
+            <button type="button" onClick={() => handleQuantityChange(-1)} className="w-12 h-12 rounded-full border-2 border-[#6A38F3] text-primary text-3xl flex items-center justify-center transition-transform active:scale-90 hover:bg-purple-50 cursor-pointer"><IoRemove /></button>
             <input
               value={quantidade}
               onChange={(e) => setQuantidade(Math.max(0, parseInt(e.target.value) || 0))}
               className="text-6xl font-bold text-gray-800 w-20 text-center select-none"
             />
-            <button type="button" onClick={() => handleQuantityChange(1)} className="w-12 h-12 rounded-full bg-[#6A38F3] text-white text-3xl flex items-center justify-center transition-transform active:scale-90 hover:bg-[#5a2ee0] cursor-pointer"><IoAdd /></button>
+            <button type="button" onClick={() => handleQuantityChange(1)} className="w-12 h-12 rounded-full bg-primary text-white text-3xl flex items-center justify-center transition-transform active:scale-90 hover:bg-[#5a2ee0] cursor-pointer"><IoAdd /></button>
           </div>
 
           {/* Botão Salvar */}
@@ -248,7 +248,7 @@ export default function AdicionarProdutoModal({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-[#6A38F3] disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl text-lg hover:bg-[#5a2ee0] transition-colors shadow-md hover:shadow-lg transform active:scale-[0.99]"
+              className="w-full bg-primary disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl text-lg hover:bg-[#5a2ee0] transition-colors shadow-md hover:shadow-lg transform active:scale-[0.99]"
             >
               {isSubmitting ? 'Salvando...' : 'Adicionar'}
             </button>

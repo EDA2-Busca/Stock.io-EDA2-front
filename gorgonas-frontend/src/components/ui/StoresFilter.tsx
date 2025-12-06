@@ -48,7 +48,7 @@ export default function StoresFilter({ onFilterChange }: StoresFilterProps) {
       <button
         onClick={() => setOpen(!open)}
         className="
-          w-full bg-white text-[#6A38F3] border border-[#E6E6E6]
+          w-full bg-white text-primary border border-[#E6E6E6]
           rounded-full py-3 px-5 flex justify-between items-center
           shadow-sm hover:shadow transition-all duration-200
         "
@@ -69,10 +69,10 @@ export default function StoresFilter({ onFilterChange }: StoresFilterProps) {
           "
         >
           <div className="flex justify-between items-center mb-3">
-            <h3 className="text-[22px] font-medium text-[#6A38F3]">
+            <h3 className="text-[22px] font-medium text-primary">
               filtros
             </h3>
-            <ChevronUp size={20} className="text-[#6A38F3]" />
+            <ChevronUp size={20} className="text-primary" />
           </div>
 
           {categorias.map((item) => (
@@ -90,7 +90,7 @@ export default function StoresFilter({ onFilterChange }: StoresFilterProps) {
                 "
               />
 
-              <span className="flex items-center gap-2 text-[18px] text-[#6A38F3] capitalize">
+              <span className="flex items-center gap-2 text-[18px] text-primary capitalize">
                 {item.label}
                 {item.icon}
               </span>

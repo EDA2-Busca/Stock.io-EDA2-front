@@ -130,7 +130,7 @@ export default function HomePage() {
 
 
   return (
-    <main className="bg-[#FDF9F2] min-h-screen">
+    <main className="bg-background min-h-screen">
       <header className="w-full bg-black relative overflow-hidden -mt-px pt-px">
         <div aria-hidden className="absolute inset-x-0 -top-px h-px bg-black" />
         <Navbar />
@@ -170,10 +170,10 @@ export default function HomePage() {
 
           <section className="pb-12">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold text-[#171918]">
+              <h2 className="text-2xl font-bold text-foreground">
                 Resultados para: "{searchTerm}"
               </h2>
-              <button onClick={clearSearch} className="text-sm text-[#6A38F3] hover:underline">
+              <button onClick={clearSearch} className="text-sm text-primary hover:underline">
                 Limpar busca
               </button>
             </div>
@@ -215,8 +215,8 @@ export default function HomePage() {
                 <section className="pb-12">
                   <div className="flex justify-between items-center mb-4">
                     <div className="flex items-baseline gap-1">
-                      <h2 className="text-2xl font-bold text-[#171918]">Produtos</h2>
-                      <h2 className="text-sm text-[#6A38F3]">em mercado</h2>
+                      <h2 className="text-2xl font-bold text-foreground">Produtos</h2>
+                      <h2 className="text-sm text-primary">em mercado</h2>
                     </div>
                   </div>
                   <ProductRow
@@ -228,8 +228,8 @@ export default function HomePage() {
                 <section className="pb-12">
                   <div className="flex justify-between items-center mb-4">
                     <div className="flex items-baseline gap-1">
-                      <h2 className="text-2xl font-bold text-[#171918]">Produtos</h2>
-                      <h2 className="text-sm text-[#6A38F3]">em beleza</h2>
+                      <h2 className="text-2xl font-bold text-foreground">Produtos</h2>
+                      <h2 className="text-sm text-primary">em beleza</h2>
                     </div>
                   </div>
                   <ProductRow
@@ -240,8 +240,8 @@ export default function HomePage() {
                 <section className="pb-12">
                   <div className="flex justify-between items-center mb-4">
                     <div className="flex items-baseline gap-1">
-                      <h2 className="text-2xl font-bold text-[#171918]">Produtos</h2>
-                      <h2 className="text-sm text-[#6A38F3]">em moda</h2>
+                      <h2 className="text-2xl font-bold text-foreground">Produtos</h2>
+                      <h2 className="text-sm text-primary">em moda</h2>
                     </div>
                   </div>
                   <ProductRow
@@ -252,8 +252,8 @@ export default function HomePage() {
                 <section className="pb-12">
                   <div className="flex justify-between items-center mb-4">
                     <div className="flex items-baseline gap-1">
-                      <h2 className="text-2xl font-bold text-[#171918]">Produtos</h2>
-                      <h2 className="text-sm text-[#6A38F3]">em eletrônicos</h2>
+                      <h2 className="text-2xl font-bold text-foreground">Produtos</h2>
+                      <h2 className="text-sm text-primary">em eletrônicos</h2>
                     </div>
                   </div>
                   <ProductRow

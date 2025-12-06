@@ -33,7 +33,7 @@ if (perfil?.isUsuario === true) {
       </div>
 
       {/* 2. Área Bege (Infos) */}
-      <div className="bg-[#FDF9F2] px-4 md:px-12 pb-8 relative">
+      <div className="bg-background px-4 md:px-12 pb-8 relative">
         
         {/* Container que alinha o conteúdo */}
         <div className="max-w-7xl mx-auto">
@@ -41,7 +41,7 @@ if (perfil?.isUsuario === true) {
             {/* Foto de Perfil (Sobreposta) */}
             {/* O 'absolute -top-16' faz ela subir 64px (metade da altura) para cima da linha */}
             <div className="absolute -top-24 left-4 md:left-80">
-                <div className="p-1 bg-[#FDF9F2] rounded-full inline-block"> {/* Borda falsa para simular o corte */}
+                <div className="p-1 bg-background rounded-full inline-block"> {/* Borda falsa para simular o corte */}
                     <img 
                         src={perfil?.fotoPerfil || '/stores/cjr.png'} 
                         className="w-32 h-32 md:w-48 md:h-48 rounded-full object-cover border-4 border-[#FDF9F2]" 
@@ -71,7 +71,7 @@ if (perfil?.isUsuario === true) {
                 {/* Botão de Ação */}
                 <button 
                     onClick={onEditProfile}
-                    className="w-full md:w-auto bg-[#6A38F3] text-white hover:bg-[#FFFFFF] hover:text-[#6A38F3] font-bold py-3 px-8 rounded-full shadow-lg transition-all active:scale-95 font-lato"
+                    className="w-full md:w-auto bg-primary text-white hover:bg-[#FFFFFF] hover:text-primary font-bold py-3 px-8 rounded-full shadow-lg transition-all active:scale-95 font-lato"
                 >
                     Editar Perfil
                 </button>
@@ -95,7 +95,7 @@ if (perfil?.isUsuario === true) {
       </div>
 
       {/* 2. Área Bege (Infos) */}
-      <div className="bg-[#FDF9F2] px-4 md:px-12 pb-8 relative">
+      <div className="bg-background px-4 md:px-12 pb-8 relative">
         
         {/* Container que alinha o conteúdo */}
         <div className="max-w-7xl mx-auto">
@@ -103,7 +103,7 @@ if (perfil?.isUsuario === true) {
             {/* Foto de Perfil (Sobreposta) */}
             {/* O 'absolute -top-16' faz ela subir 64px (metade da altura) para cima da linha */}
             <div className="absolute -top-24 left-4 md:left-80">
-                <div className="p-1 bg-[#FDF9F2] rounded-full inline-block"> {/* Borda falsa para simular o corte */}
+                <div className="p-1 bg-background rounded-full inline-block"> {/* Borda falsa para simular o corte */}
                     <img 
                         src={perfil?.fotoPerfil || '/stores/cjr.png'} 
                         className="w-32 h-32 md:w-48 md:h-48 rounded-full object-cover border-4 border-[#FDF9F2]" 

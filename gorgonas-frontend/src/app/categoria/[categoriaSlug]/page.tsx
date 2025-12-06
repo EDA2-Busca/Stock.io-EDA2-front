@@ -215,7 +215,7 @@ export default function CategoriaPage({ params }: CategoriaPageProps) {
 
   if (isLoading) {
     return (
-      <main className="text-center p-8 bg-[#FDF9F2] min-h-screen">
+      <main className="text-center p-8 bg-background min-h-screen">
         <Navbar />
         <p className="text-gray-500 text-lg mt-20">Carregando produtos...</p>
       </main>
@@ -223,7 +223,7 @@ export default function CategoriaPage({ params }: CategoriaPageProps) {
   }
 
   return (
-    <main className="bg-[#FDF9F2] min-h-screen">
+    <main className="bg-background min-h-screen">
 
       {/* SEÇÃO HEADER */}
       <header className="w-full bg-black relative overflow-hidden -mt-px pt-px">
@@ -326,7 +326,7 @@ export default function CategoriaPage({ params }: CategoriaPageProps) {
                   {selectedSubcategory && (
                     <button
                       onClick={() => handleFilterChange(null)}
-                      className="text-[#6A38F3] font-medium hover:underline"
+                      className="text-primary font-medium hover:underline"
                     >
                       Limpar filtros
                     </button>
@@ -345,7 +345,7 @@ export default function CategoriaPage({ params }: CategoriaPageProps) {
                 onClick={() => setCurrentPage(pageNumber)}
                 className={`transition-all duration-200 font-light leading-none px-5 ${currentPage === pageNumber
                   ? 'text-5xl text-black font-normal'
-                  : 'text-3xl text-[#171918]/60 hover:text-[#171918]'
+                  : 'text-3xl text-foreground/60 hover:text-foreground'
                   }`}
               >
                 {pageNumber}
@@ -371,7 +371,7 @@ export default function CategoriaPage({ params }: CategoriaPageProps) {
           <section className="pb-0 max-w-[1440px] mx-auto px-8 py-12">
             <div className="flex justify-between items-center mb-0">
               <div className="flex items-baseline gap-1">
-                <h2 className="text-4xl font-500 text-[#171918]">Melhores Avaliados</h2>
+                <h2 className="text-4xl font-500 text-foreground">Melhores Avaliados</h2>
               </div>
             </div>
             <ProductRow
@@ -384,7 +384,7 @@ export default function CategoriaPage({ params }: CategoriaPageProps) {
           <section className="pb-8 max-w-[1440px] mx-auto px-8 py-0">
             <div className="flex justify-between items-center mb-0">
               <div className="flex items-baseline gap-1">
-                <h2 className="text-4xl font-500 text-[#171918]">Recém adicionados</h2>
+                <h2 className="text-4xl font-500 text-foreground">Recém adicionados</h2>
               </div>
             </div>
             <ProductRow title="" products={recemAdicionados} viewMoreHref={`/ver-mais/${categoriaAtual}`} />

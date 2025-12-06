@@ -51,14 +51,14 @@ export default function ReviewCard({ id, lojaId, author, avatarUrl, rating, text
       />
       <div className="flex-1">
         <div className="flex items-center justify-between mb-1">
-          <span className="font-semibold text-[#171918]">{author}</span>
+          <span className="font-semibold text-foreground">{author}</span>
           {renderDecimalStars(rating)}
         </div>
         <p className="text-sm text-[#4B4E57] leading-relaxed">{text}</p>
         {(id && lojaId) ? (
           <a
             href={`/loja/${lojaId}/reviews/${id}`}
-            className="mt-2 inline-block text-sm text-[#6A38F3] hover:underline"
+            className="mt-2 inline-block text-sm text-primary hover:underline"
           >
             ver mais
           </a>
@@ -66,7 +66,7 @@ export default function ReviewCard({ id, lojaId, author, avatarUrl, rating, text
           onSeeMore && (
             <button
               onClick={onSeeMore}
-              className="mt-2 text-sm text-[#6A38F3] hover:underline"
+              className="mt-2 text-sm text-primary hover:underline"
             >
               ver mais
             </button>

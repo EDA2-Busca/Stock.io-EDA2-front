@@ -81,7 +81,7 @@ export default function StoreReviewCard({ review }: ReviewCardProps) {
         {review.id && review.lojaId && (
           <a
             href={`/loja/${review.lojaId}/reviews/${review.id}`}
-            className="text-sm text-[#6A38F3] hover:underline mt-2 self-end"
+            className="text-sm text-primary hover:underline mt-2 self-end"
           >
             ver mais
           </a>

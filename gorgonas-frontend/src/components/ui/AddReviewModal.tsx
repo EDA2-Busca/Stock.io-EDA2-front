@@ -147,7 +147,7 @@ export default function AddReviewModal({ isOpen, onClose, storeName, onSubmit, m
               <button
                 type="submit"
                 disabled={!canSubmit || submitting}
-                className="flex-1 bg-[#6A38F3] disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl text-lg hover:bg-[#5a2ee0] transition-colors shadow-md"
+                className="flex-1 bg-primary disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl text-lg hover:bg-[#5a2ee0] transition-colors shadow-md"
               >
                 {submitting ? (mode === 'create' ? 'Enviando...' : 'Salvando...') : mode === 'create' ? 'Avaliar' : 'Salvar alterações'}
               </button>

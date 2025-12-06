@@ -113,7 +113,7 @@ export function ModalEditarSenha({ isOpen, onClose, onBack }: ModalEditarSenhaPr
         {/* Ícone da Chave */}
         <div className="flex justify-center mb-8">
             <div className="bg-[#B095F8] p-6 rounded-full rotate-[-45deg] shadow-inner">
-                <FiKey size={64} className="text-[#6A38F3] rotate-[45deg]" strokeWidth={2} />
+                <FiKey size={64} className="text-primary rotate-[45deg]" strokeWidth={2} />
             </div>
         </div>
 
@@ -147,7 +147,7 @@ export function ModalEditarSenha({ isOpen, onClose, onBack }: ModalEditarSenhaPr
           <button 
             onClick={handleSalvarSenha}
             disabled={isLoading}
-            className="w-full py-3.5 rounded-full bg-[#6A38F3] text-white font-semibold text-lg shadow-lg shadow-purple-200 hover:bg-[#5829d6] transition-all active:scale-[0.98] font-lato"
+            className="w-full py-3.5 rounded-full bg-primary text-white font-semibold text-lg shadow-lg shadow-purple-200 hover:bg-[#5829d6] transition-all active:scale-[0.98] font-lato"
           >
             Salvar Senha
           </button>

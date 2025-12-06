@@ -25,7 +25,7 @@ export function StoreHeader({ isUsuario, title = "Lojas", lojas, onAddStore }: S
 
         <button
           onClick={onAddStore}
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-[#6A38F3] text-white shadow-md transition-colors hover:bg-[#5829d6] active:scale-95"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white shadow-md transition-colors hover:bg-[#5829d6] active:scale-95"
           title="Adicionar nova loja"
         >
           <FiPlus size={24} strokeWidth={2.5} />

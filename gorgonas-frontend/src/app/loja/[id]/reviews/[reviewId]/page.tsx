@@ -188,7 +188,7 @@ export default function ReviewDetailPage() {
             </div>
           )}
         </div>
-      <div className="flex-1 flex flex-col w-full bg-[#FDF9F2]">
+      <div className="flex-1 flex flex-col w-full bg-background">
         <div className="flex-1 px-8 md:px-12 py-8 space-y-6 overflow-y-auto">
           {comments.map(c => {
             const ownerMatch = storeOwnerId !== null && c.usuarioId != null && String(c.usuarioId) === String(storeOwnerId);
@@ -210,23 +210,23 @@ export default function ReviewDetailPage() {
                   {canEdit && (
                     <button
                       onClick={() => { setEditingComment(c); setEditModalOpen(true); }}
-                      className="absolute -top-2 -right-2 p-2 rounded-full bg-white shadow-md border border-gray-200 text-gray-500 hover:text-[#6A38F3] hover:border-[#6A38F3] transition-opacity duration-150 opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                      className="absolute -top-2 -right-2 p-2 rounded-full bg-white shadow-md border border-gray-200 text-gray-500 hover:text-primary hover:border-[#6A38F3] transition-opacity duration-150 opacity-100 md:opacity-0 md:group-hover:opacity-100"
                       aria-label="Editar comentário"
                     >
                       <IoPencil size={18} />
                     </button>
                   )}
                   <div className="flex items-baseline gap-2">
-                    <span className="font-semibold text-[#171918] text-sm leading-none">{c.author}</span>
+                    <span className="font-semibold text-foreground text-sm leading-none">{c.author}</span>
                     <span className="text-[11px] text-[#6B7280] mt-0.5">{formatRelativeTime(c.createdAt)}</span>
                     {c.edited && (
                       <span className="text-[10px] text-[#6B7280] italic mt-0.5">(editado)</span>
                     )}
                   </div>
                   {showOwner && (
-                    <span className="text-xs text-[#6A38F3] font-medium mt-0.5 block">dona da loja</span>
+                    <span className="text-xs text-primary font-medium mt-0.5 block">dona da loja</span>
                   )}
-                  <p className="text-sm text-[#171918] leading-relaxed whitespace-pre-wrap mt-1">{c.text}</p>
+                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap mt-1">{c.text}</p>
                 </div>
               </div>
             );
@@ -240,7 +240,7 @@ export default function ReviewDetailPage() {
                   <button
                     key={n}
                     onClick={() => setCommentsPage(n)}
-                    className={`px-3 py-1 rounded-full text-xs border ${active ? 'bg-[#6A38F3] text-white border-[#6A38F3]' : 'bg-white text-[#171918] border-[#D1D5DB] hover:bg-[#F3F4F6]'}`}
+                    className={`px-3 py-1 rounded-full text-xs border ${active ? 'bg-primary text-white border-[#6A38F3]' : 'bg-white text-foreground border-[#D1D5DB] hover:bg-[#F3F4F6]'}`}
                   >
                     {n}
                   </button>
@@ -250,7 +250,7 @@ export default function ReviewDetailPage() {
           )}
         </div>
         {user && (
-          <div className="px-8 md:px-12 py-4 bg-[#FDF9F2] border-t border-[#E4E2DC] flex items-center gap-3">
+          <div className="px-8 md:px-12 py-4 bg-background border-t border-[#E4E2DC] flex items-center gap-3">
             <textarea
               placeholder="Adicionar comentário"
               value={newComment}
@@ -265,12 +265,12 @@ export default function ReviewDetailPage() {
               }}
               rows={1}
               spellCheck={false}
-              className="flex-1 rounded-2xl bg-white px-5 py-3 text-sm text-[#171918] placeholder:text-[#9CA3AF] outline-none border border-[#D1D5DB] focus:border-[#6A38F3] focus:ring-2 focus:ring-[#6A38F3]/40 transition resize-none"
+              className="flex-1 rounded-2xl bg-white px-5 py-3 text-sm text-foreground placeholder:text-[#9CA3AF] outline-none border border-[#D1D5DB] focus:border-[#6A38F3] focus:ring-2 focus:ring-[#6A38F3]/40 transition resize-none"
             />
             <button
               disabled={commentSubmitting || !newComment.trim()}
               onClick={handleAddComment}
-              className="h-11 px-5 rounded-full bg-[#6A38F3] text-white text-sm font-semibold disabled:opacity-50"
+              className="h-11 px-5 rounded-full bg-primary text-white text-sm font-semibold disabled:opacity-50"
             >
               Enviar
             </button>

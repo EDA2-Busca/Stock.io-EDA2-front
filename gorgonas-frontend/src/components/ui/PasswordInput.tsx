@@ -15,7 +15,7 @@ export default function PasswordInput({ ...props }: PasswordInputProps) {
         <input
           {...props}
           type={isVisible ? 'text' : 'password'}
-          className="w-full h-12 px-4 pr-12 rounded-full bg-[#F6F3E4] text-[#171918] placeholder-[#BDB6A8] focus:outline-none focus:ring-2 focus:ring-[#6A38F3]/40"
+          className="w-full h-12 px-4 pr-12 rounded-full bg-[#F6F3E4] text-foreground placeholder-[#BDB6A8] focus:outline-none focus:ring-2 focus:ring-[#6A38F3]/40"
         />
         <button
           type="button"

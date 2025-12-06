@@ -173,7 +173,7 @@ useEffect(() => {
 }, [idPerfil.id]);
 
 return (
-    <main className="bg-[#FDF9F2] min-h-screen">
+    <main className="bg-background min-h-screen">
                 <Navbar />
                 <ProfileHeader
                     perfil={perfil}

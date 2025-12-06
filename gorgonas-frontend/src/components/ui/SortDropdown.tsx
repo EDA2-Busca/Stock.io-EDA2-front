@@ -58,7 +58,7 @@ export default function SortDropdown({ currentSort, onSortChange }: SortDropdown
           
           {/* Cabeçalho do Dropdown */}
           <div className="flex justify-between items-center mb-4 px-2" onClick={() => setIsOpen(false)}>
-            <span className="text-[#6A38F3] font-bold text-lg">ordenar</span>
+            <span className="text-primary font-bold text-lg">ordenar</span>
             <ArrowUp />
           </div>
 
@@ -69,12 +69,12 @@ export default function SortDropdown({ currentSort, onSortChange }: SortDropdown
               className="flex items-center gap-3 cursor-pointer group"
             >
               <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center
-                ${currentSort === 'id' ? 'border-[#6A38F3] bg-[#6A38F3]' : 'border-[#A891F3]'}`}
+                ${currentSort === 'id' ? 'border-[#6A38F3] bg-primary' : 'border-[#A891F3]'}`}
               >
                 
                 {currentSort === 'id' && <div className="w-2 h-2 bg-white rounded-full" />}
               </div>
-              <span className="text-[#A891F3] font-light text-lg group-hover:text-[#6A38F3]">
+              <span className="text-[#A891F3] font-light text-lg group-hover:text-primary">
                 Padrão <span className="text-sm">⇅</span>
               </span>
             </li>
@@ -84,11 +84,11 @@ export default function SortDropdown({ currentSort, onSortChange }: SortDropdown
               className="flex items-center gap-3 cursor-pointer group"
             >
               <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center
-                ${currentSort === 'preco' ? 'border-[#6A38F3] bg-[#6A38F3]' : 'border-[#A891F3]'}`}
+                ${currentSort === 'preco' ? 'border-[#6A38F3] bg-primary' : 'border-[#A891F3]'}`}
               >
                 {currentSort === 'preco' && <div className="w-2 h-2 bg-white rounded-full" />}
               </div>
-              <span className="text-[#A891F3] font-light text-lg group-hover:text-[#6A38F3]">
+              <span className="text-[#A891F3] font-light text-lg group-hover:text-primary">
                 Preço <span className="text-sm">$</span>
               </span>
             </li>
@@ -98,11 +98,11 @@ export default function SortDropdown({ currentSort, onSortChange }: SortDropdown
               className="flex items-center gap-3 cursor-pointer group"
             >
               <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center
-                ${currentSort === 'rating' ? 'border-[#6A38F3] bg-[#6A38F3]' : 'border-[#A891F3]'}`}
+                ${currentSort === 'rating' ? 'border-[#6A38F3] bg-primary' : 'border-[#A891F3]'}`}
               >
                 {currentSort === 'rating' && <div className="w-2 h-2 bg-white rounded-full" />}
               </div>
-              <span className="text-[#A891F3] font-light text-lg group-hover:text-[#6A38F3]">
+              <span className="text-[#A891F3] font-light text-lg group-hover:text-primary">
                 Avaliação <span className="text-sm">☆</span>
               </span>
             </li>
@@ -112,11 +112,11 @@ export default function SortDropdown({ currentSort, onSortChange }: SortDropdown
               className="flex items-center gap-3 cursor-pointer group"
             >
               <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center
-                ${currentSort === 'createdAt' ? 'border-[#6A38F3] bg-[#6A38F3]' : 'border-[#A891F3]'}`}
+                ${currentSort === 'createdAt' ? 'border-[#6A38F3] bg-primary' : 'border-[#A891F3]'}`}
               >
                 {currentSort === 'createdAt' && <div className="w-2 h-2 bg-white rounded-full" />}
               </div>
-              <span className="text-[#A891F3] font-light text-lg group-hover:text-[#6A38F3]">
+              <span className="text-[#A891F3] font-light text-lg group-hover:text-primary">
                 Mais Recente <span className="text-sm">🕒</span>
               </span>
             </li>

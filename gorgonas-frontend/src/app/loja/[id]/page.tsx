@@ -217,7 +217,7 @@ export default function StorePage() {
 
   return (
     // Layout principal
-    <main className="bg-[#FDF9F2] min-h-screen">
+    <main className="bg-background min-h-screen">
       <Navbar />
 
       {/* Banner full-width */}
@@ -281,8 +281,8 @@ export default function StorePage() {
         {/* Produtos da loja (grid) */}
         <section className="pb-12">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-[#171918]">Produtos de {storeName}</h2>
-            <a href={`/loja/${id}/produtos`} className="text-sm text-[#6A38F3] hover:underline">
+            <h2 className="text-2xl font-bold text-foreground">Produtos de {storeName}</h2>
+            <a href={`/loja/${id}/produtos`} className="text-sm text-primary hover:underline">
               ver mais
             </a>
           </div>

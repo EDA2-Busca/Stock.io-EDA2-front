@@ -71,7 +71,7 @@ export function ReviewSection({ reviews }: ReviewSectionProps) {
         </div>
 
         {/* Link Ver Mais (Alinhado à direita) */}
-        <a href="/avaliacoes" className="text-lg text-[#6A38F3] hover:underline font-lato w-20 text-right">
+        <a href="/avaliacoes" className="text-lg text-primary hover:underline font-lato w-20 text-right">
           ver mais
         </a>
       </div>

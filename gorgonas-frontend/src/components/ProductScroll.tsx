@@ -26,11 +26,11 @@ export default function ProductScroll({ title, products, seeMoreLink }: ProductS
     <section className="w-full mb-12">
       {/* Título da Secção e "ver mais" */}
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold text-[#171918]">
+        <h2 className="text-2xl font-bold text-foreground">
           {title}
         </h2>
         {seeMoreLink && (
-          <a href={seeMoreLink} className="text-sm text-[#6A38F3] hover:underline">
+          <a href={seeMoreLink} className="text-sm text-primary hover:underline">
             ver mais
           </a>
         )}

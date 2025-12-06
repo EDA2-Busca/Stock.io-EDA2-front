@@ -105,7 +105,7 @@ export default function ImageUploadDropzone({ label, onFileChange, initialPrevie
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center h-full z-0 pointer-events-none px-4">
-          <div className="text-[#6A38F3] mb-3 bg-purple-100 p-3 rounded-full">
+          <div className="text-primary mb-3 bg-purple-100 p-3 rounded-full">
             <FiUpload size={24} />
           </div>
           <span className="text-sm font-medium text-gray-700">

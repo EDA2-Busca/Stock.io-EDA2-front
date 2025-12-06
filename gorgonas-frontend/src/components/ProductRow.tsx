@@ -32,7 +32,7 @@ export function ProductRow({ title, products, viewMoreHref }: ProductRowProps) {
             </h2>)}
 
             <div className="flex justify-end mb-4">
-                <Link href={viewMoreHref} className="text-sm text-[#6A38F3] hover:underline">
+                <Link href={viewMoreHref} className="text-sm text-primary hover:underline">
                     ver mais
                 </Link>
             </div>

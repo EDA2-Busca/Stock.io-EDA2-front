@@ -90,9 +90,9 @@ export default function LojasPage() {
     return(
     <section className="pb-12">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold text-[#171918]">{titulo}</h2>
+        <h2 className="text-2xl font-bold text-foreground">{titulo}</h2>
 
-        <a href={link} className="text-sm text-[#6A38F3] hover:underline">
+        <a href={link} className="text-sm text-primary hover:underline">
           ver mais
         </a>
       </div>
@@ -123,7 +123,7 @@ export default function LojasPage() {
 
   if (isLoading) {
     return (
-      <main className="bg-[#FDF9F2] min-h-screen">
+      <main className="bg-background min-h-screen">
         <header className="w-full bg-black relative overflow-hidden -mt-px pt-px">
           <div aria-hidden className="absolute inset-x-0 -top-px h-px bg-black" />
           <Navbar />
@@ -153,7 +153,7 @@ export default function LojasPage() {
 
   
   return (
-    <main className="bg-[#FDF9F2] min-h-screen">
+    <main className="bg-background min-h-screen">
       {/* HEADER IGUAL AO DE PRODUTOS */}
       <header className="w-full bg-black relative overflow-hidden -mt-px pt-px">
         <div aria-hidden className="absolute inset-x-0 -top-px h-px bg-black" />

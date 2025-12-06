@@ -25,7 +25,7 @@ export default function Modal({ isOpen, onClose, onConfirm, title, children }: M
       />
       
       {/* Conteúdo do Modal (Estilizado) */}
-      <div className="relative z-10 w-[90%] max-w-sm bg-[#171918] rounded-xl p-6 shadow-lg border border-gray-700">
+      <div className="relative z-10 w-[90%] max-w-sm bg-foreground rounded-xl p-6 shadow-lg border border-gray-700">
         
         <h3 className="text-lg font-semibold text-white">
           {title}
@@ -39,7 +39,7 @@ export default function Modal({ isOpen, onClose, onConfirm, title, children }: M
         <div className="mt-4 flex justify-end">
           <button
             onClick={onConfirm}
-            className="px-4 py-2 rounded-md bg-[#6A38F3] text-white font-semibold hover:opacity-90 transition cursor-pointer"
+            className="px-4 py-2 rounded-md bg-primary text-white font-semibold hover:opacity-90 transition cursor-pointer"
           >
             OK
           </button>

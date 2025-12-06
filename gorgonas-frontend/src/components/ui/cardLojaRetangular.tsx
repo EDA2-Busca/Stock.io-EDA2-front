@@ -24,7 +24,7 @@ export function StoreCard({ id, nome, categoria, imagemUrl }: StoreCardProps) {
           <h3 className="font-merriweather text-3xl text-black font-normal">
             {nome}
           </h3>
-          <p className="font-lato text-xl font-medium text-[#6A38F3] lowercase">
+          <p className="font-lato text-xl font-medium text-primary lowercase">
             {categoria.nome}
           </p>
         </div>

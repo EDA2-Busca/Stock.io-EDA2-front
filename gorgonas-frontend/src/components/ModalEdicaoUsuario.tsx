@@ -181,12 +181,12 @@ export function ModalEdicaoUsuario({ isOpen, onClose, onEditPassword, initialDat
 
           <button
             onClick={onEditPassword}
-            className="w-full py-3.5 rounded-full border-2 border-[#6A38F3] text-[#6A38F3] font-semibold hover:bg-purple-50 transition-colors font-lato"
+            className="w-full py-3.5 rounded-full border-2 border-[#6A38F3] text-primary font-semibold hover:bg-purple-50 transition-colors font-lato"
           >
             Alterar senha
           </button>
 
-          <button onClick={handleSalvar} className="w-full py-3.5 rounded-full bg-[#6A38F3] text-white font-semibold shadow-lg shadow-purple-200 hover:bg-[#5829d6] transition-all active:scale-[0.98] font-lato">
+          <button onClick={handleSalvar} className="w-full py-3.5 rounded-full bg-primary text-white font-semibold shadow-lg shadow-purple-200 hover:bg-[#5829d6] transition-all active:scale-[0.98] font-lato">
             Salvar
           </button>
         </div>

@@ -104,12 +104,12 @@ export default function NotificationBell() {
 
             {isOpen && (
                 <div className="absolute right-0 mt-2 w-90 bg-white rounded-xl shadow-2xl overflow-hidden z-50 border border-gray-100">
-                    <div className="bg-[#FDF9F2] px-4 py-3 border-b border-gray-100 flex justify-between items-center">
+                    <div className="bg-background px-4 py-3 border-b border-gray-100 flex justify-between items-center">
                         <h3 className="text-sm font-bold text-gray-700">Notificações</h3>
                         {unreadCount > 0 && (
                             <button
                                 onClick={handleMarkAllRead}
-                                className="flex items-center gap-1 text-xs text-gray-500 hover:text-[#6A38F3] transition-colors"
+                                className="flex items-center gap-1 text-xs text-gray-500 hover:text-primary transition-colors"
                                 title="Marcar todas como lidas"
                             >
                                 <FaTrashAlt size={10} /> Limpar
@@ -133,7 +133,7 @@ export default function NotificationBell() {
                                     >
                                         <div className="px-4 py-3 pr-10">
                                             <div className="flex items-center gap-2 mb-1">
-                                                {!n.lida && <FaCircle size={6} className="text-[#6A38F3]" />}
+                                                {!n.lida && <FaCircle size={6} className="text-primary" />}
                                                 <span className="text-xs text-gray-400">
                                                     {new Date(n.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
                                                 </span>
@@ -145,7 +145,7 @@ export default function NotificationBell() {
                                         {!n.lida && (
                                             <button
                                                 onClick={(e) => handleMarkAsRead(e, n.id)}
-                                                className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-[#6A38F3] hover:bg-white rounded-full transition-all"
+                                                className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-primary hover:bg-white rounded-full transition-all"
                                                 title="Marcar como lida"
                                             >
                                                 <FaCheck size={12} />

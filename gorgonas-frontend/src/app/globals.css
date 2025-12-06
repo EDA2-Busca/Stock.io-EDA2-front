@@ -1,27 +1,47 @@
 @import "tailwindcss";
-@tailwind utilities;
 
-:root {
-  --background: #FDF9F2;
-  --foreground: #171717;
-}
-
-@theme inline {
+/* 1. O bloco @theme diz ao Tailwind: 
+  "Crie classes novas baseadas nessas variáveis".
+  
+  Isso cria automaticamente: bg-background, text-primary, etc.
+*/
+@theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-primary: var(--primary);
+  --color-header-bg: var(--header-bg);
+  --color-header-text: var(--header-text);
+  --color-muted: var(--muted);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* 2. Aqui definimos os valores reais das cores (RGB/HEX)
+*/
+:root {
+  /* --- MODO CLARO (Seus valores originais) --- */
+  --background: #FDF9F2;
+  --foreground: #171918;
+  --primary: #6A38F3;
+  --header-bg: #000000;
+  --header-text: #ffffff;
+  --muted: #6b7280;
 }
 
+/* 3. Aqui definimos os valores para quando o Modo Escuro estiver ativo 
+*/
+[data-theme='dark'] {
+  /* --- MODO ESCURO --- */
+  --background: #121212;      /* Fundo escuro */
+  --foreground: #ededed;      /* Texto claro */
+  --primary: #a78bfa;         /* Roxo mais claro */
+  --header-bg: #1a1a1a;       /* Header cinza escuro */
+  --header-text: #ffffff;
+  --muted: #a3a3a3;
+}
+
+/* Estilos base */
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* Transição suave nas cores */
+  transition: background-color 0.3s, color 0.3s; 
 }

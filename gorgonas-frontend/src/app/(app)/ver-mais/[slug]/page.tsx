@@ -64,7 +64,7 @@ export default function VerMaisPage() {
     <>
     <Navbar />
 
-    <main className="bg-[#FDF9F2] min-h-screen">
+    <main className="bg-background min-h-screen">
 
       <div className="container mx-auto max-w-7xl p-4 md:p-8">
         

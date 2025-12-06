@@ -174,7 +174,7 @@ export default function StoreReviewsPage() {
             </div>
             {showActions && (
               <div className="mt-6 flex items-center justify-center gap-3">
-                <button onClick={() => setIsCreateOpen(true)} className="inline-flex items-center justify-center rounded-full bg-[#6A38F3] text-white px-6 py-3 text-sm font-semibold shadow-sm hover:brightness-110 transition">
+                <button onClick={() => setIsCreateOpen(true)} className="inline-flex items-center justify-center rounded-full bg-primary text-white px-6 py-3 text-sm font-semibold shadow-sm hover:brightness-110 transition">
                   Adicionar Review
                 </button>
               </div>
@@ -215,7 +215,7 @@ export default function StoreReviewsPage() {
                 <button
                   key={n}
                   onClick={() => setPage(n)}
-                  className={`w-8 h-8 rounded-full border ${isActive ? "bg-[#6A38F3] text-white border-[#6A38F3]" : "bg-white text-[#171918] border-[#ddd]"}`}
+                  className={`w-8 h-8 rounded-full border ${isActive ? "bg-primary text-white border-[#6A38F3]" : "bg-white text-foreground border-[#ddd]"}`}
                 >
                   {n}
                 </button>

@@ -36,7 +36,7 @@ export function StoreCard({ id, name, category, imageUrl }: StoreCardProps) {
             {name}
           </p>
 
-          <p className="mt-0.5 text-[13px] font-medium lowercase text-[#6A38F3]">
+          <p className="mt-0.5 text-[13px] font-medium lowercase text-primary">
             {category}
           </p>
         </div>

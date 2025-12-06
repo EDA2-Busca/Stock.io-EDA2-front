@@ -115,7 +115,7 @@ export default function LoginPage() {
         {/* Lado Direito: Formulário de Login */}
         <div className="md:w-1/2 w-full flex items-stretch justify-center">
           <div
-            className="w-full max-w-lg bg-[#171918] text-white p-8 md:p-12 shadow-xl flex flex-col justify-center h-full overflow-hidden rounded-[18px] md:rounded-[36px]"
+            className="w-full max-w-lg bg-foreground text-white p-8 md:p-12 shadow-xl flex flex-col justify-center h-full overflow-hidden rounded-[18px] md:rounded-[36px]"
             style={{ boxSizing: 'border-box' }}
           >
             <h1 className="text-center text-2xl md:text-3xl font-extrabold tracking-wide text-white mb-10 mt-8">

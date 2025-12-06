@@ -65,7 +65,7 @@ export default function EditCommentModal({ isOpen, onClose, initialText, onSubmi
             <button
               type="submit"
               disabled={!text.trim() || loading}
-              className="flex-1 bg-[#6A38F3] disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl text-base hover:bg-[#5a2ee0] transition-colors shadow-md"
+              className="flex-1 bg-primary disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl text-base hover:bg-[#5a2ee0] transition-colors shadow-md"
             >
               {loading ? 'Salvando...' : 'Salvar alterações'}
             </button>

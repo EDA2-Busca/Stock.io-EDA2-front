@@ -22,7 +22,7 @@ export default function Pagination() {
           className={`
             px-4 py-2 rounded-md 
             ${currentPage === page 
-              ? 'bg-[#6A38F3] text-white font-bold' 
+              ? 'bg-primary text-white font-bold' 
               : 'text-gray-600 hover:bg-gray-100'}
           `}
         >

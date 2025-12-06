@@ -132,7 +132,7 @@ export default function EditReviewModal({ isOpen, onClose, storeName, initialRat
             <button
               type="submit"
               disabled={!canSave || saving}
-              className="w-full bg-[#6A38F3] disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl text-lg hover:bg-[#5a2ee0] transition-colors shadow-md"
+              className="w-full bg-primary disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl text-lg hover:bg-[#5a2ee0] transition-colors shadow-md"
             >
               {saving ? 'Salvando...' : 'Salvar'}
             </button>

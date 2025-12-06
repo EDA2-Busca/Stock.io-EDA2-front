@@ -4,6 +4,7 @@ import { AuthProvider } from '../contexts/AuthContext';
 import type { Metadata } from 'next';
 import { League_Spartan } from 'next/font/google';
 import './globals.css';
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 // 2. Configure a fonte (REMOVA O CAMPO 'variable')
 const leagueSpartan = League_Spartan({
@@ -25,10 +26,12 @@ export default function RootLayout({
     <html lang="pt-br">
       <body className={leagueSpartan.className}> 
         <AuthProvider>
+        <ThemeProvider>
         {/* Renderiza o conteúdo das páginas */}
         {children} 
         {/* Adiciona o container de notificações */}
         <ToastProvider />
+        </ThemeProvider>
         </AuthProvider>
       </body>
     </html>

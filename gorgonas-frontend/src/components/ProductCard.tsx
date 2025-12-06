@@ -82,7 +82,7 @@ export function ProductCard(props: any) {
           <div className="flex items-end gap-1 mb-3">
             <span className="text-xl font-bold text-gray-900">R${produto.preco}</span>
             {produto.unidade && (
-              <span className="text-sm text-[#6A38F3] pb-0.5">/{produto.unidade}</span>
+              <span className="text-sm text-primary pb-0.5">/{produto.unidade}</span>
             )}
           </div>
 

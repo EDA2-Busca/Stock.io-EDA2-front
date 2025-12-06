@@ -14,7 +14,7 @@ function Pager({ currentPage, totalPages, onPageChange }: { currentPage: number;
     <nav className="flex justify-center items-center space-x-2 mt-8">
       <button disabled={currentPage === 1} onClick={() => onPageChange(currentPage - 1)} className="px-3 py-2 rounded-md text-sm disabled:opacity-40 bg-gray-50 hover:bg-gray-100">&lt;</button>
       {pages.map(p => (
-        <button key={p} onClick={() => onPageChange(p)} className={`px-3 py-2 rounded-md text-sm ${p === currentPage ? 'bg-[#6A38F3] text-white font-semibold' : 'bg-gray-50 hover:bg-gray-100'}`}>{p}</button>
+        <button key={p} onClick={() => onPageChange(p)} className={`px-3 py-2 rounded-md text-sm ${p === currentPage ? 'bg-primary text-white font-semibold' : 'bg-gray-50 hover:bg-gray-100'}`}>{p}</button>
       ))}
       <button disabled={currentPage === totalPages} onClick={() => onPageChange(currentPage + 1)} className="px-3 py-2 rounded-md text-sm disabled:opacity-40 bg-gray-50 hover:bg-gray-100">&gt;</button>
     </nav>
@@ -114,12 +114,12 @@ export default function LojaProdutosPage() {
   const handlePageChange = (p: number) => updateQuery({ page: p });
 
   return (
-    <main className="bg-[#FDF9F2] min-h-screen">
+    <main className="bg-background min-h-screen">
       <Navbar />
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-[#171918]">Todos os Produtos</h1>
-          <a href={`/loja/${lojaId}`} className="text-sm text-[#6A38F3] hover:underline">Voltar para a loja</a>
+          <h1 className="text-3xl font-bold text-foreground">Todos os Produtos</h1>
+          <a href={`/loja/${lojaId}`} className="text-sm text-primary hover:underline">Voltar para a loja</a>
         </div>
         <section className="mb-6 bg-white rounded-xl p-4 shadow-sm border border-gray-100">
           <div className="flex flex-wrap gap-4 items-end">

@@ -31,7 +31,7 @@ const categories = [
 export default function CategoryList() {
   return (
     <section className="w-full"> 
-      <h2 className="text-2xl font-bold text-[#171918] mb-4">
+      <h2 className="text-2xl font-bold text-foreground mb-4">
         Categorias
       </h2>
       
