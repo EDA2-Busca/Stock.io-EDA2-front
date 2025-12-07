@@ -1,115 +1,163 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import api from "@/utilis/api";
-import Image from "next/image";
 import { Navbar } from "@/components/Navbar";
+import { StoreCard } from "@/components/ui/StoreCard";
+import api from "@/utilis/api";
+import SearchBar from "@/components/ui/SearchBar";
+import CategoryList from "@/components/CategoryList";
+import StoresFilter from "@/components/ui/StoresFilter";
 
-
-interface LojaDetalhe {
+type Loja = {
   id: number;
   nome: string;
-  categoria?: { nome: string };
-  logo_url?: string | null;
-  banner_url?: string | null;
-}
+  categoria: string;
+  logo: string | null;
+  slug?: string;
+};
 
-export default function LojaPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default function LojasPage() {
+  const [mercadoLojas, setMercadoLojas] = useState<Loja[]>([]);
+  const [farmaciaLojas, setFarmaciaLojas] = useState<Loja[]>([]);
+  const [belezaLojas, setBelezaLojas] = useState<Loja[]>([]);
+  const [modaLojas, setModaLojas] = useState<Loja[]>([]);
+  const [eletronicosLojas, setEletronicosLojas] = useState<Loja[]>([]);
+  const [jogosLojas, setJogosLojas] = useState<Loja[]>([]);
+  const [brinquedosLojas, setBrinquedosLojas] = useState<Loja[]>([]);
+  const [casaLojas, setCasaLojas] = useState<Loja[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [loja, setLoja] = useState<LojaDetalhe | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   useEffect(() => {
-    const fetchLoja = async () => {
+    const fetchStores = async () => {
       try {
-        setLoading(true);
-        const response = await api.get(`/lojas/${id}`);
-        setLoja(response.data);
+        setIsLoading(true);
+
+        const response = await api.get("/lojas");
+        const lojasApi = response.data as any[];
+
+        const lojas: Loja[] = lojasApi.map((loja) => ({
+          id: loja.id,
+          nome: loja.nome,
+          categoria: loja.categoria?.nome?.toLowerCase() ?? "",
+          logo: loja.logo_url ?? loja.banner_url ?? null,
+          slug: loja.slug ?? String(loja.id),
+        }));
+
+        setMercadoLojas(lojas.filter((l) => l.categoria === "mercado"));
+        setFarmaciaLojas(lojas.filter((l) => l.categoria === "farmácia" || l.categoria === "farmacia"));
+        setBelezaLojas(lojas.filter((l) => l.categoria === "beleza"));
+        setModaLojas(lojas.filter((l) => l.categoria === "moda"));
+        setEletronicosLojas(lojas.filter((l) => l.categoria === "eletrônicos" || l.categoria === "eletronicos"));
+        setJogosLojas(lojas.filter((l) => l.categoria === "jogos"));
+        setBrinquedosLojas(lojas.filter((l) => l.categoria === "brinquedos"));
+        setCasaLojas(lojas.filter((l) => l.categoria === "casa"));
+
       } catch (err) {
-        console.error("Erro ao buscar detalhes da loja:", err);
+        console.error("Erro ao carregar lojas:", err);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
-    fetchLoja();
-  }, [id]);
+    fetchStores();
+  }, []);
 
-  if (loading) {
-    return (
-      <main className="bg-[#FDF9F2] min-h-screen">
-        <Navbar />
-        <div className="max-w-7xl mx-auto px-8 py-20 text-center">
-          <p className="text-gray-600 text-lg">Carregando loja...</p>
-        </div>
-      </main>
-    );
-  }
+  const renderSecao = (titulo: string, link: string, lojas: Loja[]) => (
+    <section className="pb-12">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold text-[#171918]">{titulo}</h2>
+        <a href={link} className="text-sm text-[#6A38F3] hover:underline">
+          ver mais
+        </a>
+      </div>
 
-  if (!loja) {
-    return (
-      <main className="bg-[#FDF9F2] min-h-screen">
-        <Navbar />
-        <div className="max-w-7xl mx-auto px-8 py-20 text-center">
-          <p className="text-red-500 text-lg">
-            Loja não encontrada. Verifique o ID.
-          </p>
+      <div className="overflow-x-auto pb-4">
+        <div className="flex flex-nowrap gap-6">
+          {lojas.length > 0 ? (
+            lojas.map((loja) => (
+              <div key={loja.id} className="shrink-0 w-64">
+                <StoreCard
+                  name={loja.nome}
+                  category={loja.categoria}
+                  imageUrl={loja.logo || "/StockIo.png"}
+                  slug={loja.slug}
+                />
+              </div>
+            ))
+          ) : (
+            <p className="text-center text-gray-500 text-lg">
+              Nenhuma loja foi encontrada nesta categoria.
+            </p>
+          )}
         </div>
-      </main>
-    );
-  }
+      </div>
+    </section>
+  );
+
+  const categoriaMap = {
+    mercado: mercadoLojas,
+    farmácia: farmaciaLojas,
+    farmacia: farmaciaLojas,
+    beleza: belezaLojas,
+    moda: modaLojas,
+    eletrônicos: eletronicosLojas,
+    eletronicos: eletronicosLojas,
+    jogos: jogosLojas,
+    brinquedos: brinquedosLojas,
+    casa: casaLojas,
+  };
 
   return (
     <main className="bg-[#FDF9F2] min-h-screen">
-      <header className="w-full bg-black relative">
+      <header className="w-full bg-black relative overflow-hidden -mt-px pt-px">
         <Navbar />
+
+        <section className="w-full h-[30vh] flex items-center justify-center [&_h2]:text-white">
+          <div>
+            <CategoryList />
+          </div>
+        </section>
       </header>
 
-      <div className="max-w-7xl mx-auto px-8 py-12">
-        {/* Cabeçalho da loja */}
-        <section className="flex items-center gap-8">
-          <div className="w-40 h-40 flex items-center justify-center rounded-full bg-white shadow ring-1 ring-black/5">
-            <Image
-              src={loja.logo_url || "/StockIo.png"}
-              alt={loja.nome}
-              width={140}
-              height={140}
-              className="object-contain"
-            />
+      <div className="max-w-7xl mx-auto px-8">
+
+        {/* 🔥 AQUI ESTÁ A LINHA CORRIGIDA */}
+        <section className="py-6 flex items-center justify-between gap-4">
+
+          {/* 🟣 Filtro alinhado à esquerda */}
+          <div className="flex-shrink-0">
+            <StoresFilter onFilterChange={setSelectedCategories} direction="down" />
           </div>
 
-          <div>
-            <h1 className="text-4xl font-bold text-[#171918]">{loja.nome}</h1>
-            <p className="text-xl text-[#6A38F3] mt-1">
-              {loja.categoria?.nome || "Categoria não especificada"}
-            </p>
-          </div>
+          {/* 🔍 SearchBar alinhado à direita */}
+          <SearchBar className="max-w-md ml-auto" onSearch={() => {}} />
         </section>
 
-        {/* Banner */}
-        {loja.banner_url && (
-          <div className="mt-12 w-full">
-            <Image
-              src={loja.banner_url}
-              alt="Banner da loja"
-              width={1200}
-              height={400}
-              className="w-full h-64 object-cover rounded-xl shadow"
-            />
-          </div>
+        {selectedCategories.length === 0 && (
+          <>
+            {renderSecao("Lojas em Mercado", "/lojas/ver-mais/mercado", mercadoLojas)}
+            {renderSecao("Lojas em Farmácia", "/lojas/ver-mais/farmacia", farmaciaLojas)}
+            {renderSecao("Lojas em Beleza", "/lojas/ver-mais/beleza", belezaLojas)}
+            {renderSecao("Lojas em Moda", "/lojas/ver-mais/moda", modaLojas)}
+            {renderSecao("Lojas em Eletrônicos", "/lojas/ver-mais/eletronicos", eletronicosLojas)}
+            {renderSecao("Lojas em Jogos", "/lojas/ver-mais/jogos", jogosLojas)}
+            {renderSecao("Lojas em Brinquedos", "/lojas/ver-mais/brinquedos", brinquedosLojas)}
+            {renderSecao("Lojas em Casa", "/lojas/ver-mais/casa", casaLojas)}
+          </>
         )}
 
-        {/* Placeholder para futuros produtos */}
-        <section className="mt-16">
-          <h2 className="text-2xl font-bold text-[#171918] mb-6">
-            Produtos desta loja
-          </h2>
+        {selectedCategories.length > 0 &&
+          selectedCategories.map((cat) => {
+            const lista = categoriaMap[cat];
+            if (!lista) return null;
 
-          <p className="text-gray-500">
-            Em breve: listagem de produtos vinculados à loja.
-          </p>
-        </section>
+            const titulo =
+              "Lojas em " + cat.charAt(0).toUpperCase() + cat.slice(1);
+
+            return renderSecao(titulo, `/lojas/ver-mais/${cat}`, lista);
+          })}
       </div>
     </main>
   );
