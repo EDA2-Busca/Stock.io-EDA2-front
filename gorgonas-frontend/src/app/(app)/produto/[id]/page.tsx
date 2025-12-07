@@ -45,7 +45,7 @@
         const [relatedProducts, setRelatedProducts] = useState<Products[]>([]);
         const [modalOpen, setModalOpen] = useState(false);
         const [produtoSelecionado, setProdutoSelecionado] = useState<ProdutoCompleto | null>(null);
-
+        console.log("PRODUTO SELECIONADO ->", produtoSelecionado);
 
      const openEditModal = () => {
   if (!products) return;
@@ -222,7 +222,6 @@
                                 const isAvailable = (related.estoque || 0) > 0;
                                 const imageUrl = related.imagens?.[0]?.urlImagem || '/placeholder/default-product.png';
                                 const badgeUrl = related.loja?.banner_url;
-
                                 return (
                                     <ProductCard
                                         key={related.id}
@@ -243,12 +242,23 @@
                         isOpen={modalOpen}
                         onClose={closeModal}
                         produto={produtoSelecionado}
-                        onUpdated={() => {
-                            console.log("Produto atualizado!");
+                        onUpdated={async () => {
+                            const response = await api.get(`/produtos/${id}`);
+                            setProducts(response.data);
                         }}
-                        onDeleted={() => {
+
+                        onDeleted={async () => {
                             console.log("Produto deletado!");
-                        }}
+
+                            // 1. Vai buscar o produto novamente para confirmar deleção
+                            try {
+                                await api.get(`/produtos/${id}`);
+                                } catch (_) {
+                                 // 2. Se der erro, significa que foi deletado mesmo → redireciona!
+                                router.push(`/loja/${products?.lojaId}`);
+                                }
+                            }}
+
                     />
                 )}
 

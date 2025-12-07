@@ -1,5 +1,5 @@
 'use client';
-
+import api from "@/utilis/api";
 import React, { useEffect, useMemo, useState } from 'react';
 import { IoAdd, IoCameraOutline, IoClose, IoRemove } from 'react-icons/io5';
 
@@ -84,16 +84,39 @@ export default function EditarProdutoModal({
     setQuantidade((prev) => Math.max(0, prev + amount));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onUpdated();
-    onClose();
-  };
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-  const handleDelete = () => {
+  try {
+    await api.patch(`/produtos/${produto.id}`, {
+      nome,
+      descricao,
+      preco: parseFloat(preco.replace(",", ".")),
+      estoque: quantidade,
+      subcategoriaId: Number(subcategoriaId),
+    });
+
+    onUpdated(); // avisa o componente pai para recarregar
+    onClose();
+
+  } catch (err) {
+    console.error("Erro ao atualizar produto:", err);
+    alert("Erro ao atualizar produto.");
+  }
+};
+
+
+ const handleDelete = async () => {
+  try {
+    await api.delete(`/produtos/${produto.id}`);
     onDeleted();
     onClose();
-  };
+  } catch (err) {
+    console.error("Erro ao deletar produto:", err);
+    alert("Erro ao deletar produto.");
+  }
+};
+
 
   if (!isOpen) return null;
 
