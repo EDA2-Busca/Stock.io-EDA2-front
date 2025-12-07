@@ -46,8 +46,8 @@ export default function StoreList({ categoria }: StoreListProps) {
     selectedCategories.length === 0
       ? stores
       : stores.filter((s) =>
-          selectedCategories.includes(s.categoria?.nome || "")
-        );
+        selectedCategories.includes(s.categoria?.nome || "")
+      );
 
   return (
     <section className="mt-10">
@@ -72,19 +72,22 @@ export default function StoreList({ categoria }: StoreListProps) {
       {/* LISTA DE LOJAS */}
       <div className="flex gap-[30px] overflow-x-auto pb-2">
         {loading && <p className="text-gray-500">Carregando...</p>}
-{!loading && filteredStores.length > 0 &&
-  filteredStores.map((store) => (
-    <StoreCard
-      key={store.id}
-      id={store.id}
-      name={store.nome}
-      category={store.categoria?.nome || "categoria"}
-      imageUrl={store.logo || "/StockIo.png"}
-    />
-  ))
-}
+        {!loading && filteredStores.length > 0 &&
+          filteredStores.map((store) => (
+            <StoreCard
+              key={store.id}
+              id={store.id}
+              name={store.nome}
+              category={store.categoria?.nome || "categoria"}
+              imageUrl={store.sticker || "/StockIo.png"}
+            />
+          ))
+        }
 
-{!loading && filteredStores.length === 0 && (
-  <p className="text-gray-500">Nenhuma loja encontrada.</p>
-)}
-</div>
+        {!loading && filteredStores.length === 0 && (
+          <p className="text-gray-500">Nenhuma loja encontrada.</p>
+        )}
+      </div>
+    </section>
+  );
+}
