@@ -2,14 +2,8 @@ import axios from 'axios';
 
 // Garante funcionamento mesmo se a env não estiver definida (dev local)
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001',
 });
-
-if (!process.env.NEXT_PUBLIC_API_BASE_URL) {
-  // Log leve para ajudar a detectar ambiente sem variável configurada
-  // eslint-disable-next-line no-console
-  console.warn('[API] NEXT_PUBLIC_API_BASE_URL não definida, usando http://localhost:3000');
-}
 
 api.interceptors.request.use(
   (config) => {

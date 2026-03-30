@@ -47,7 +47,7 @@ export function Navbar() {
                 : "bg-[url('/lojinha.png')] hover:bg-[url('/lojinha-hover.png')]"
             }`} />
           </Link>
-          <Link href="/perfil">
+          <Link href={`/perfil/${user.id}`}>
             <div className={`${baseClass} ${
               pathname.startsWith('/perfil') 
                 ? "bg-[url('/avatar-hover.png')]" 

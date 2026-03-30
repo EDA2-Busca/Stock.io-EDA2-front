@@ -86,7 +86,6 @@ export default function SearchBar({ className, placeholder, onSearch, fetchSugge
         </div>
       </form>
 
-      {/* 7. Renderização da Lista (Dropdown) */}
       {showSuggestions && suggestions.length > 0 && (
         <div className="absolute top-14 left-0 w-full bg-white shadow-lg rounded-b-2xl border-t border-gray-100 z-10 overflow-hidden">
           <ul>
@@ -97,7 +96,6 @@ export default function SearchBar({ className, placeholder, onSearch, fetchSugge
                   onClick={() => handleSelectSuggestion(item)}
                   className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 transition-colors border-b border-gray-50 last:border-0"
                 >
-                  {/* Ícone ou Imagem pequena */}
                   <div className="w-8 h-8 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden flex-shrink-0">
                      {item.imagem ? (
                         <img src={item.imagem} alt="" className="w-full h-full object-cover"/>

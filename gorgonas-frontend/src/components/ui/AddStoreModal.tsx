@@ -67,7 +67,8 @@ const handleSubmit = async (e: React.FormEvent) => {
       // Payload conforme esperado pelo seu DTO (CreateLojaDto)
       const formData = new FormData();
       formData.append('nome', nomeLoja);
-      formData.append('categoriaId', categoriaId);
+
+      formData.append('categoriaId', Math.floor(Number(categoriaId)).toString());
       if (perfilFile) formData.append('logo', perfilFile); 
       if (logoFile) formData.append('banner', logoFile);   
       if (bannerFile) formData.append('sticker', bannerFile);

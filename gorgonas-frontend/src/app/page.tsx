@@ -106,14 +106,10 @@ export default function HomePage() {
       const topResults = response.data.slice(0, 5);
       return topResults.map((prod: any) => {
         const rawPath = prod.imagens?.[0]?.urlImagem;
-        const fullUrl = rawPath
-          ? `${API_URL}/${rawPath.replace(/\\/g, '/')}`
-          : undefined;
-
         return {
           id: prod.id,
           nome: prod.nome,
-          imagem: fullUrl,
+          imagem: rawPath,
           tipo: 'produto'
         };
       });
@@ -166,7 +162,7 @@ export default function HomePage() {
           />
         </section>
 
-        {searchResults ? ( 
+        {searchResults ? (
 
           <section className="pb-12">
             <div className="flex justify-between items-center mb-4">
@@ -200,7 +196,7 @@ export default function HomePage() {
               )}
             </div>
           </section>
-        ) : ( 
+        ) : (
           <>
             <section className="pb-6">
               <CategoryList />
