@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import api from '../utilis/api';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation'; // <-- Importação correta e única do router
 
 // 1. Define a interface do Usuário
 interface User {
@@ -28,54 +28,50 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // 4. Cria o Provedor do Contexto
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // Começa 'carregando'
+  const [isLoading, setIsLoading] = useState(true);
+
+  // O HOOK TEM QUE FICAR AQUI, NO TOPO DO COMPONENTE!
+  const router = useRouter(); 
 
   // 5. Lógica de Hidratação do Usuário
   useEffect(() => {
     const checkUserSession = async () => {
-      // Pega o token do localStorage (o mesmo nome que o LoginPage usa)
-      const token = localStorage.getItem('token'); 
-
+      const token = localStorage.getItem('token');
+      
       if (token) {
         try {
-          // Decodifica o token para pegar o ID (sub)
           const decoded: { sub?: string } = jwtDecode(token);
 
           if (decoded.sub) {
-            // Token é válido, agora busca os dados reais do usuário na API
-            // (Isso SÓ funciona se o 'api.ts' já estiver com o Interceptor)
             const { data: userData } = await api.get(`/usuario/${decoded.sub}`);
-            setUser(userData); // Usuário está logado!
+            setUser(userData); 
           } else {
-            // Token mal formado
             localStorage.removeItem('token');
           }
         } catch (error) {
-          // Erro (ex: token expirado, usuário deletado)
           console.error('Sessão inválida ou expirada:', error);
-          localStorage.removeItem('token'); // Limpa o token ruim
+          localStorage.removeItem('token'); 
         }
       }
-      // Terminamos de verificar, não estamos mais carregando
       setIsLoading(false);
     };
 
     checkUserSession();
-  }, []); // O '[]' vazio garante que isso rode só uma vez.
+  }, []); 
 
   // 6. Define as funções que o contexto vai "exportar"
-
-  // A função que o seu LoginPage chama
   const setLoggedInUser = (userData: User) => {
     setUser(userData);
   };
 
-  // A função que seu botão "Sair" na Navbar vai chamar futuramente
+  // Apenas UMA função logout, usando a variável 'router' lá de cima
   const logout = () => {
-    setUser(null); // Limpa o usuário do estado
-    localStorage.removeItem('token'); // Limpa o token do "bolso"
+    setUser(null); 
+    localStorage.removeItem('token'); 
     delete api.defaults.headers.common['Authorization'];
-    useRouter().push('/login'); // Redireciona para a página de login
+    
+    // Redireciona usando a instância criada no topo do componente
+    router.push('/'); 
   };
 
   // 7. Junta tudo que vamos fornecer para a aplicação
@@ -94,7 +90,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// 9. Cria o Hook personalizado para usar o contexto
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
