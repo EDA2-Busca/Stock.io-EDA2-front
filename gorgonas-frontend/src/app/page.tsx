@@ -1,22 +1,14 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Navbar } from '@/components/Navbar';
 import { ProductCard } from '@/components/ProductCard';
 import api from "@/utilis/api";
 import SearchBar, { SuggestionItem } from '@/components/ui/SearchBar';
 import CategoryList from '@/components/CategoryList';
 import StoreList from "@/components/ui/StoreList";
-import { ProductRow } from '../components/ProductRow';
-
-type ProdutoParaCard = {
-  id: number;
-  nome: string;
-  preco: number;
-  estoque: number;
-  loja: { logo: string | null } | null;
-  imagens: { urlImagem: string }[];
-};
+import { ProductRow, ProdutoParaCard } from '../components/ProductRow';
+import { ArvoreBusca } from "@/utilis/Trie";
 const API_URL = "http://localhost:3001";
 
 export default function HomePage() {
@@ -33,7 +25,14 @@ export default function HomePage() {
   const [searchResults, setSearchResults] = useState<ProdutoParaCard[] | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const arvoreDeProdutos = useMemo(() => {
+    const novaArvore = new ArvoreBusca();
+    if (typeof window !== "undefined") {
+      (window as any).arvore = novaArvore;
+    }
 
+    return novaArvore;
+  }, []);
 
   useEffect(() => {
     // Se estivermos em "modo busca", não carregue a home
@@ -74,6 +73,28 @@ export default function HomePage() {
         setJogosProdutos(responseJogos.data);
         setBrinquedosProdutos(responseBrinquedos.data);
         setCasaProdutos(responseCasa.data);
+        const todosOsProdutos = [
+          ...responseMercado.data,
+          ...responseFarmacia.data,
+          ...responseBeleza.data,
+          ...responseModa.data,
+          ...responseEletronicos.data,
+          ...responseJogos.data,
+          ...responseBrinquedos.data,
+          ...responseCasa.data
+        ];
+
+        todosOsProdutos.forEach(produto => {
+          arvoreDeProdutos.inserir(produto);
+        });
+        // Teste 1: Buscar um prefixo existente
+        (window as any).arvore.buscar("cam");
+
+        // Teste 2: Buscar algo que não existe
+        (window as any).arvore.buscar("xyz");
+
+        // Teste 3: Simular a limpeza (trim)
+        (window as any).arvore.buscar("  cam  ");
 
       } catch (err) {
         console.error("Erro ao buscar produtos da home:", err);
@@ -85,25 +106,27 @@ export default function HomePage() {
     buscarDadosDaPagina();
 
   }, [searchResults]);
-  const handleSearch = async (term: string) => {
+  const handleSearch = (term: string) => {
     setSearchTerm(term);
     setIsSearching(true);
-    setSearchResults([]);
 
-    try {
-      const response = await api.get(`/produtos/buscar?q=${term}`);
-      setSearchResults(response.data);
-    } catch (err) {
-      console.error("Erro ao buscar:", err);
-      setSearchResults([]);
-    } finally {
+    if (!term.trim()) {
+      setSearchResults(null);
       setIsSearching(false);
+      return;
     }
+    const resultados = arvoreDeProdutos.buscar(term);
+    setSearchResults(resultados);
+    setIsSearching(false);
   };
   const handleFetchSuggestions = async (term: string): Promise<SuggestionItem[]> => {
+    if (!term.trim()) return [];
+
     try {
-      const response = await api.get(`/produtos/buscar?q=${term}`);
-      const topResults = response.data.slice(0, 5);
+      // Busca na árvore
+      const resultados = arvoreDeProdutos.buscar(term);
+      // Pega os 5 primeiros
+      const topResults = resultados.slice(0, 5);
       return topResults.map((prod: any) => {
         const rawPath = prod.imagens?.[0]?.urlImagem;
         return {
