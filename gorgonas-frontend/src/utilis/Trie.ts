@@ -9,29 +9,40 @@ class No {
         this.filhos = new Array(256).fill(undefined);
         this.produtos = [];
         this.fim = false;
-    }   
+    }
 }
 
-export class ArvoreBusca{
+export class ArvoreBusca {
     private raiz: No;
-    constructor(){
+    constructor() {
         this.raiz = new No()
     }
     private gerarIndice(char: string): number {
-        return char.charCodeAt(0); 
+        return char.charCodeAt(0);
     }
-    public inserir(produto: ProdutoParaCard): void{
+    public inserir(produto: ProdutoParaCard): void {
         let atual = this.raiz;
         const nomeParaBusca = produto.nome.toLowerCase();
 
-        for(const letra of nomeParaBusca){
+        for (const letra of nomeParaBusca) {
             const indice = this.gerarIndice(letra);
 
-            if(!atual.filhos[indice]){
+            if (!atual.filhos[indice]) {
                 atual.filhos[indice] = new No();
             }
-            
+
             atual = atual.filhos[indice]!;
+            let jaExiste = false;
+            for (let i = 0; i < atual.produtos.length; i++) {
+                if (atual.produtos[i].id === produto.id) {
+                    jaExiste = true;
+                    break;
+                }
+            }
+            // se não existe, adiciona. 
+            if (!jaExiste) {
+                atual.produtos.push(produto);
+            }
         }
         atual.fim = true;
     }
