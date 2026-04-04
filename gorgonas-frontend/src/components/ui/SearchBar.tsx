@@ -8,7 +8,7 @@ type SearchBarProps = {
   className?: string;
   placeholder?: string;
   onSearch: (searchTerm: string) => void;
-  fetchSuggestions?: (term: string) => Promise<SuggestionItem[]>;
+  fetchSuggestions?: (term: string) => SuggestionItem[] | Promise<SuggestionItem[]>;
 };
 
 export default function SearchBar({ className, placeholder, onSearch, fetchSuggestions }: SearchBarProps) {
@@ -20,7 +20,7 @@ export default function SearchBar({ className, placeholder, onSearch, fetchSugge
     // Cria um temporizador de 300ms
     const timer = setTimeout(async () => {
       // Só busca se tiver mais de 2 letras e a função existir
-      if (searchTerm.trim().length > 2 && fetchSuggestions) {
+      if (searchTerm.trim().length > 0 && fetchSuggestions) {
         try {
           const results = await fetchSuggestions(searchTerm);
           setSuggestions(results);
@@ -34,7 +34,6 @@ export default function SearchBar({ className, placeholder, onSearch, fetchSugge
         setShowSuggestions(false);
       }
     }, 300);
-
     // Limpa o timer anterior se o usuário digitar de novo rápido (Isso é o debounce)
     return () => clearTimeout(timer);
   }, [searchTerm, fetchSuggestions]);

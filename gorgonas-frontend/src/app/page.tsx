@@ -83,18 +83,13 @@ export default function HomePage() {
           ...responseBrinquedos.data,
           ...responseCasa.data
         ];
-
+        // VISUALIZAÇÃO DA ÁRVORE NO CONSOLE (PARA TESTES)
         todosOsProdutos.forEach(produto => {
           arvoreDeProdutos.inserir(produto);
         });
-        // Teste 1: Buscar um prefixo existente
-        (window as any).arvore.buscar("cam");
-
-        // Teste 2: Buscar algo que não existe
-        (window as any).arvore.buscar("xyz");
-
-        // Teste 3: Simular a limpeza (trim)
-        (window as any).arvore.buscar("  cam  ");
+        if (typeof window !== "undefined") {
+            (window as any).arvore = arvoreDeProdutos;
+        }
 
       } catch (err) {
         console.error("Erro ao buscar produtos da home:", err);
