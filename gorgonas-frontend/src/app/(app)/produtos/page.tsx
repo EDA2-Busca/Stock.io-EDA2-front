@@ -134,7 +134,7 @@ export default function HomePage() {
       const produtos = arvoreDeProdutos.buscar(term);
 
       const sugestoesCat = categorias.map(c => ({
-        id: c.id,
+        id: -c.id,
         nome: `Categoria: ${c.nome}`, 
         tipo: 'categoria'
       }));
