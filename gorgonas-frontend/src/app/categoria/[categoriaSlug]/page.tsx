@@ -1,28 +1,18 @@
 'use client';
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useMemo } from "react";
 import { Navbar } from '@/components/Navbar';
 import { ProductCard } from '@/components/ProductCard';
+
 import api from "@/utilis/api";
-import SearchBar from '@/components/ui/SearchBar';
+import SearchBar, { SuggestionItem } from '@/components/ui/SearchBar';
 import StoreList from "@/components/ui/StoreList";
-import { ProductRow } from "@/components/ProductRow";
+import { ProductRow, ProdutoParaCard } from "@/components/ProductRow";
 import SortDropdown, { SortOption } from "@/components/ui/SortDropdown";
 import FiltroSubcategoriaModal from "../../../components/ModalFilterSub";
-
-// Definição do Tipo de Dados
-type ProdutoParaCard = {
-  id: number;
-  nome: string;
-  preco: number;
-  estoque: number;
-  loja: { logo: string | null } | null;
-  imagens: { urlImagem: string }[];
-  avaliacoes?: { nota: number }[];
-};
-
+import { ArvoreBusca } from "@/utilis/Trie";
 interface CategoriaPageProps {
-  params: Promise<{categoriaSlug: string;}>;
+  params: Promise<{ categoriaSlug: string; }>;
 }
 
 // Configuração de conteúdo do Header por categoria
@@ -93,41 +83,50 @@ export default function CategoriaPage({ params }: CategoriaPageProps) {
   // Estados de Ordenação e Filtro
   const [currentSort, setCurrentSort] = useState<SortOption>('id');
   const [selectedSubcategory, setSelectedSubcategory] = useState<number | null>(null);
+  const arvoreDeProdutos = useMemo(() => {
+    return new ArvoreBusca();
+  }, []);
 
   const clearSearch = () => {
     setSearchTerm('');
     setSearchResults(null);
   };
 
-  const handleSearch = async (term: string) => {
+  const handleSearch = (term: string) => {
     setSearchTerm(term);
 
-    if (term === '') {
+    if (!term.trim()) {
       clearSearch();
       return;
     }
-    
-    //Limpa o filtro de subcategoria ao buscar
-    setSelectedSubcategory(null); 
 
+    setSelectedSubcategory(null);
     setIsSearching(true);
-    setSearchResults([]);
 
+    const resultados = arvoreDeProdutos.buscar(term);
+    setSearchResults(resultados);
+    setIsSearching(false);
+  };
+
+  const handleFetchSuggestions = (term: string): SuggestionItem[] => {
+    if (!term.trim()) return [];
     try {
-      const response = await api.get(`/produtos/buscar?q=${term}&categoria=${categoriaAtual}`);
-      setSearchResults(response.data);
-    } catch (err) {
-      console.error("Erro ao buscar:", err);
-      setSearchResults([]);
-    } finally {
-      setIsSearching(false);
+      const resultados = arvoreDeProdutos.buscar(term).slice(0, 5);
+      return resultados.map((prod: ProdutoParaCard) => ({
+        id: prod.id,
+        nome: prod.nome,
+        imagem: prod.imagens?.[0]?.urlImagem,
+        tipo: 'produto'
+      }));
+    } catch (error) {
+      return [];
     }
   };
 
   const handleFilterChange = (id: number | null) => {
     setSelectedSubcategory(id);
-    setCurrentPage(1); 
-    
+    setCurrentPage(1);
+
     if (searchTerm || searchResults !== null) {
       clearSearch();
     }
@@ -193,6 +192,22 @@ export default function CategoriaPage({ params }: CategoriaPageProps) {
           : responseRecentes.data.produtos || [];
         setRecemAdicionados(listaRecentes);
 
+        const todosOsProdutos = [
+          ...listaProdutos,
+          ...listaOrdenadaPorNota.slice(0, 10),
+          ...listaRecentes
+        ];
+
+        // um produto pode ser recente e bem avaliado ao mesmo tempo
+        const produtosUnicos = Array.from(new Map(todosOsProdutos.map(p => [p.id, p])).values());
+
+        produtosUnicos.forEach(produto => {
+          arvoreDeProdutos.inserir(produto);
+        });
+
+        if (typeof window !== "undefined") {
+          (window as any).arvoreCategoria = arvoreDeProdutos;
+        }
       } catch (err) {
         console.error("Erro ao buscar produtos:", err);
       } finally {
@@ -225,7 +240,6 @@ export default function CategoriaPage({ params }: CategoriaPageProps) {
   return (
     <main className="bg-[#FDF9F2] min-h-screen">
 
-      {/* SEÇÃO HEADER */}
       <header className="w-full bg-black relative overflow-hidden -mt-px pt-px">
         <div aria-hidden className="absolute inset-x-0 -top-px h-px bg-black" />
         <Navbar />
@@ -254,15 +268,13 @@ export default function CategoriaPage({ params }: CategoriaPageProps) {
       <div className="max-w-[1440px] mx-auto px-8 mb-15 w-full grow">
 
         <section className="py-8 flex flex-col md:flex-row justify-between items-center gap-6">
-          
-          {/* Lado Esquerdo: Barra de Filtros (Estilo "Pílula") */}
+
           <div className="w-full md:w-auto flex-1 overflow-hidden">
-             {/* 👇 MUDANÇA 2: Usando o componente correto */}
-             <FiltroSubcategoriaModal
-                categoriaLoja={categoriaAtual}
-                selectedId={selectedSubcategory}
-                onSelect={handleFilterChange}
-             />
+            <FiltroSubcategoriaModal
+              categoriaLoja={categoriaAtual}
+              selectedId={selectedSubcategory}
+              onSelect={handleFilterChange}
+            />
           </div>
 
           {/* Lado Direito: Busca e Ordenação */}
@@ -271,8 +283,9 @@ export default function CategoriaPage({ params }: CategoriaPageProps) {
               className="w-full md:w-80"
               onSearch={handleSearch}
               placeholder="Procurar por..."
+              fetchSuggestions={handleFetchSuggestions}
             />
-            
+
             {!isDisplayingSearch && (
               <SortDropdown
                 currentSort={currentSort}
@@ -283,60 +296,56 @@ export default function CategoriaPage({ params }: CategoriaPageProps) {
 
         </section>
 
-          {!isDisplayingSearch && title && (
-            title !== "" && title !== "Produtos Filtrados" && (
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">
-              </h2>
-            )
-          )}
+        {!isDisplayingSearch && title && (
+          title !== "" && title !== "Produtos Filtrados" && (
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">
+            </h2>
+          )
+        )}
 
-          {isSearching ? (
-            <div className="py-12 text-center col-span-full">
-              <p className="text-gray-500">Buscando resultados...</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 md:gap-8 mb-0">
-              {dataToDisplay.length > 0 ? (
-                dataToDisplay.map(produto => {
-                  const temImagem = produto.imagens && produto.imagens.length > 0;
-                  const imageUrl = temImagem
-                    ? produto.imagens[0].urlImagem
-                    : '/Stock.io.png';
-                  const badgeUrl = produto.loja?.logo || undefined;
-                  return (
-                    <ProductCard
-                      id={produto.id}
-                      key={produto.id}
-                      name={produto.nome}
-                      price={produto.preco.toString()}
-                      isAvailable={produto.estoque > 0}
-                      imageUrl={imageUrl}
-                      badgeUrl={badgeUrl}
-                    />
-                  );
-                })
-              ) : (
-                <div className="col-span-full py-12 flex flex-col items-center justify-center text-center">
-                  <p className="text-gray-500 text-lg mb-2">
-                    {isDisplayingSearch
-                      ? `Nenhum produto encontrado para "${searchTerm}".`
-                      : 'Nenhum produto encontrado com os filtros atuais.'
-                    }
-                  </p>
-                  {selectedSubcategory && (
-                    <button
-                      onClick={() => handleFilterChange(null)}
-                      className="text-[#6A38F3] font-medium hover:underline"
-                    >
-                      Limpar filtros
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+        {isSearching ? (
+          <div className="py-12 text-center col-span-full">
+            <p className="text-gray-500">Buscando resultados...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 md:gap-8 mb-0">
+            {dataToDisplay.length > 0 ? (
+              dataToDisplay.map(produto => {
+                const imageUrl = produto.imagens?.[0]?.urlImagem || '/Stock.io.png';
+                const badgeUrl = produto.loja?.logo || undefined;
+                return (
+                  <ProductCard
+                    id={produto.id}
+                    key={produto.id}
+                    name={produto.nome}
+                    price={produto.preco.toString()}
+                    isAvailable={produto.estoque > 0}
+                    imageUrl={imageUrl}
+                    badgeUrl={badgeUrl}
+                  />
+                );
+              })
+            ) : (
+              <div className="col-span-full py-12 flex flex-col items-center justify-center text-center">
+                <p className="text-gray-500 text-lg mb-2">
+                  {isDisplayingSearch
+                    ? `Nenhum produto encontrado para "${searchTerm}".`
+                    : 'Nenhum produto encontrado com os filtros atuais.'
+                  }
+                </p>
+                {selectedSubcategory && (
+                  <button
+                    onClick={() => handleFilterChange(null)}
+                    className="text-[#6A38F3] font-medium hover:underline"
+                  >
+                    Limpar filtros
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
-        {/* PAGINAÇÃO */}
         {!isDisplayingSearch && totalPages > 1 && (
           <section className="flex justify-center items-center space-x-2 py-2 mb-12">
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNumber => (

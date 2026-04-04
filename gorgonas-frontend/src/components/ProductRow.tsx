@@ -14,6 +14,7 @@ export type ProdutoParaCard = {
         sticker?: string | null;
     } | null;
     unidade?: string;
+    avaliacoes?: { nota: number }[];
 };
 
 interface ProductRowProps {
