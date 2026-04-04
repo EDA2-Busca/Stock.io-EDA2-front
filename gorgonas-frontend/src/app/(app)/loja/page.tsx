@@ -94,6 +94,10 @@ export default function LojasPage() {
         lojasUnicas.forEach(loja => {
           arvoreDeLojas.inserir(loja);
         });
+        // VISUALIZAÇÃO DA ÁRVORE NO CONSOLE (PARA TESTES)
+        if (typeof window !== "undefined") {
+            (window as any).arvoreLojas = arvoreDeLojas;
+        }
       } catch (err) {
         console.error("Erro ao carregar lojas:", err);
       } finally {
@@ -113,7 +117,7 @@ export default function LojasPage() {
     const resultados = arvoreDeLojas.buscar(term);
     setSearchResults(resultados);
   };
-  
+
   const handleFetchSuggestions = (term: string): SuggestionItem[] => {
     if (!term.trim()) return [];
     try {
