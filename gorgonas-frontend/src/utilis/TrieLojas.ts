@@ -1,7 +1,7 @@
 export type Loja = {
   id: number;
   nome: string;
-  categoria?: { nome: string }; 
+  categoria: { nome: string }; 
   logo: string | null;
   slug?: string; 
 };
