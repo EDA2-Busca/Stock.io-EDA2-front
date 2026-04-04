@@ -1,6 +1,6 @@
 # 💻 Gorgonas — Frontend (Site para Catalogar Produtos)
 
-Frontend do sistema de Catalogo de produtos, construído com Next.js (App Router) e TypeScript.
+Frontend do sistema de Catalogo de produtos e ecommerce, construído com Next.js (App Router) e TypeScript.
 
 ## 📌 Sumário
 - [Tecnologias](#-tecnologias)
@@ -9,8 +9,6 @@ Frontend do sistema de Catalogo de produtos, construído com Next.js (App Router
 - [Variáveis de Ambiente](#-variáveis-de-ambiente)
 - [Scripts Úteis](#-scripts-úteis)
 - [Estrutura do Projeto](#-estrutura-do-projeto)
-- [Contribuição](#-contribuição)
-- [Licença](#-licença)
 
 ## 🛠️ Tecnologias
 | Categoria | Tecnologia |
@@ -36,6 +34,9 @@ cd gorgonas-frontend
 npm install
 # ou
 yarn install
+
+#biblioteca utilizada
+npm install lucide-react
 ```
 
 ## 🔒 Variáveis de Ambiente
@@ -45,36 +46,32 @@ Crie `.env.local` na raiz (mesmo nível do package.json):
 NEXT_PUBLIC_API_BASE_URL=http://localhost:3001
 ```
 
-> Não commite esse arquivo — já está no .gitignore.
 
 ## ▶️ Scripts Úteis
 ```bash
 npm run dev       # servidor de desenvolvimento (http://localhost:3000)
-npm run build     # build para produção
-npm run start     # inicia build em produção
-npm run lint      # lint do projeto
-npm run test      # executa testes (se configurados)
+
 ```
 
-## ✅ Boas práticas sugeridas
-- Mantenha DTOs/validações sincronizadas entre frontend (Yup) e backend.
-- Centralize instância Axios em src/utils/api.ts usando NEXT_PUBLIC_API_BASE_URL.
-- Use ToastProvider para mensagens de sucesso/erro consistentes.
-- Adicione testes unitários e lint/format em CI.
 
-## 🤝 Contribuição
-Abra issues e PRs. Descreva mudanças e inclua testes quando aplicável.
+## Estruturas de dados implementadas para otimização
+O projeto utiliza a estrutura de **Árvore Trie** para otimizar a recuperação de informações. Enquanto uma busca comum em um array tem complexidade $O(n)$, a nossa implementação atinge $O(m)$, onde *m* é o comprimento do termo buscado.
 
-Desenvolvido pelo time Gorgonas.
+### Onde as Árvores são utilizadas:
+
+1.  **Home Page (Busca Híbrida):**
+    * **Trie de Produtos:** Armazena e indexa todos os produtos da vitrine.
+    * **Trie de Categorias:** Uma árvore independente que mapeia nomes de categorias (ex: "Farmácia") para suas listas de produtos, permitindo que o usuário encontre setores inteiros digitando apenas o prefixo.
+2.  **Páginas de Categoria:**
+    * Indexação local de produtos específicos da categoria, permitindo filtros instantâneos sem novas chamadas de API.
+3.  **Página de Lojas:**
+    * **Trie de Lojas:** Implementação dedicada para busca de estabelecimentos parceiros pelo nome ou segmento.
 
 ## 👥 Equipe
 
-Equipe responsável pelo desenvolvimento e manutenção do frontend. Para contribuições, abra uma issue ou PR no repositório.
+Dupla responsavel pela implementação dos algoritmos de busca
 
 | Foto | Nome | Função |
 |---:|---|---|
-| <img src="https://github.com/joaofmoreiraa.png" alt="João" width="80" style="border-radius:8px" /> | **[João Victor Felix Moreira](https://github.com/joaofmoreiraa)** | Orientador do Projeto |
-| <img src="https://github.com/uwatanabev.png" alt="Bernardo" width="80" style="border-radius:8px" /> | **[Bernardo Watanabe Venzi](https://github.com/uwatanabev)** | Desenvolvedor |
-| <img src="https://github.com/dev-americo.png" alt="Pedro" width="80" style="border-radius:8px" /> | **[Pedro Américo](https://github.com/dev-americo)** | Desenvolvedor |
-| <img src="https://github.com/Danielfelipe08.png" alt="Daniel" width="80" style="border-radius:8px" /> | **[Daniel Felipe](https://github.com/Danielfelipe08)** | Desenvolvedor |
-| <img src="https://github.com/andrehsb.png" alt="Andrei" width="80" style="border-radius:8px" /> | **[Andrei Henrique](https://github.com/andrehsb)** | Desenvolvedor |
+| <img src="https://github.com/giovannafg.png" alt="Giovanna" width="80" style="border-radius:8px" /> | **[Giovanna Felipe](https://github.com/giovannafg)** | Desenvolvedor |
+| <img src="https://github.com/andrehsb.png" alt="Andrei" width="80" style="border-radius:8px" /> | **[André Henrique](https://github.com/andrehsb)** | Desenvolvedor |
