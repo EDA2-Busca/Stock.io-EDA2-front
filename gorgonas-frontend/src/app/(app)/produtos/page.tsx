@@ -1,22 +1,13 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Navbar } from '@/components/Navbar';
-import { ProductCard } from '@/components/ProductCard'; 
+import { ProductCard } from '@/components/ProductCard';
 import api from "@/utilis/api";
-import SearchBar from '@/components/ui/SearchBar';
+import SearchBar, { SuggestionItem } from '@/components/ui/SearchBar';
 import CategoryList from '@/components/CategoryList';
-import { ProductRow } from '@/components/ProductRow';
-
-type ProdutoParaCard = {
-  id: number;
-  nome: string;
-  preco: number;
-  estoque: number;
-  loja: { logo: string | null } | null;
-  imagens: { urlImagem: string }[];
-};
-
+import { ProductRow, ProdutoParaCard } from '@/components/ProductRow';
+import { ArvoreBusca } from "@/utilis/Trie";
 
 export default function HomePage() {
 
@@ -34,91 +25,137 @@ export default function HomePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [limit, setLimit] = useState(15);
-  
+
   const [isLoading, setIsLoading] = useState(true);
 
   const [searchResults, setSearchResults] = useState<ProdutoParaCard[] | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const arvoreDeProdutos = useMemo(() => {
+    return new ArvoreBusca();
+  }, []);
 
 
   useEffect(() => {
-    if (searchResults) { 
+    if (searchResults) {
       setIsLoading(false);
-      return; 
+      return;
     }
 
-      const buscarDadosDaPagina = async () => {
-        try {
-          setIsLoading(true);
+    const buscarDadosDaPagina = async () => {
+      try {
+        setIsLoading(true);
 
-          const promiseMercado = api.get('/produtos/ver-mais/mercado');
-          const promiseFarmacia = api.get('/produtos/ver-mais/farmacia');
-          const promiseBeleza = api.get('/produtos/ver-mais/beleza');
-          const promiseModa = api.get('/produtos/ver-mais/moda');
-          const promiseEletronicos = api.get('/produtos/ver-mais/eletronicos');
-          const promiseJogos = api.get('/produtos/ver-mais/jogos');
-          const promiseBrinquedos = api.get('/produtos/ver-mais/brinquedos');
-          const promiseCasa = api.get('/produtos/ver-mais/casa');
-          const promiseListar = api.get(
-            `/produtos/recentes?page=${currentPage}&limit=${limit}`
-          );
-          const [responseMercado, responseFarmacia, responseBeleza, responseModa, responseEletronicos, responseJogos, responseBrinquedos, responseCasa, responseListar] = await Promise.all([
-            promiseMercado,
-            promiseFarmacia,
-            promiseBeleza,
-            promiseModa,
-            promiseEletronicos,
-            promiseJogos,
-            promiseBrinquedos,
-            promiseCasa,
-            promiseListar
-          ]);
+        const promiseMercado = api.get('/produtos/ver-mais/mercado');
+        const promiseFarmacia = api.get('/produtos/ver-mais/farmacia');
+        const promiseBeleza = api.get('/produtos/ver-mais/beleza');
+        const promiseModa = api.get('/produtos/ver-mais/moda');
+        const promiseEletronicos = api.get('/produtos/ver-mais/eletronicos');
+        const promiseJogos = api.get('/produtos/ver-mais/jogos');
+        const promiseBrinquedos = api.get('/produtos/ver-mais/brinquedos');
+        const promiseCasa = api.get('/produtos/ver-mais/casa');
+        const promiseListar = api.get(
+          `/produtos/recentes?page=${currentPage}&limit=${limit}`
+        );
+        const [responseMercado, responseFarmacia, responseBeleza, responseModa, responseEletronicos, responseJogos, responseBrinquedos, responseCasa, responseListar] = await Promise.all([
+          promiseMercado,
+          promiseFarmacia,
+          promiseBeleza,
+          promiseModa,
+          promiseEletronicos,
+          promiseJogos,
+          promiseBrinquedos,
+          promiseCasa,
+          promiseListar
+        ]);
 
-          console.log("Produto exemplo:", responseMercado?.data?.[0]);
+        console.log("Produto exemplo:", responseMercado?.data?.[0]);
 
-          setMercadoProdutos(responseMercado.data);
-          setFarmaciaProdutos(responseFarmacia.data);
-          setBelezaProdutos(responseBeleza.data);
-          setModaProdutos(responseModa.data);
-          setEletronicosProdutos(responseEletronicos.data);
-          setJogosProdutos(responseJogos.data);
-          setBrinquedosProdutos(responseBrinquedos.data);
-          setCasaProdutos(responseCasa.data);
-          setListarProdutos(responseListar.data.produtos);
-          const totalCount = responseListar.data.totalCount;
-          setTotalPages(Math.ceil(totalCount / limit));
+        setMercadoProdutos(responseMercado.data);
+        setFarmaciaProdutos(responseFarmacia.data);
+        setBelezaProdutos(responseBeleza.data);
+        setModaProdutos(responseModa.data);
+        setEletronicosProdutos(responseEletronicos.data);
+        setJogosProdutos(responseJogos.data);
+        setBrinquedosProdutos(responseBrinquedos.data);
+        setCasaProdutos(responseCasa.data);
+        setListarProdutos(responseListar.data.produtos);
+        const totalCount = responseListar.data.totalCount;
+        setTotalPages(Math.ceil(totalCount / limit));
 
-        } catch (err) {
-          console.error("Erro ao buscar produtos da home:", err);
-        } finally {
-          setIsLoading(false); 
+        const addCat = (lista: any[], cat: string) => lista.map(p => ({ ...p, categoriaBusca: cat }));
+
+        const todosOsProdutos = [
+          ...addCat(responseMercado.data, "mercado"),
+          ...addCat(responseFarmacia.data, "farmacia"),
+          ...addCat(responseBeleza.data, "beleza"),
+          ...addCat(responseModa.data, "moda"),
+          ...addCat(responseEletronicos.data, "eletrônicos"),
+          ...addCat(responseJogos.data, "jogos"),
+          ...addCat(responseBrinquedos.data, "brinquedos"),
+          ...addCat(responseCasa.data, "casa"),
+          ...responseListar.data.produtos
+        ];
+
+        const produtosUnicos = Array.from(new Map(todosOsProdutos.map(p => [p.id, p])).values());
+
+        produtosUnicos.forEach(produto => {
+          const nomeOriginal = produto.nome;
+
+          if (produto.categoriaBusca) {
+            produto.nome = `${nomeOriginal} ${produto.categoriaBusca}`;
+          }
+
+          arvoreDeProdutos.inserir(produto);
+
+          produto.nome = nomeOriginal;
+        });
+
+        if (typeof window !== "undefined") {
+          (window as any).arvoreHome = arvoreDeProdutos;
         }
-      };
-      buscarDadosDaPagina();
-  }, [currentPage, limit, searchResults]); 
 
-  const handleSearch = async (term: string) => {
-    setSearchTerm(term); 
-    setIsSearching(true); 
-    setSearchResults([]); 
-
-    try {
-      const response = await api.get(`/produtos/buscar?q=${term}`);
-      setSearchResults(response.data);
-    } catch (err) {
-      console.error("Erro ao buscar:", err);
-      setSearchResults([]); 
-    } finally {
-      setIsSearching(false); 
-    }
-  };
+      } catch (err) {
+        console.error("Erro ao buscar produtos da home:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    buscarDadosDaPagina();
+  }, [currentPage, limit, searchResults]);
 
   const clearSearch = () => {
     setSearchTerm('');
     setSearchResults(null);
   };
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
 
+    if (!term.trim()) {
+      clearSearch();
+      return;
+    }
+
+    setIsSearching(true);
+    const resultados = arvoreDeProdutos.buscar(term);
+    setSearchResults(resultados);
+    setIsSearching(false);
+  };
+
+  const handleFetchSuggestions = (term: string): SuggestionItem[] => {
+    if (!term.trim()) return [];
+    try {
+      const resultados = arvoreDeProdutos.buscar(term).slice(0, 5);
+      return resultados.map((prod: ProdutoParaCard) => ({
+        id: prod.id,
+        nome: prod.nome,
+        imagem: prod.imagens?.[0]?.urlImagem || undefined,
+        tipo: 'produto'
+      }));
+    } catch (error) {
+      return [];
+    }
+  };
 
   return (
     <main className="bg-[#FDF9F2] min-h-screen">
@@ -127,23 +164,24 @@ export default function HomePage() {
         <Navbar />
 
         <section className="w-full h-[30vh] flex items-center justify-center [&_h2]:text-white">
-            <div>
-                <CategoryList/>
-            </div>
+          <div>
+            <CategoryList />
+          </div>
         </section>
       </header>
-      
+
       <div className="max-w-7xl mx-auto px-8">
-        
+
         <section className="py-6">
-          <SearchBar 
-            className="max-w-md ml-auto" 
+          <SearchBar
+            className="max-w-md ml-auto"
             onSearch={handleSearch} // Passa a função para o componente
-            placeholder="Buscar por produto, loja ou categoria..."
+            placeholder="Buscar por produto ou categoria..."
+            fetchSuggestions={handleFetchSuggestions}
           />
         </section>
-        
-        {searchResults ? ( 
+
+        {searchResults ? (
           <section className="pb-12">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold text-[#171918]">
@@ -153,7 +191,7 @@ export default function HomePage() {
                 Limpar busca
               </button>
             </div>
-            
+
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
               {isSearching ? (
                 <p className="col-span-full text-center text-gray-500">Buscando...</p>
@@ -163,7 +201,7 @@ export default function HomePage() {
                     key={produto.id}
                     id={produto.id}
                     name={produto.nome}
-                    price={produto.preco.toString()} 
+                    price={produto.preco.toString()}
                     isAvailable={produto.estoque > 0}
                     imageUrl={produto.imagens?.[0]?.urlImagem || '/Stock.io.png'}
                     badgeUrl={produto.loja?.logo || undefined}
@@ -177,7 +215,7 @@ export default function HomePage() {
             </div>
           </section>
 
-        ) : ( 
+        ) : (
           <>
             {isLoading ? (
               <div className="py-12 text-center">
@@ -185,42 +223,42 @@ export default function HomePage() {
               </div>
             ) : (
               <>
-                <ProductRow 
+                <ProductRow
                   title="Mercado"
                   products={mercadoProdutos}
                   viewMoreHref="/ver-mais/mercado"
                 />
-                <ProductRow 
+                <ProductRow
                   title="Farmácia"
                   products={farmaciaProdutos}
                   viewMoreHref="/ver-mais/farmacia"
                 />
-                <ProductRow 
+                <ProductRow
                   title="Beleza"
                   products={belezaProdutos}
                   viewMoreHref="/ver-mais/beleza"
                 />
-                <ProductRow 
+                <ProductRow
                   title="Moda"
                   products={modaProdutos}
                   viewMoreHref="/ver-mais/moda"
                 />
-                <ProductRow 
+                <ProductRow
                   title="Eletrônicos"
                   products={eletronicosProdutos}
                   viewMoreHref="/ver-mais/eletronicos"
                 />
-                <ProductRow 
+                <ProductRow
                   title="Jogos"
                   products={jogosProdutos}
                   viewMoreHref="/ver-mais/jogos"
                 />
-                <ProductRow 
+                <ProductRow
                   title="Brinquedos"
                   products={brinquedosProdutos}
                   viewMoreHref="/ver-mais/brinquedos"
                 />
-                <ProductRow 
+                <ProductRow
                   title="Casa"
                   products={CasaProdutos}
                   viewMoreHref="/ver-mais/casa"
@@ -232,22 +270,19 @@ export default function HomePage() {
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
                       {listarProdutos.length > 0 ? (
                         listarProdutos.map(produto => {
-                          const temImagem = produto.imagens && produto.imagens.length > 0;
-                          const imageUrl = temImagem 
-                              ? produto.imagens[0].urlImagem 
-                              : '/Stock.io.png';
+                          const imageUrl = produto.imagens?.[0]?.urlImagem || '/Stock.io.png';
                           const badgeUrl = produto.loja?.logo || undefined;
-                          
+
                           return (
-                              <ProductCard
-                                id={produto.id}
-                                key={produto.id}
-                                name={produto.nome}
-                                price={produto.preco.toString()} 
-                                isAvailable={produto.estoque > 0}
-                                imageUrl={imageUrl} 
-                                badgeUrl={badgeUrl}
-                              />
+                            <ProductCard
+                              id={produto.id}
+                              key={produto.id}
+                              name={produto.nome}
+                              price={produto.preco.toString()}
+                              isAvailable={produto.estoque > 0}
+                              imageUrl={imageUrl}
+                              badgeUrl={badgeUrl}
+                            />
                           );
                         })
                       ) : (
@@ -261,7 +296,7 @@ export default function HomePage() {
 
                 {/* Paginação */}
                 <section className="flex justify-center items-center space-x-2 py-8">
-                  
+
                   {/* Botão "Anterior" */}
                   <button
                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
@@ -276,11 +311,10 @@ export default function HomePage() {
                     <button
                       key={pageNumber}
                       onClick={() => setCurrentPage(pageNumber)}
-                      className={`px-4 py-2 rounded shadow-sm ${
-                        currentPage === pageNumber 
-                        ? 'bg-[#6A38F3] text-white' 
-                        : 'bg-white text-black' 
-                      }`}
+                      className={`px-4 py-2 rounded shadow-sm ${currentPage === pageNumber
+                        ? 'bg-[#6A38F3] text-white'
+                        : 'bg-white text-black'
+                        }`}
                     >
                       {pageNumber}
                     </button>
