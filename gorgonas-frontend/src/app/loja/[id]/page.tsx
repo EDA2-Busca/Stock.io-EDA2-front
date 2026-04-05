@@ -1,0 +1,318 @@
+'use client';
+
+import React, { useEffect, useState, useCallback } from 'react';
+
+// Componentes principais da página da loja
+import { Navbar } from '@/components/Navbar';
+import { ProductCard } from '@/components/ProductCard';
+import ProductScroll from '@/components/ProductScroll';
+import Pagination from '@/components/ui/Pagination';
+import StoreBanner from '@/components/ui/StoreBanner';
+import { useParams, useSearchParams, useRouter } from 'next/navigation';
+import api from '@/utilis/api';
+import { useAuth } from '@/contexts/AuthContext';
+// Importação corrigida (assumindo que está em 'ui/')
+import StoreReviewSection from '@/components/ui/StoreReviewSection';
+
+// Banner fallback caso loja não tenha imagem
+const API_URL = "http://localhost:3001";
+const FALLBACK_BANNER = '/banner-rare-beauty.jpg';
+
+// Lista dinâmica de produtos melhor avaliados
+type BasicProduct = { id: number; name: string; price: string; isAvailable: boolean; imageUrl: string; rating?: number };
+
+// Grid de produtos com dados reais via API
+const FALLBACK_PRODUCT_IMAGE = '/avatar-placeholder.png';
+
+// Reviews dinâmicos (resumo exibido em faixa horizontal)
+type StoreReview = { id: string; author: string; text: string; avatarUrl: string; rating: number };
+
+
+// --- Página da Loja Específica ---
+export default function StorePage() {
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const { user } = useAuth();
+  const id = params.id as string;
+  const router = useRouter();
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [productsLoading, setProductsLoading] = useState(true);
+  const [products, setProducts] = useState<Array<BasicProduct>>([]);
+  const [bestProducts, setBestProducts] = useState<Array<BasicProduct>>([]);
+  const [store, setStore] = useState<{ nome: string; descricao: string; categoria: { nome: string } | null; banner: string | null; logo: string | null; sticker: string | null } | null>(null);
+  const [reviews, setReviews] = useState<StoreReview[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState<boolean>(false);
+  const [averageRating, setAverageRating] = useState<number>(0);
+  const [reviewCount, setReviewCount] = useState<number>(0);
+  // Estado derivado do contexto de autenticação
+  const [lastFetchTimestamp, setLastFetchTimestamp] = useState<number>(0);
+  const isLoggedIn = !!user;
+
+  useEffect(() => {
+    let active = true;
+    const nomeQS = searchParams.get('nome');
+    const categoriaQS = searchParams.get('categoria');
+    const descricaoQS = searchParams.get('descricao');
+    const bannerQS = searchParams.get('banner');
+
+    // Preenchimento inicial via querystring (fallback resiliente)
+    if (nomeQS || categoriaQS || descricaoQS || bannerQS) {
+      setStore({
+        nome: nomeQS || 'Loja',
+        descricao: descricaoQS || '',
+        categoria: categoriaQS ? { nome: categoriaQS } : null,
+        banner: bannerQS || null,
+      } as any);
+    }
+
+    (async () => {
+      try {
+        setLoading(true);
+        const res = await api.get(`/lojas/${id}`);
+        if (active) {
+          setStore(res.data);
+          setError(null);
+        }
+      } catch (e: any) {
+        // Se 404, mantém informações da querystring sem interromper a página
+        if (e?.response?.status !== 404) {
+          console.error('Falha ao carregar loja', e);
+        }
+        if (active) {
+          if (!(nomeQS || categoriaQS || descricaoQS || bannerQS)) {
+            setError('Não foi possível carregar a loja.');
+          } else {
+            setError(null);
+          }
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => { active = false; };
+  }, [id, searchParams]);
+
+  const refetchStore = useCallback(async () => {
+    try {
+      const res = await api.get(`/lojas/${id}`);
+      setStore(res.data);
+    } catch (e) {
+      console.error('Falha ao atualizar dados da loja após edição', e);
+    }
+  }, [id]);
+
+  // Fetch inicial dos reviews (limitado para exibição horizontal)
+  const fetchReviews = useCallback(async () => {
+    if (!id) return;
+    setReviewsLoading(true);
+    try {
+      const { data } = await api.get(`/lojas/${id}/avaliacoes`, { params: { page: 1, pageSize: 10 } });
+      const mapped: StoreReview[] = (data?.data || []).map((r: any) => ({
+        id: String(r.id),
+        author: r.usuario?.nome || 'Usuário',
+        text: r.conteudo,
+        avatarUrl: r.usuario?.fotoPerfil || '/avatar-placeholder.png',
+        rating: r.nota,
+      }));
+      setReviews(mapped);
+      setAverageRating(Number((data?.summary?.average ?? 0).toFixed(2)));
+      setReviewCount(data?.summary?.count ?? mapped.length);
+    } catch (e) {
+      setReviews([]);
+      setAverageRating(0);
+      setReviewCount(0);
+    } finally {
+      setReviewsLoading(false);
+    }
+  }, [id]);
+
+  // Fetch dos produtos da loja
+  const fetchProducts = useCallback(async () => {
+    if (!id) return;
+    const now = Date.now();
+    if (now - lastFetchTimestamp < 500) return;
+    setLastFetchTimestamp(now);
+    setProductsLoading(true);
+    try {
+      const res = await api.get(`/produtos/loja/${id}`);
+      const raw = (res.data || []);
+      const normalized: Array<BasicProduct & { _avg?: number }> = raw.map((p: any) => {
+        const rawPrice = typeof p.preco === 'string' ? p.preco : p.preco?.toString() || '0';
+        const numeric = parseFloat(rawPrice);
+        const priceFormatted = numeric.toFixed(2).replace('.', ',');
+        const firstImage = p.imagens?.[0]?.urlImagem;
+        const img = firstImage || p.loja?.logo || FALLBACK_PRODUCT_IMAGE;
+        // calcula média de avaliações inteiras 1..5 se disponível
+        const notas: number[] = Array.isArray(p.avaliacoes) ? p.avaliacoes.map((a: any) => Number(a.nota) || 0) : [];
+        const avg = notas.length > 0 ? (notas.reduce((acc, n) => acc + n, 0) / notas.length) : 0;
+        return {
+          id: p.id,
+          name: p.nome,
+          price: priceFormatted,
+          isAvailable: (p.estoque ?? 0) > 0,
+          imageUrl: img,
+          _avg: avg,
+        };
+      });
+      setProducts(normalized);
+      // Caso o endpoint não traga avaliacoes, busca detalhes por produto para calcular médias
+      const detailed = await Promise.all(
+        normalized.map(async (bp) => {
+          try {
+            const pd = await api.get(`/produtos/${bp.id}`);
+            const avals: any[] = Array.isArray(pd.data?.avaliacoes) ? pd.data.avaliacoes : [];
+            const notas: number[] = avals.map((a: any) => Number(a.nota) || 0);
+            const avg = notas.length > 0 ? (notas.reduce((acc, n) => acc + n, 0) / notas.length) : 0;
+            return { ...bp, _avg: avg, _count: notas.length } as (BasicProduct & { _avg: number; _count: number });
+          } catch {
+            return { ...bp, _avg: 0, _count: 0 } as (BasicProduct & { _avg: number; _count: number });
+          }
+        })
+      );
+      const top = detailed
+        .filter(p => (p._avg ?? 0) > 0)
+        .sort((a, b) => {
+          const diff = (b._avg ?? 0) - (a._avg ?? 0);
+          if (diff !== 0) return diff;
+          const cDiff = (b._count ?? 0) - (a._count ?? 0);
+          if (cDiff !== 0) return cDiff;
+          return String(a.name).localeCompare(String(b.name));
+        })
+        .slice(0, 10)
+        .map(({ _avg, _count, ...rest }) => ({ ...rest, rating: Number((_avg ?? 0).toFixed(1)) }));
+      setBestProducts(top);
+    } catch (e) {
+      console.error('Falha ao carregar produtos da loja', e);
+    } finally {
+      setProductsLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    fetchProducts();
+    fetchReviews();
+  }, [fetchProducts]);
+
+  const getImageUrl = (path: string | null | undefined) => {
+    if (!path) return FALLBACK_BANNER;
+    if (path.startsWith('http') || path.startsWith('/')) return path;
+    return `${API_URL}/${path}`;
+  };
+
+  const storeName = store?.nome || (loading ? 'Carregando...' : 'Loja não encontrada');
+  // Nome original da categoria (evita erros em subcategorias)
+  const storeCategory = store?.categoria?.nome || (loading ? '' : '');
+  const storeDescription = store?.descricao || (loading ? '' : '');
+  const bannerImageUrl = getImageUrl(store?.banner);
+
+  const logoImageUrl =getImageUrl(store?.logo);
+  const stickerImageUrl =getImageUrl(store?.sticker);
+
+  // Lógica de proprietário (esconde ações para dono)
+  const isOwnerBase = user && store && (user.id === (store as any).usuarioId || user.id === (store as any).usuario?.id);
+  const testOverride = searchParams.get('testOwner') === '1' || (typeof window !== 'undefined' && localStorage.getItem('testOwner') === '1');
+  const isOwner = !!(isOwnerBase || testOverride);
+
+  return (
+    // Layout principal
+    <main className="bg-[#FDF9F2] min-h-screen">
+      <Navbar />
+
+      {/* Banner full-width */}
+      <StoreBanner
+        id={Number(id)}
+        storeName={storeName}
+        category={storeCategory}
+        description={storeDescription}
+        bannerImageUrl={bannerImageUrl}
+        logoImageUrl={logoImageUrl}
+        stickerImageUrl={stickerImageUrl}
+        isLoggedIn={isLoggedIn}
+        isOwner={isOwner}
+        onProductCreated={(p) => {
+          // Atualização otimista dos produtos
+          const numeric = typeof p.preco === 'number' ? p.preco : parseFloat(String(p.preco));
+          const priceFormatted = numeric.toFixed(2).replace('.', ',');
+          setProducts(prev => [
+            ...prev.filter(existing => existing.id !== p.id),
+            {
+              id: p.id,
+              name: p.nome,
+              price: priceFormatted,
+              isAvailable: (p.estoque ?? 0) > 0,
+              imageUrl: p.imagens?.[0]?.urlImagem || FALLBACK_PRODUCT_IMAGE,
+            }
+          ]);
+          // Re-fetch rápido para garantir consistência
+          setTimeout(() => { void fetchProducts(); }, 100);
+        }}
+        onStoreUpdated={() => {
+          void refetchStore();
+        }}
+        onStoreDeleted={() => {
+          router.push('/');
+        }}
+      />
+
+      {/* Faixa preta de reviews */}
+      <StoreReviewSection
+        rating={averageRating}
+        reviewCount={reviewCount}
+        reviews={reviews}
+        seeMoreLink={`/loja/${id}/reviews?nome=${encodeURIComponent(storeName)}&categoria=${encodeURIComponent(storeCategory)}&descricao=${encodeURIComponent(storeDescription)}&banner=${encodeURIComponent(bannerImageUrl)}`}
+      />
+
+      {/* Conteúdo principal (produtos, lista) */}
+      <div className="max-w-7xl mx-auto px-8 py-8">
+
+        {/* Produtos melhor avaliados (scroll horizontal) */}
+        {bestProducts.length > 0 && (
+          <ProductScroll
+            title="Produtos melhor avaliados"
+            products={bestProducts}
+            seeMoreLink={`/loja/${id}/produtos?sort=rating`}
+          />
+        )}
+
+        {/* Secção de criar review removida nesta versão */}
+
+        {/* Produtos da loja (grid) */}
+        <section className="pb-12">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold text-[#171918]">Produtos de {storeName}</h2>
+            <a href={`/loja/${id}/produtos`} className="text-sm text-[#6A38F3] hover:underline">
+              ver mais
+            </a>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            {productsLoading && products.length === 0 && (
+              [...Array(5)].map((_, i) => (
+                <div key={i} className="bg-white rounded-2xl p-4 h-64 animate-pulse" />
+              ))
+            )}
+            {!productsLoading && products.length === 0 && (
+              <p className="col-span-full text-sm text-gray-500">Nenhum produto cadastrado.</p>
+            )}
+            {products.map(product => (
+              <ProductCard
+                key={product.id}
+                id={product.id}
+                name={product.name}
+                price={product.price}
+                isAvailable={product.isAvailable}
+                imageUrl={product.imageUrl}
+              />
+            ))}
+          </div>
+
+          {/* Paginação (placeholder) */}
+          <Pagination />
+        </section>
+
+      </div>
+    </main>
+  );
+}
