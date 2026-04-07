@@ -83,10 +83,11 @@ export default function HomePage() {
           ...responseBrinquedos.data,
           ...responseCasa.data
         ];
-        // VISUALIZAÇÃO DA ÁRVORE NO CONSOLE (PARA TESTES)
+        
         todosOsProdutos.forEach(produto => {
           arvoreDeProdutos.inserir(produto);
         });
+        // VISUALIZAÇÃO DA ÁRVORE NO CONSOLE (PARA TESTES)
         if (typeof window !== "undefined") {
             (window as any).arvore = arvoreDeProdutos;
         }

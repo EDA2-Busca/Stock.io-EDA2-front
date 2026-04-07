@@ -73,7 +73,7 @@ export default function CategoriaPage({ params }: CategoriaPageProps) {
   // Estados de Paginação
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [limit, setLimit] = useState(1);
+  const [limit, setLimit] = useState(5);
 
   // Estados de Busca
   const [searchResults, setSearchResults] = useState<ProdutoParaCard[] | null>(null);
