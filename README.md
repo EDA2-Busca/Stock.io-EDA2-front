@@ -1,14 +1,26 @@
-# 💻 Gorgonas — Frontend (Site para Catalogar Produtos)
+# Stock.io
 
-Frontend do sistema de Catalogo de produtos e ecommerce, construído com Next.js (App Router) e TypeScript.
+Número da Lista: Grupo 2<br>
+Conteúdo da Disciplina: Busca<br>
 
-## 📌 Sumário
-- [Tecnologias](#-tecnologias)
-- [Pré-requisitos](#-pré-requisitos)
-- [Instalação Rápida](#-instalação-rápida)
-- [Variáveis de Ambiente](#-variáveis-de-ambiente)
-- [Scripts Úteis](#-scripts-úteis)
-- [Estrutura do Projeto](#-estrutura-do-projeto)
+## 👥 Equipe - Grupo 2
+
+Dupla responsavel pela implementação dos algoritmos de busca
+
+| Foto | Nome | Matricula |
+|---:|---|---|
+| <img src="https://github.com/giovannafg.png" alt="Giovanna" width="80" style="border-radius:8px" /> | **[Giovanna Felipe](https://github.com/giovannafg)** | 241038998 |
+| <img src="https://github.com/andrehsb.png" alt="Andrei" width="80" style="border-radius:8px" /> | **[André Henrique](https://github.com/andrehsb)** | 241025149 |
+
+## Sobre 
+Frontend do sistema de Catalogo de produtos e ecommerce, construído com Next.js (App Router) e TypeScript. 
+
+
+## Screenshots
+![Demonstração da Busca](./gorgonas-frontend/public/busca.png)
+![Demonstração da Busca](./gorgonas-frontend/public/busca1.png)
+![Demonstração da Busca](./gorgonas-frontend/public/busca2.png)
+
 
 ## 🛠️ Tecnologias
 | Categoria | Tecnologia |
@@ -17,14 +29,9 @@ Frontend do sistema de Catalogo de produtos e ecommerce, construído com Next.js
 | Linguagem | TypeScript |
 | Estilização | Tailwind CSS |
 | HTTP Client | Axios |
-| Formulários | Formik & Yup |
-| Notificações | React Toastify |
-
-## ⚙️ Pré-requisitos
-- Node.js 18.x ou superior  
-- npm ou Yarn
 
 ## 🚀 Instalação Rápida
+
 ```bash
 # clonar
 git clone <URL_DO_REPOSITORIO>
@@ -53,25 +60,29 @@ npm run dev       # servidor de desenvolvimento (http://localhost:3000)
 
 ```
 
+## Uso 
+Ao acessar a aplicação, o usuário, ainda deslogado, será direcionado para a HomePage e terá acesso à todo o catálogo de produtos, categorias e lojas. 
+Após efetuar o login o usuário pode navegar pelo seu perfil para adicionar uma loja, adicionar um produto e adicionar avaliações em outros produtos.
+
+## Outros 
+Link para repositório backend: https://github.com/eda2-2026/Busca_G2_back
+
+Link para vídeo explicativo: https://youtu.be/GpyrYawFntM
+
 
 ## Estruturas de dados implementadas para otimização
-O projeto utiliza a estrutura de **Árvore Trie** para otimizar a recuperação de informações. Enquanto uma busca comum em um array tem complexidade $O(n)$, a nossa implementação atinge $O(m)$, onde *m* é o comprimento do termo buscado.
+O projeto utiliza a estrutura de **Árvore Trie** para otimizar a busca de informações. Enquanto uma busca comum em um array tem complexidade $O(n)$, a nossa implementação atinge $O(m)$, onde *m* é o comprimento do termo buscado.
 
 ### Onde as Árvores são utilizadas:
 
-1.  **Home Page (Busca Híbrida):**
-    * **Trie de Produtos:** Armazena e indexa todos os produtos da vitrine.
-    * **Trie de Categorias:** Uma árvore independente que mapeia nomes de categorias (ex: "Farmácia") para suas listas de produtos, permitindo que o usuário encontre setores inteiros digitando apenas o prefixo.
-2.  **Páginas de Categoria:**
-    * Indexação local de produtos específicos da categoria, permitindo filtros instantâneos sem novas chamadas de API.
-3.  **Página de Lojas:**
-    * **Trie de Lojas:** Implementação dedicada para busca de estabelecimentos parceiros pelo nome ou segmento.
+1.  **Home Page:**
+    http://localhost:3000
+    
+2.  **Páginas de Categoria:**:http://localhost:3000/{nomeCategoria}
+    
+3.  **Página de Lojas**:http://localhost:3000/loja
 
-## 👥 Equipe
+4. **Página de Produtos**: http://localhost:3000/produtos
 
-Dupla responsavel pela implementação dos algoritmos de busca
 
-| Foto | Nome | Função |
-|---:|---|---|
-| <img src="https://github.com/giovannafg.png" alt="Giovanna" width="80" style="border-radius:8px" /> | **[Giovanna Felipe](https://github.com/giovannafg)** | Desenvolvedor |
-| <img src="https://github.com/andrehsb.png" alt="Andrei" width="80" style="border-radius:8px" /> | **[André Henrique](https://github.com/andrehsb)** | Desenvolvedor |
+Em todas essas páginas a árvore de busca foi implementada na barra de pesquisa.
